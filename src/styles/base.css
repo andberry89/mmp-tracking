@@ -1,0 +1,100 @@
+@import url("https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Monda:wght@400..700&display=swap");
+
+:root {
+  /* Gray color palette */
+  --white: #ffffff;
+  --white-soft: #f2f2f2;
+  --gray-light-1: #e2e2e2;
+  --gray-light-1-transparent: rgba(226, 226, 226, 0.4);
+  --gray-light-2: #b6b6b6;
+  --gray-light-3: #9a9a9a;
+  --gray-light-4: #595959;
+  --gray: #535353;
+  --gray-dark-2: #4c4c4c;
+  --gray-dark-3: #404040;
+  --gray-dark-4: #333333;
+  --gray-dark-5: #272727;
+  --black: #000000;
+
+  /* Primary color palette */
+  --blue: #45b8d3;
+  --orange: #ed7356;
+  --purple: #c750fd;
+  --yellow: #fde750;
+  --green: #6ac742;
+  --green-2: #94bf69;
+  --teal: #42c79f;
+  --pink: #fd5086;
+  --indigo: #7250fd;
+  --mint: #40cba0;
+  --light-green-transparent: rgba(148, 191, 105, 0.6);
+}
+
+:root {
+  --color-background: var(--white-soft);
+  --color-background-header: var(--white);
+  --color-background-logo: var(--gray-dark-3);
+  --color-background-sidebar: var(--gray-dark-4);
+
+  --color-border: var(--gray-light-1);
+  --color-border-hover: var(--gray-dark-4);
+
+  --color-sidebar-text: var(--white);
+  --color-sidebar-text-header: var(--gray-light-3);
+  --color-sidebar-text-subtext: var(--gray-light-3);
+  --color-sidebar-divider: var(--gray-light-1-transparent);
+
+  /* Header colors */
+  --color-header-text: var(--gray-light-3);
+  --color-header-text-active: var(--gray);
+  --color-header-text-hover: var(--gray);
+  --color-header-text-underline: var(--green-2);
+
+  /* Body colors */
+  --color-body-header-text: var(--gray-dark-5);
+  --color-body-column-header-text: var(--gray-light-4);
+  --color-add-new-item-text: var(--gray-light-4);
+  --color-add-new-item-border: var(--light-green-transparent);
+  --color-body-text: var(--black);
+  --color-body-text-secondary: var(--gray-light-3);
+  --color-body-text-tertiary: var(--gray-light-4);
+  --color-body-text-priority: var(--orange);
+  --color-body-pending: var(--blue);
+  --color-body-published: var(--green);
+  --color-body-rte: var(--purple); /* Ready to Edit */
+  --color-body-rtp: var(--orange); /* Ready to Publish */
+  --color-body-scheduled: var(--yellow);
+  --color-body-updated: var(--teal);
+  --color-body-text-status: var(--white);
+
+  /* Team Button colors */
+  --color-team-text: var(--white);
+  --color-team-bg: var(--indigo); /* Buyer's Guide */
+  --color-team-cd: var(--mint); /* C/D */
+  --color-team-fl: var(--pink); /* Freelance */
+
+  /* Input colors */
+  --color-search-text: var(--black);
+  --color-search-text-placeholder: var(--gray-light-2);
+  --color-dropdown-label: var(--gray-dark-2);
+  --color-dropdown-text: var(--gray-light-2);
+}
+
+/* Global styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-body-text);
+  font: 400 12pt/1.2 "Asap", sans-serif;
+  background: var(--color-background);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
