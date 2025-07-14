@@ -34,7 +34,23 @@
         </div>
         <div class="team">
           <h4>C/D Staff</h4>
-          <!-- START HERE-->
+          <div class="non-bg-team">
+            <span class="view-text">View All</span>
+            <span class="none-assigned">None Assigned</span>
+          </div>
+        </div>
+        <div class="team">
+          <h4>Freelancers</h4>
+          <div class="non-bg-team">
+            <span class="view-text">View Less</span>
+          </div>
+          <div class="author">
+            <span class="author-name">David Gluckman</span>
+            <span class="assigned">2 Assigned</span>
+          </div>
+          <div class="author">
+            <span class="author-name">Beth Nichols</span>
+          </div>
         </div>
       </div>
     </aside>
@@ -121,28 +137,49 @@ export default {
       padding-left: 5px;
       font-family: "Asap", sans-serif;
 
-      h4 {
-        font-size: 11pt;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--color-sidebar-text);
-      }
+      .team {
+        margin-bottom: 16px;
 
-      .author {
-        font-size: 10pt;
-        line-height: 1;
-        color: var(--color-sidebar-text);
-        padding: 8px 0;
-        display: flex;
-        flex-flow: column nowrap;
-        border-bottom: var(--color-sidebar-divider) solid 1px;
-
-        &:last-child {
-          border-bottom: none;
+        h4 {
+          font-size: 11pt;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: var(--color-sidebar-text);
         }
 
-        .assigned {
-          color: var(--color-sidebar-text-subtext);
+        .author {
+          font-size: 10pt;
+          line-height: 1;
+          color: var(--color-sidebar-text);
+          padding: 8px 0;
+          display: flex;
+          flex-flow: column nowrap;
+          border-bottom: var(--color-sidebar-divider) solid 1px;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .assigned {
+            color: var(--color-sidebar-text-subtext);
+          }
+        }
+
+        .non-bg-team {
+          font-size: 10pt;
+          line-height: 1;
+          color: var(--color-sidebar-text);
+          display: flex;
+          flex-flow: column nowrap;
+
+          .view-text {
+            cursor: pointer;
+          }
+
+          .none-assigned {
+            margin-top: 10px;
+            color: var(--color-sidebar-text-subtext);
+          }
         }
       }
     }
