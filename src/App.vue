@@ -53,6 +53,28 @@
           </div>
         </div>
       </div>
+      <h3>Quick Stats</h3>
+      <div class="sidebar-wrapper">
+        <div class="stat-line">
+          <span class="dot"></span>
+          <span class="stat">Pending: </span><span class="stat-number">6</span>
+        </div>
+        <div class="stat-line">
+          <span class="dot"></span>
+          <span class="stat">Pending: </span><span class="stat-number">6</span>
+        </div>
+        <div class="stat-line">
+          <span class="dot"></span>
+          <span class="stat">Pending: </span><span class="stat-number">6</span>
+        </div>
+        <div class="stat-line">
+          <span class="dot"></span>
+          <span class="stat">Pending: </span><span class="stat-number">6</span>
+        </div>
+      </div>
+      <h3>Published & Updates</h3>
+      <!-- START HERE -->
+      <!-- NEED TO MAKE SELECT COMPONENT -->
     </aside>
     <main id="content">
       <p>Main content goes here</p>
@@ -180,6 +202,28 @@ export default {
             margin-top: 10px;
             color: var(--color-sidebar-text-subtext);
           }
+        }
+      }
+
+      .stat-line {
+        font: 400 10pt/1.2 "Monda", sans-serif;
+        color: var(--color-sidebar-text);
+        padding: 6px 0;
+
+        .dot {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--color-body-pending);
+          margin-right: 5px;
+        }
+        .stat {
+          font-weight: 700;
+        }
+
+        &:last-child {
+          margin-bottom: 30px;
         }
       }
     }

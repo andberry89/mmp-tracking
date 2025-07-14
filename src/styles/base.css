@@ -42,6 +42,7 @@
   --color-sidebar-text: var(--white);
   --color-sidebar-text-header: var(--gray-light-3);
   --color-sidebar-text-subtext: var(--gray-light-3);
+  --color-sidebar-text-hover: var(--gray-dark-3);
   --color-sidebar-divider: var(--gray-light-1-transparent);
 
   /* Header colors */
