@@ -74,8 +74,25 @@
       </div>
       <h3>Published & Updates</h3>
       <DropdownMenu :options="ranges" :label="'Show'" />
+      <div class="sidebar-wrapper">
+        <div class="stat-line">
+          <span class="dot"></span>
+          <span class="stat">Published: </span><span class="stat-number">14</span>
+          <div class="stats-subtext">
+            <span>2027: 1</span>
+            <span>2026: 13</span>
+          </div>
+        </div>
+        <div class="stat-line">
+          <span class="dot"></span>
+          <span class="stat">Updated: </span><span class="stat-number">5</span>
+          <div class="stats-subtext">
+            <span>2026: 2</span>
+            <span>2025: 3</span>
+          </div>
+        </div>
+      </div>
       <!-- START HERE -->
-      <!-- NEED TO MAKE SELECT COMPONENT -->
     </aside>
     <main id="content">
       <p>Main content goes here</p>
@@ -236,6 +253,16 @@ export default {
         }
         .stat {
           font-weight: 700;
+        }
+
+        .stats-subtext {
+          font-size: 9pt;
+          color: var(--color-sidebar-text-subtext);
+          padding-left: 20px;
+          display: flex;
+          flex-flow: column nowrap;
+          gap: 4px;
+          margin-top: 4px;
         }
 
         &:last-child {
