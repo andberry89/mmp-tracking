@@ -73,6 +73,7 @@
         </div>
       </div>
       <h3>Published & Updates</h3>
+      <DropdownMenu :options="ranges" :label="'Show'" />
       <!-- START HERE -->
       <!-- NEED TO MAKE SELECT COMPONENT -->
     </aside>
@@ -82,8 +83,23 @@
   </div>
 </template>
 <script>
+import DropdownMenu from "@/components/common/DropdownMenu.vue";
+
 export default {
   name: "App",
+  data() {
+    return {
+      ranges: [
+        { label: "Last Week", value: "last_week" },
+        { label: "Last Month", value: "last_month" },
+        { label: "This Week", value: "this_week" },
+        { label: "This Month", value: "this_month" },
+      ],
+    };
+  },
+  components: {
+    DropdownMenu,
+  },
 };
 </script>
 

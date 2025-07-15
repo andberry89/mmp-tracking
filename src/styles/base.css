@@ -3,6 +3,7 @@
 :root {
   /* Gray color palette */
   --white: #ffffff;
+  --white-muted: #f1f1f1;
   --white-soft: #f2f2f2;
   --gray-light-1: #e2e2e2;
   --gray-light-1-transparent: rgba(226, 226, 226, 0.4);
@@ -75,10 +76,13 @@
   --color-team-fl: var(--pink); /* Freelance */
 
   /* Input colors */
+  --color-input-background: var(--white);
+  --color-input-border: var(--white-muted);
+  --color-input-hover: var(--gray-light-1);
   --color-search-text: var(--black);
   --color-search-text-placeholder: var(--gray-light-2);
   --color-dropdown-label: var(--gray-dark-2);
-  --color-dropdown-text: var(--gray-light-2);
+  --color-dropdown-text: var(--gray-light-4);
 }
 
 /* Global styles */
