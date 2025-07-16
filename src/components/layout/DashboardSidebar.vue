@@ -88,6 +88,12 @@ export default {
   components: {
     DropdownMenu,
   },
+  props: {
+    ranges: {
+      type: Array,
+      required: true,
+    },
+  },
 };
 </script>
 <style lang="scss" scoped>
