@@ -1,12 +1,10 @@
 <template>
   <nav class="wrapper">
-    <ul>
-      <li>MMPs</li>
-      <li>Makes</li>
-      <li>Models</li>
-      <li>Segments</li>
-      <li>Authors</li>
-    </ul>
+    <span class="active">MMPs</span>
+    <span>Makes</span>
+    <span>Models</span>
+    <span>Segments</span>
+    <span>Authors</span>
   </nav>
 </template>
 <script>
@@ -16,26 +14,26 @@ export default {
 </script>
 <style lang="scss" scoped>
 nav.wrapper {
+  display: flex;
+  flex-flow: row nowrap;
+  margin: 0;
+  padding: 0 0 0 20px;
   width: 100%;
-  border-bottom: var(--color-border) solid 2px;
-  padding: 3.5rem 20px;
 
-  ul {
-    display: flex;
-    flex-flow: row nowrap;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
+  span {
+    font: 700 2rem/1.2 "Monda", sans-serif;
+    color: var(--color-header-text);
+    margin-right: 2.5rem;
+    cursor: pointer;
+    display: inline-block;
+    padding-bottom: 10px;
 
-    li {
-      font: 700 2rem/1.2 "Monda", sans-serif;
-      color: var(--color-header-text);
-      margin-right: 2.5rem;
-      cursor: pointer;
+    &.active {
+      border-bottom: 4px solid var(--color-header-text-underline);
+    }
 
-      &:hover {
-        color: var(--color-header-text-hover);
-      }
+    &:hover {
+      color: var(--color-header-text-hover);
     }
   }
 }

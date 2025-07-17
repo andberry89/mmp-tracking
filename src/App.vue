@@ -8,13 +8,72 @@
       <DashboardSidebar :ranges="ranges" />
     </aside>
     <main id="content">
-      <p>Main content goes here</p>
+      <section class="content-header">
+        <div>
+          <h1>MMPs</h1>
+        </div>
+        <div class="header-actions">
+          <form>
+            <div class="search-bar">
+              <span class="search-icon material-symbols-outlined"> search </span>
+              <input
+                type="search"
+                class="search-input"
+                placeholder="Search by vehicle or segment"
+              />
+            </div>
+          </form>
+          <DropdownMenu :options="ranges" :label="'Author'" />
+          <DropdownMenu :options="ranges" :label="'Status'" />
+          <!-- GOOGLE FONT ICONS SVGS ALLOW FOR MORE CUSTOMIZATION-->
+          <span class="icon-wrapper"
+            ><img
+              src="/assets/icons/sort.png"
+              height="12"
+              width="14"
+              alt="Sort Icon"
+              class="sort-icon"
+          /></span>
+          <span class="icon-wrapper"
+            ><img
+              src="/assets/icons/filter.png"
+              height="16"
+              width="16"
+              alt="Filter Icon"
+              class="filter-icon"
+          /></span>
+        </div>
+      </section>
+      <section class="content-column-headers">
+        <div class="content-column-header">
+          <span class="column-header-text">Vehicle/Segment</span>
+        </div>
+        <div class="content-column-header">
+          <span class="column-header-text">Deadline</span>
+        </div>
+        <div class="content-column-header">
+          <span class="column-header-text">Status</span>
+        </div>
+        <div class="content-column-header">
+          <span class="column-header-text">Embargo/Publish Date</span>
+        </div>
+        <div class="content-column-header">
+          <span class="column-header-text">Notes</span>
+        </div>
+        <div class="content-column-header">
+          <span class="column-header-text">Assets</span>
+        </div>
+        <div class="content-column-header">
+          <span class="column-header-text">Author</span>
+        </div>
+      </section>
     </main>
   </div>
 </template>
 <script>
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
+import DropdownMenu from "@/components/common/DropdownMenu.vue";
 
 export default {
   name: "App",
@@ -30,6 +89,7 @@ export default {
   },
   components: {
     DashboardSidebar,
+    DropdownMenu,
     TopNav,
   },
 };
@@ -39,7 +99,7 @@ export default {
 .layout-grid {
   display: grid;
   grid-template-columns: 140px 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 100px 1fr;
   grid-template-areas:
     "logo header"
     "sidebar content";
@@ -62,6 +122,7 @@ export default {
     display: flex;
     align-items: center;
     background-color: var(--color-background-header);
+    border-bottom: var(--color-border) solid 2px;
   }
 
   #sidebar {
@@ -74,9 +135,71 @@ export default {
   #content {
     grid-area: content;
     color: var(--color-text);
-    padding: 1rem;
+    padding: 20px;
     background: url("@/assets/bg-pattern.jpeg") repeat;
     background-size: auto;
+
+    .content-header {
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+
+      h1 {
+        font: 700 24px/1.2 "Monda", sans-serif;
+        color: var(--color-body-header-text);
+        margin: 0;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+
+        .search-bar {
+          --padding: 4px;
+
+          width: max-content;
+          display: flex;
+          align-items: center;
+          background-color: var(--color-input-background);
+          border: 1px solid var(--color-input-border);
+          padding: var(--padding);
+          border-radius: 8px;
+          width: 220px;
+          height: 24px;
+
+          .search-input {
+            font: 400 12px/1 "Monda", sans-serif;
+            color: var(--color-search-text);
+            margin-left: var(--padding);
+            outline: none;
+            border: none;
+            background: transparent;
+            flex: 1;
+          }
+
+          .search-input::placeholder,
+          .search-icon {
+            color: var(--color-search-text-placeholder);
+          }
+        }
+        .icon-wrapper {
+          --sides: 22px;
+
+          width: var(--sides);
+          height: var(--sides);
+          background-color: var(--color-input-background);
+          border: 1px solid var(--color-input-border);
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
   }
 }
 

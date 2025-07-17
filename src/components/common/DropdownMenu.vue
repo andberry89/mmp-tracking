@@ -68,6 +68,9 @@ export default {
   justify-content: flex-start;
   align-content: center;
   position: relative;
+  width: max-content;
+  width: 110px;
+  height: 22px;
   font: 400 12px/1.2 "Asap", sans-serif;
   color: var(--color-dropdown-text);
   background-color: var(--color-input-background);
