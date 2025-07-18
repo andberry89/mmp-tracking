@@ -96,6 +96,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@mixin column-layout() {
+  display: grid;
+  justify-items: start;
+  grid-template-columns: 1fr 100px 120px 175px 1fr 50px 50px 8px; // WORK ON SPACING FOR RESPONSIBE PURPOSES
+  margin-top: 30px;
+  padding: 0 10px 0 20px;
+  //TODO: WORK ON GRID LAYOUT
+}
+
 .layout-grid {
   display: grid;
   grid-template-columns: 140px 1fr;
@@ -197,6 +206,25 @@ export default {
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+      }
+    }
+
+    .content-column-headers {
+      @include column-layout();
+      margin-top: 20px;
+
+      .content-column-header {
+        text-align: center;
+        padding: 10px;
+        background-color: var(--color-header-background);
+        border-radius: 4px;
+
+        .column-header-text {
+          font: 700 14px/1.2 "Asap", sans-serif;
+          color: var(--color-body-column-header-text);
+          display: block;
+          width: 100%;
         }
       }
     }
