@@ -53,6 +53,9 @@
   --color-header-text-hover: var(--gray);
   --color-header-text-underline: var(--green-2);
 
+  /* Add New Item colors */
+  --color-add-new: var(--green-2);
+
   /* Body colors */
   --color-body-header-text: var(--gray-dark-5);
   --color-body-column-header-text: var(--gray-light-4);
@@ -61,6 +64,8 @@
   --color-body-text: var(--black);
   --color-body-text-secondary: var(--gray-light-3);
   --color-body-text-tertiary: var(--gray-light-4);
+  --color-body-background: var(--white);
+  --color-body-border: var(--gray-light-1);
   --color-body-text-priority: var(--orange);
   --color-body-pending: var(--blue);
   --color-body-published: var(--green);
@@ -69,6 +74,7 @@
   --color-body-scheduled: var(--yellow);
   --color-body-updated: var(--teal);
   --color-body-text-status: var(--white);
+  --color-body-more-icon: var(--gray-dark-2);
 
   /* Team Button colors */
   --color-team-text: var(--white);
@@ -95,7 +101,6 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-weight: normal;
 }
 
 body {

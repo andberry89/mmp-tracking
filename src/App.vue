@@ -52,7 +52,25 @@
           <span class="column-header-text">Author</span>
         </div>
       </section>
-      <section class="add-new"></section>
+      <section class="add-new">
+        <PlusIcon class="add-new-btn" />
+        <span>Add New Task</span>
+      </section>
+      <section class="task-list">
+        <div class="task-item grid">
+          <div class="task-vehicle">
+            <span class="vehicle">2026 Audi A3</span
+            ><span class="segment">Subcompact Luxury Cars</span>
+          </div>
+          <div class="task-deadline"></div>
+          <div class="task-status">Pending</div>
+          <div class="task-date"></div>
+          <div class="task-notes">no changes expected</div>
+          <div class="task-assets"><FolderOpenIcon /></div>
+          <div class="task-author"><span class="initials">DG</span></div>
+          <div class="task-actions"><MoreIcon class="more-icon" /></div>
+        </div>
+      </section>
     </main>
   </div>
 </template>
@@ -61,7 +79,10 @@ import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 import SearchIcon from "@/assets/icons/search.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
+import PlusIcon from "@/assets/icons/plus.svg";
 import SortIcon from "@/assets/icons/sort.svg";
+import FolderOpenIcon from "@/assets/icons/folder-open.svg";
+import MoreIcon from "@/assets/icons/more.svg";
 
 export default {
   name: "App",
@@ -78,6 +99,9 @@ export default {
   components: {
     DashboardSidebar,
     FilterIcon,
+    FolderOpenIcon,
+    MoreIcon,
+    PlusIcon,
     SearchIcon,
     SortIcon,
     TopNav,
@@ -89,10 +113,10 @@ export default {
 @mixin column-layout() {
   display: grid;
   justify-items: start;
+  align-items: center;
   grid-template-columns: 1fr 100px 120px 175px 1fr 50px 50px 8px; // WORK ON SPACING FOR RESPONSIBE PURPOSES
   margin-top: 30px;
   padding: 0 10px 0 20px;
-  //TODO: WORK ON GRID LAYOUT
 }
 
 .layout-grid {
@@ -133,7 +157,6 @@ export default {
 
   #content {
     grid-area: content;
-    color: var(--color-text);
     padding: 20px;
     background: url("@/assets/bg-pattern.jpeg") repeat;
     background-size: auto;
@@ -216,7 +239,7 @@ export default {
 
       .content-column-header {
         text-align: center;
-        padding: 10px;
+        padding: 10px 0;
         background-color: var(--color-header-background);
         border-radius: 4px;
 
@@ -225,6 +248,87 @@ export default {
           color: var(--color-body-column-header-text);
           display: block;
           width: 100%;
+        }
+      }
+    }
+
+    .add-new {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 5px;
+      color: var(--color-add-new-item-text);
+      font: 700 14px/1.2 "Asap", sans-serif;
+      border: 1px dashed var(--color-add-new-item-border);
+      cursor: pointer;
+
+      .add-new-btn {
+        fill: var(--color-add-new);
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+      }
+    }
+
+    .task-list {
+      font: 400 12px/1.2 "Asap", sans-serif;
+
+      .task-item {
+        background-color: var(--color-body-background);
+        border: 1px solid (var--color-body-border);
+        border-radius: 4px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+
+        .task-vehicle {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding-left: 10px;
+          font-weight: bold;
+
+          .vehicle {
+            color: var(--color-body-text);
+          }
+
+          .segment {
+            color: var(--color-body-text-secondary);
+          }
+        }
+
+        .task-status {
+          background-color: var(--color-body-pending);
+          border-radius: 8px;
+          padding: 5px 20px;
+          color: var(--color-body-text-status);
+          font-weight: bold;
+          font-size: 11px;
+        }
+
+        .task-notes {
+          color: var(--color-body-text-tertiary);
+          font-size: 11px;
+        }
+
+        .task-author {
+          .initials {
+            background-color: var(--color-team-fl);
+            border-radius: 50%;
+            color: var(--color-team-text);
+            height: 24px;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font: 700 14px/1.2 "Asap", sans-serif;
+          }
+        }
+
+        .task-actions {
+          .more-icon {
+            fill: var(--color-body-more-icon);
+            cursor: pointer;
+          }
         }
       }
     }
