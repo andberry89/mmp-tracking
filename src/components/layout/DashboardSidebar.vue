@@ -81,13 +81,8 @@
 </template>
 
 <script>
-import DropdownMenu from "@/components/common/DropdownMenu.vue";
-
 export default {
   name: "DashboardSidebar",
-  components: {
-    DropdownMenu,
-  },
   props: {
     ranges: {
       type: Array,

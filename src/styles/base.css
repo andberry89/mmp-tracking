@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Monda:wght@400..700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=search");
 
 :root {
   /* Gray color palette */
@@ -79,10 +78,13 @@
 
   /* Input colors */
   --color-input-background: var(--white);
+  --color-input-background-hover: var(--gray-dark-2);
   --color-input-border: var(--white-muted);
   --color-input-hover: var(--gray-light-1);
   --color-search-text: var(--black);
   --color-search-text-placeholder: var(--black-transparent-1);
+  --color-icon: var(--gray-light-2);
+  --color-icon-hover: var(--white-soft);
   --color-dropdown-label: var(--gray-dark-2);
   --color-dropdown-text: var(--gray-light-4);
 }

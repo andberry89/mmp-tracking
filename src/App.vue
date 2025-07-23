@@ -15,7 +15,7 @@
         <div class="header-actions">
           <form>
             <div class="search-bar">
-              <span class="search-icon material-symbols-outlined"> search </span>
+              <SearchIcon class="search-icon" />
               <input
                 type="search"
                 class="search-input"
@@ -25,26 +25,11 @@
           </form>
           <DropdownMenu :options="ranges" :label="'Author'" />
           <DropdownMenu :options="ranges" :label="'Status'" />
-          <!-- GOOGLE FONT ICONS SVGS ALLOW FOR MORE CUSTOMIZATION-->
-          <span class="icon-wrapper"
-            ><img
-              src="/assets/icons/sort.png"
-              height="12"
-              width="14"
-              alt="Sort Icon"
-              class="sort-icon"
-          /></span>
-          <span class="icon-wrapper"
-            ><img
-              src="/assets/icons/filter.png"
-              height="16"
-              width="16"
-              alt="Filter Icon"
-              class="filter-icon"
-          /></span>
+          <SortIcon class="sort-icon header-icon" />
+          <FilterIcon class="filter-icon header-icon" />
         </div>
       </section>
-      <section class="content-column-headers">
+      <section class="content-column-headers grid">
         <div class="content-column-header">
           <span class="column-header-text">Vehicle/Segment</span>
         </div>
@@ -67,13 +52,16 @@
           <span class="column-header-text">Author</span>
         </div>
       </section>
+      <section class="add-new"></section>
     </main>
   </div>
 </template>
 <script>
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
-import DropdownMenu from "@/components/common/DropdownMenu.vue";
+import SearchIcon from "@/assets/icons/search.svg";
+import FilterIcon from "@/assets/icons/filter.svg";
+import SortIcon from "@/assets/icons/sort.svg";
 
 export default {
   name: "App",
@@ -89,7 +77,9 @@ export default {
   },
   components: {
     DashboardSidebar,
-    DropdownMenu,
+    FilterIcon,
+    SearchIcon,
+    SortIcon,
     TopNav,
   },
 };
@@ -148,6 +138,10 @@ export default {
     background: url("@/assets/bg-pattern.jpeg") repeat;
     background-size: auto;
 
+    .grid {
+      @include column-layout();
+    }
+
     .content-header {
       display: flex;
       flex-flow: row nowrap;
@@ -194,11 +188,12 @@ export default {
             color: var(--color-search-text-placeholder);
           }
         }
-        .icon-wrapper {
+        .header-icon {
           --sides: 22px;
 
           width: var(--sides);
           height: var(--sides);
+          fill: var(--color-icon);
           background-color: var(--color-input-background);
           border: 1px solid var(--color-input-border);
           border-radius: 4px;
@@ -206,12 +201,17 @@ export default {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: all 0.4s ease-in-out;
+
+          &:hover {
+            background-color: var(--color-input-background-hover);
+            fill: var(--color-icon-hover);
+          }
         }
       }
     }
 
     .content-column-headers {
-      @include column-layout();
       margin-top: 20px;
 
       .content-column-header {
