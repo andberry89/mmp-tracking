@@ -66,8 +66,25 @@
           <div class="task-status">Pending</div>
           <div class="task-date"></div>
           <div class="task-notes">no changes expected</div>
-          <div class="task-assets"><FolderOpenIcon /></div>
-          <div class="task-author"><span class="initials">DG</span></div>
+          <div class="task-assets"><FolderIcon /></div>
+          <div class="task-author"><span class="initials freelance">DG</span></div>
+          <div class="task-actions"><MoreIcon class="more-icon" /></div>
+        </div>
+        <div class="task-item grid">
+          <div class="task-vehicle">
+            <span class="vehicle">2026 Ferrari Roma Spider</span
+            ><span class="segment">Ultimate Luxury Sports Cars</span>
+          </div>
+          <div class="task-deadline"></div>
+          <div class="task-status">Pending</div>
+          <div class="task-date"></div>
+          <div class="task-notes">
+            Spider only, 2026 is final model year, replaced by Amalfi for 2027
+          </div>
+          <div class="task-assets"><FolderIcon /></div>
+          <div class="task-author">
+            <span class="initials"><AddCircleIcon /></span>
+          </div>
           <div class="task-actions"><MoreIcon class="more-icon" /></div>
         </div>
       </section>
@@ -77,12 +94,16 @@
 <script>
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
-import SearchIcon from "@/assets/icons/search.svg";
-import FilterIcon from "@/assets/icons/filter.svg";
-import PlusIcon from "@/assets/icons/plus.svg";
-import SortIcon from "@/assets/icons/sort.svg";
-import FolderOpenIcon from "@/assets/icons/folder-open.svg";
-import MoreIcon from "@/assets/icons/more.svg";
+import {
+  AddCircleIcon,
+  FilterIcon,
+  FolderIcon,
+  // FolderOpenIcon,
+  MoreIcon,
+  PlusIcon,
+  SearchIcon,
+  SortIcon,
+} from "@/assets/icons";
 
 export default {
   name: "App",
@@ -97,9 +118,11 @@ export default {
     };
   },
   components: {
+    AddCircleIcon,
     DashboardSidebar,
     FilterIcon,
-    FolderOpenIcon,
+    FolderIcon,
+    // FolderOpenIcon,
     MoreIcon,
     PlusIcon,
     SearchIcon,
@@ -114,8 +137,8 @@ export default {
   display: grid;
   justify-items: start;
   align-items: center;
-  grid-template-columns: 1fr 100px 120px 175px 1fr 50px 50px 8px; // WORK ON SPACING FOR RESPONSIBE PURPOSES
-  margin-top: 30px;
+  grid-template-columns: 1fr 100px 120px 175px 1fr 50px 50px 8px;
+  // TODO: WORK ON SPACING FOR RESPONSIBE PURPOSES
   padding: 0 10px 0 20px;
 }
 
@@ -275,10 +298,11 @@ export default {
 
       .task-item {
         background-color: var(--color-body-background);
-        border: 1px solid (var--color-body-border);
+        border: 2px solid var(--color-body-border);
         border-radius: 4px;
         padding-top: 8px;
         padding-bottom: 8px;
+        transition: all 0.2s ease-in-out;
 
         .task-vehicle {
           display: flex;
@@ -312,7 +336,6 @@ export default {
 
         .task-author {
           .initials {
-            background-color: var(--color-team-fl);
             border-radius: 50%;
             color: var(--color-team-text);
             height: 24px;
@@ -322,6 +345,10 @@ export default {
             justify-content: center;
             font: 700 14px/1.2 "Asap", sans-serif;
           }
+
+          .freelance {
+            background-color: var(--color-team-fl);
+          }
         }
 
         .task-actions {
@@ -329,6 +356,13 @@ export default {
             fill: var(--color-body-more-icon);
             cursor: pointer;
           }
+        }
+
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0px 15px 24px 6px rgba(0, 0, 0, 0.5);
+          -webkit-box-shadow: 0px 15px 24px 6px rgba(0, 0, 0, 0.5);
+          -moz-box-shadow: 0px 15px 24px 6px rgba(0, 0, 0, 0.5);
         }
       }
     }
