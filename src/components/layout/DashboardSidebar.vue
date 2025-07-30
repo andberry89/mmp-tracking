@@ -1,80 +1,82 @@
 <template>
-  <h3>Authors</h3>
-  <div class="sidebar-wrapper">
-    <div class="team">
-      <h4>Buyer's Guide</h4>
-      <div class="author">
-        <span class="author-name">Joey Capparella</span>
+  <div>
+    <h3>Authors</h3>
+    <div class="sidebar-wrapper">
+      <div class="team">
+        <h4>Buyer's Guide</h4>
+        <div class="author">
+          <span class="author-name">Joey Capparella</span>
+        </div>
+        <div class="author">
+          <span class="author-name">Drew Dorian</span>
+        </div>
+        <div class="author">
+          <span class="author-name">Austin Parsons</span>
+          <span class="assigned">1 Assigned</span>
+        </div>
+        <div class="author">
+          <span class="author-name">Andrew Wendler</span>
+          <span class="assigned">1 Assigned</span>
+        </div>
       </div>
-      <div class="author">
-        <span class="author-name">Drew Dorian</span>
+      <div class="team">
+        <h4>C/D Staff</h4>
+        <div class="non-bg-team">
+          <span class="view-text">View All</span>
+          <span class="none-assigned">None Assigned</span>
+        </div>
       </div>
-      <div class="author">
-        <span class="author-name">Austin Parsons</span>
-        <span class="assigned">1 Assigned</span>
-      </div>
-      <div class="author">
-        <span class="author-name">Andrew Wendler</span>
-        <span class="assigned">1 Assigned</span>
-      </div>
-    </div>
-    <div class="team">
-      <h4>C/D Staff</h4>
-      <div class="non-bg-team">
-        <span class="view-text">View All</span>
-        <span class="none-assigned">None Assigned</span>
-      </div>
-    </div>
-    <div class="team">
-      <h4>Freelancers</h4>
-      <div class="non-bg-team">
-        <span class="view-text">View Less</span>
-      </div>
-      <div class="author">
-        <span class="author-name">David Gluckman</span>
-        <span class="assigned">2 Assigned</span>
-      </div>
-      <div class="author">
-        <span class="author-name">Beth Nichols</span>
-      </div>
-    </div>
-  </div>
-  <h3>Quick Stats</h3>
-  <div class="sidebar-wrapper">
-    <div class="stat-line">
-      <span class="dot"></span>
-      <span class="stat">Pending: </span><span class="stat-number">6</span>
-    </div>
-    <div class="stat-line">
-      <span class="dot"></span>
-      <span class="stat">Pending: </span><span class="stat-number">6</span>
-    </div>
-    <div class="stat-line">
-      <span class="dot"></span>
-      <span class="stat">Pending: </span><span class="stat-number">6</span>
-    </div>
-    <div class="stat-line">
-      <span class="dot"></span>
-      <span class="stat">Pending: </span><span class="stat-number">6</span>
-    </div>
-  </div>
-  <h3>Published & Updates</h3>
-  <DropdownMenu :options="ranges" :label="'Show'" />
-  <div class="sidebar-wrapper">
-    <div class="stat-line">
-      <span class="dot"></span>
-      <span class="stat">Published: </span><span class="stat-number">14</span>
-      <div class="stats-subtext">
-        <span>2027: 1</span>
-        <span>2026: 13</span>
+      <div class="team">
+        <h4>Freelancers</h4>
+        <div class="non-bg-team">
+          <span class="view-text">View Less</span>
+        </div>
+        <div class="author">
+          <span class="author-name">David Gluckman</span>
+          <span class="assigned">2 Assigned</span>
+        </div>
+        <div class="author">
+          <span class="author-name">Beth Nichols</span>
+        </div>
       </div>
     </div>
-    <div class="stat-line">
-      <span class="dot"></span>
-      <span class="stat">Updated: </span><span class="stat-number">5</span>
-      <div class="stats-subtext">
-        <span>2026: 2</span>
-        <span>2025: 3</span>
+    <h3>Quick Stats</h3>
+    <div class="sidebar-wrapper">
+      <div class="stat-line">
+        <span class="dot"></span>
+        <span class="stat">Pending: </span><span class="stat-number">6</span>
+      </div>
+      <div class="stat-line">
+        <span class="dot"></span>
+        <span class="stat">Pending: </span><span class="stat-number">6</span>
+      </div>
+      <div class="stat-line">
+        <span class="dot"></span>
+        <span class="stat">Pending: </span><span class="stat-number">6</span>
+      </div>
+      <div class="stat-line">
+        <span class="dot"></span>
+        <span class="stat">Pending: </span><span class="stat-number">6</span>
+      </div>
+    </div>
+    <h3>Published & Updates</h3>
+    <DropdownMenu :options="ranges" :label="'Show'" />
+    <div class="sidebar-wrapper">
+      <div class="stat-line">
+        <span class="dot"></span>
+        <span class="stat">Published: </span><span class="stat-number">14</span>
+        <div class="stats-subtext">
+          <span>2027: 1</span>
+          <span>2026: 13</span>
+        </div>
+      </div>
+      <div class="stat-line">
+        <span class="dot"></span>
+        <span class="stat">Updated: </span><span class="stat-number">5</span>
+        <div class="stats-subtext">
+          <span>2026: 2</span>
+          <span>2025: 3</span>
+        </div>
       </div>
     </div>
   </div>

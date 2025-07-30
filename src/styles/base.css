@@ -22,13 +22,14 @@
   --blue: #45b8d3;
   --orange: #ed7356;
   --purple: #c750fd;
-  --yellow: #fde750;
+  --yellow: #eab02f;
   --green: #6ac742;
   --green-2: #94bf69;
   --teal: #42c79f;
   --pink: #fd5086;
   --indigo: #7250fd;
   --mint: #40cba0;
+  --red: #e2574c;
   --light-green-transparent: rgba(148, 191, 105, 0.6);
 }
 
@@ -64,9 +65,15 @@
   --color-body-text: var(--black);
   --color-body-text-secondary: var(--gray-light-3);
   --color-body-text-tertiary: var(--gray-light-4);
+
+  /* MMP Task colors */
   --color-body-background: var(--white);
   --color-body-border: var(--gray-light-1);
   --color-body-text-priority: var(--orange);
+  --color-body-active-assets: var(--gray-light-3);
+  --color-body-more-icon: var(--gray-dark-2);
+
+  /* Status colors */
   --color-body-pending: var(--blue);
   --color-body-published: var(--green);
   --color-body-rte: var(--purple); /* Ready to Edit */
@@ -74,7 +81,6 @@
   --color-body-scheduled: var(--yellow);
   --color-body-updated: var(--teal);
   --color-body-text-status: var(--white);
-  --color-body-more-icon: var(--gray-dark-2);
 
   /* Team Button colors */
   --color-team-text: var(--white);
