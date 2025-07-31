@@ -1,6 +1,6 @@
 <template>
-  <div class="task-item grid">
-    <div class="task-priority"><HighPriorityIcon v-if="isHighPriority(doc)" /></div>
+  <div class="task-item">
+    <div><HighPriorityIcon v-if="isHighPriority(doc)" /></div>
     <div class="task-vehicle">
       <span class="vehicle">{{
         doc.vehicle.modelYear + " " + doc.vehicle.make + " " + doc.vehicle.model
@@ -11,11 +11,11 @@
       {{ doc.deadline }}
     </div>
     <div :class="['task-status', getStatus(doc.status)]">{{ doc.status }}</div>
-    <div :class="['task-date', getDateFormat(doc)]">{{ getDateText(doc) }}</div>
+    <div :class="getDateFormat(doc)">{{ getDateText(doc) }}</div>
     <div class="task-notes">{{ doc.notes }}</div>
     <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
-      <FolderIcon v-if="!isAssetsOpen" @click="toggleAssets(true)" />
-      <FolderOpenIcon v-if="isAssetsOpen" @click="toggleAssets(false)" />
+      <FolderIcon v-if="!isAssetsOpen" @click="toggleAssets" />
+      <FolderOpenIcon v-if="isAssetsOpen" @click="toggleAssets" />
     </div>
     <div v-else class="task-assets"><FolderIcon /></div>
     <div class="task-author">
@@ -28,7 +28,6 @@
   </div>
 </template>
 <script>
-import dateFormat from "dateformat";
 import {
   AddCircleIcon,
   FolderIcon,
@@ -36,6 +35,7 @@ import {
   HighPriorityIcon,
   MoreIcon,
 } from "@/assets/icons";
+import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
 
 export default {
   name: "TaskItem",
@@ -58,69 +58,12 @@ export default {
     MoreIcon,
   },
   methods: {
-    dateFormat: dateFormat,
-    getDateFormat(doc) {
-      if (doc.embargo && !doc.published) {
-        return "embargo";
-      } else if (doc.published) {
-        return "published";
-      } else {
-        return "";
-      }
-    },
-    getDateText(doc) {
-      let date = "";
-      if (doc.embargo && !doc.published) {
-        if (doc.embargoDate !== "") {
-          date =
-            dateFormat(doc.embargoDate, "mediumDate") +
-            " | " +
-            dateFormat(doc.embargoDate, "h:MM TT");
-        } else {
-          date = doc.embargoNotes;
-        }
-      } else if (doc.published) {
-        date = dateFormat(date, "mediumDate");
-      }
-      return date;
-    },
-    getStatus(status) {
-      switch (status.toLowerCase()) {
-        case "pending":
-          return "pending";
-        case "ready to edit":
-          return "rte";
-        case "ready to publish":
-          return "rtp";
-        case "scheduled":
-          return "scheduled";
-        case "published":
-          return "published";
-        case "updated":
-          return "updated";
-        default:
-          return "";
-      }
-    },
-    isHighPriority(doc) {
-      if (doc.highPriority) {
-        return true;
-      } else if (doc.deadline && doc.deadline !== "") {
-        let today = new Date();
-        let tomorrow = new Date(today);
-        let deadline = new Date(doc.deadline);
-        tomorrow.setDate(today.getDate() + 1);
-        let hp = false;
-
-        if (deadline == today || deadline == tomorrow) {
-          hp = true;
-        }
-
-        return hp;
-      }
-    },
-    toggleAssets(value) {
-      this.isAssetsOpen = value;
+    getDateFormat: getDateFormat,
+    getDateText: getDateText,
+    getStatus: getStatus,
+    isHighPriority: isHighPriority,
+    toggleAssets() {
+      this.isAssetsOpen = !this.isAssetsOpen;
     },
   },
 };
@@ -129,14 +72,10 @@ export default {
 .task-item {
   background-color: var(--color-body-background);
   border: 2px solid var(--color-body-border);
-  border-radius: 4px;
+  border-radius: 8px;
   padding-top: 8px;
   padding-bottom: 8px;
   transition: all 0.1s ease-in-out;
-
-  .task-priority {
-    margin: 0 auto;
-  }
 
   .task-vehicle {
     display: flex;
