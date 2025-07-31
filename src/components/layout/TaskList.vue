@@ -32,195 +32,29 @@
     </section>
     <section class="task-list">
       <div class="task-item grid" v-for="(doc, idx) in documents" :key="idx">
-        <div class="task-priority"><HighPriorityIcon v-if="doc.highPriority" /></div>
+        <div class="task-priority"><HighPriorityIcon v-if="isHighPriority(doc)" /></div>
         <div class="task-vehicle">
           <span class="vehicle">{{
             doc.vehicle.modelYear + " " + doc.vehicle.make + " " + doc.vehicle.model
           }}</span
           ><span class="segment">{{ doc.vehicle.segment }}</span>
         </div>
-        <div class="task-deadline">{{ doc.deadline }}</div>
-        <div class="task-status pending">{{ doc.status }}</div>
-        <div class="task-date">NEED LOGIC HERE</div>
+        <div :class="['task-deadline', isHighPriority(doc) ? 'due-soon' : '']">
+          {{ doc.deadline }}
+        </div>
+        <div :class="['task-status', getStatus(doc.status)]">{{ doc.status }}</div>
+        <div :class="['task-date', getDateFormat(doc)]">{{ getDateText(doc) }}</div>
         <div class="task-notes">{{ doc.notes }}</div>
-        <div class="task-assets"><FolderIcon /></div>
+        <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
+          <FolderIcon v-if="!isAssetsOpen" @click="toggleAssets(true)" />
+          <FolderOpenIcon v-if="isAssetsOpen" @click="toggleAssets(false)" />
+        </div>
+        <div v-else class="task-assets"><FolderIcon /></div>
         <div class="task-author">
-          <span class="initials freelance">{{ doc.author ? doc.author.initials : "NA" }}</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Audi A3</span
-          ><span class="segment">Subcompact Luxury Cars</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status pending">Pending</div>
-        <div class="task-date"></div>
-        <div class="task-notes">no changes expected</div>
-        <div class="task-assets"><FolderIcon /></div>
-        <div class="task-author"><span class="initials freelance">DG</span></div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Ferrari Roma Spider</span
-          ><span class="segment">Ultimate Luxury Sports Cars</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status pending">Pending</div>
-        <div class="task-date"></div>
-        <div class="task-notes">
-          Spider only, 2026 is final model year, replaced by Amalfi for 2027
-        </div>
-        <div class="task-assets"><FolderIcon /></div>
-        <div class="task-author">
-          <span class="initials"><AddCircleIcon /></span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Hyundai Elantra</span><span class="segment">Compact Cars</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status pending">Pending</div>
-        <div class="task-date embargo">Mid-July TBD</div>
-        <div class="task-notes">check 2026 What's New Folder</div>
-        <div class="task-assets"><FolderIcon /></div>
-        <div class="task-author">
-          <span class="initials"><AddCircleIcon /></span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"><HighPriorityIcon /></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Rivian R1T</span
-          ><span class="segment">Electric Pickup Trucks</span>
-        </div>
-        <div class="task-deadline due-soon">July 7, 2025</div>
-        <div class="task-status pending">Pending</div>
-        <div class="task-date embargo">July 8, 2025<br />10:00 AM EST</div>
-        <div class="task-notes"></div>
-        <div class="task-assets active-assets"><FolderIcon /></div>
-        <div class="task-author">
-          <span class="initials bg">AP</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Volvo V60 Cross Country</span
-          ><span class="segment">Station Wagons</span>
-        </div>
-        <div class="task-deadline">July 17, 2025</div>
-        <div class="task-status rte">Ready to Edit</div>
-        <div class="task-date"></div>
-        <div class="task-notes">Joey reading</div>
-        <div class="task-assets active-assets"><FolderIcon /></div>
-        <div class="task-author">
-          <span class="initials bg">DD</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Mazda CX-5</span><span class="segment">Compact SUVs</span>
-        </div>
-        <div class="task-deadline">July 9, 2025</div>
-        <div class="task-status rte">Ready to Edit</div>
-        <div class="task-date embargo">July 10, 2025<br />04:00 AM EST</div>
-        <div class="task-notes"></div>
-        <div class="task-assets active-assets"><FolderIcon /></div>
-        <div class="task-author">
-          <span class="initials bg">AW</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Mercedes-AMG E53</span>
-          <span class="segment">Premium Sports Sedans</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status rtp">Ready to Publish</div>
-        <div class="task-date embargo"></div>
-        <div class="task-notes"></div>
-        <div class="task-assets active-assets"><FolderIcon /></div>
-        <div class="task-author">
-          <span class="initials bg">AP</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Rivian R1S</span>
-          <span class="segment">Electric Mid-size Luxury SUVs</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status scheduled">Scheduled</div>
-        <div class="task-date embargo">July 8, 2025<br />10:00 AM EST</div>
-        <div class="task-notes">Scheduled for embargo time</div>
-        <div class="task-assets"></div>
-        <div class="task-author">
-          <span class="initials bg">AW</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Dodge Durango</span>
-          <span class="segment">Mid-size Three-row SUVs</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status published">Published</div>
-        <div class="task-date">July 7, 2025</div>
-        <div class="task-notes"></div>
-        <div class="task-assets"></div>
-        <div class="task-author">
-          <span class="initials freelance">BN</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 Acura TLX</span>
-          <span class="segment">Compact Luxury Cars</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status published">Published</div>
-        <div class="task-date">July 1, 2025</div>
-        <div class="task-notes"></div>
-        <div class="task-assets"></div>
-        <div class="task-author">
-          <span class="initials cd">JL</span>
-        </div>
-        <div class="task-actions"><MoreIcon class="more-icon" /></div>
-      </div>
-      <div class="task-item grid">
-        <div class="task-priority"></div>
-        <div class="task-vehicle">
-          <span class="vehicle">2026 GMC Yukon</span>
-          <span class="segment">Full-size SUVs</span>
-        </div>
-        <div class="task-deadline"></div>
-        <div class="task-status updated">Updated</div>
-        <div class="task-date">July 1, 2025</div>
-        <div class="task-notes"></div>
-        <div class="task-assets"></div>
-        <div class="task-author">
-          <span class="initials freelance">DG</span>
+          <span v-if="doc.author" :class="['initials', doc.author.team]">{{
+            doc.author.initials
+          }}</span>
+          <span v-else class="assign-author zoom"><AddCircleIcon /></span>
         </div>
         <div class="task-actions"><MoreIcon class="more-icon" /></div>
       </div>
@@ -228,10 +62,11 @@
   </div>
 </template>
 <script>
+import dateFormat from "dateformat";
 import {
   AddCircleIcon,
   FolderIcon,
-  // FolderOpenIcon,
+  FolderOpenIcon,
   HighPriorityIcon,
   MoreIcon,
   PlusIcon,
@@ -239,10 +74,15 @@ import {
 
 export default {
   name: "TaskList",
+  data() {
+    return {
+      isAssetsOpen: false,
+    };
+  },
   components: {
     AddCircleIcon,
     FolderIcon,
-    // FolderOpenIcon,
+    FolderOpenIcon,
     HighPriorityIcon,
     MoreIcon,
     PlusIcon,
@@ -251,6 +91,72 @@ export default {
     documents: {
       type: Array,
       required: true,
+    },
+  },
+  methods: {
+    dateFormat: dateFormat,
+    getDateFormat(doc) {
+      if (doc.embargo && !doc.published) {
+        return "embargo";
+      } else if (doc.published) {
+        return "published";
+      } else {
+        return "";
+      }
+    },
+    getDateText(doc) {
+      let date = "";
+      if (doc.embargo && !doc.published) {
+        if (doc.embargoDate !== "") {
+          date =
+            dateFormat(doc.embargoDate, "mediumDate") +
+            " | " +
+            dateFormat(doc.embargoDate, "h:MM TT");
+        } else {
+          date = doc.embargoNotes;
+        }
+      } else if (doc.published) {
+        date = dateFormat(date, "mediumDate");
+      }
+      return date;
+    },
+    getStatus(status) {
+      switch (status.toLowerCase()) {
+        case "pending":
+          return "pending";
+        case "ready to edit":
+          return "rte";
+        case "ready to publish":
+          return "rtp";
+        case "scheduled":
+          return "scheduled";
+        case "published":
+          return "published";
+        case "updated":
+          return "updated";
+        default:
+          return "";
+      }
+    },
+    isHighPriority(doc) {
+      if (doc.highPriority) {
+        return true;
+      } else if (doc.deadline && doc.deadline !== "") {
+        let today = new Date();
+        let tomorrow = new Date(today);
+        let deadline = new Date(doc.deadline);
+        tomorrow.setDate(today.getDate() + 1);
+        let hp = false;
+
+        if (deadline == today || deadline == tomorrow) {
+          hp = true;
+        }
+
+        return hp;
+      }
+    },
+    toggleAssets(value) {
+      this.isAssetsOpen = value;
     },
   },
 };
@@ -294,8 +200,9 @@ export default {
   padding: 8px 5px;
   color: var(--color-add-new-item-text);
   font: 700 14px/1.2 "Asap", sans-serif;
-  border: 1px dashed var(--color-add-new-item-border);
+  border: 2px dashed var(--color-add-new-item-border);
   cursor: pointer;
+  margin-bottom: 5px;
 
   .add-new-btn {
     fill: var(--color-add-new);
@@ -419,12 +326,30 @@ export default {
           background-color: var(--color-team-cd);
         }
       }
+
+      .assign-author {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
 
     .task-actions {
       .more-icon {
         fill: var(--color-body-more-icon);
         cursor: pointer;
+      }
+    }
+
+    .zoom {
+      svg {
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+        &:hover {
+          transform: scale(1.4);
+        }
       }
     }
 

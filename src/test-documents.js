@@ -1,3 +1,13 @@
+let today = new Date();
+let tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
+
+let dd = tomorrow.getDate();
+let mm = tomorrow.getMonth() + 1;
+let yyyy = tomorrow.getFullYear();
+
+let date = `${yyyy}-${mm < 10 ? "0" + mm : mm}-${dd < 10 ? "0" + dd : dd}`;
+
 export default [
   {
     id: "0001",
@@ -86,7 +96,7 @@ export default [
       team: "bg",
       active: true,
     },
-    deadline: "2025-07-07",
+    deadline: date,
     status: "Pending",
     notes: "",
     assets: ["https://imeet.com"],
@@ -263,7 +273,7 @@ export default [
     embargo: false,
     published: true,
     new: false,
-    publishedDate: "2025-07-01T:13:01:00",
+    publishedDate: "2025-07-01T13:01:00",
   },
   {
     id: "0011",
