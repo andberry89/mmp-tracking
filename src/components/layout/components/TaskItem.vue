@@ -1,6 +1,11 @@
 <template>
   <div class="task-item">
-    <div><HighPriorityIcon v-if="isHighPriority(doc)" /></div>
+    <div>
+      <HighPriorityIcon
+        v-if="isHighPriority(doc)"
+        v-tooltip="{ theme: 'info-tooltip', content: 'High Priority MMP' }"
+      />
+    </div>
     <div class="task-vehicle">
       <span class="vehicle">{{
         doc.vehicle.modelYear + " " + doc.vehicle.make + " " + doc.vehicle.model
@@ -12,9 +17,15 @@
     </div>
     <div :class="['task-status', getStatus(doc.status)]">{{ doc.status }}</div>
     <div :class="getDateFormat(doc)">{{ getDateText(doc) }}</div>
-    <div class="task-notes">{{ doc.notes }}</div>
+    <div class="task-notes">
+      {{ docNotes }} <span v-if="doc.notes.length > 50" class="expand-notes">see more</span>
+    </div>
     <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
-      <FolderIcon v-if="!isAssetsOpen" @click="toggleAssets" />
+      <FolderIcon
+        v-if="!isAssetsOpen"
+        @click="toggleAssets"
+        v-tooltip="{ theme: 'info-tooltip', content: 'Open Assets' }"
+      />
       <FolderOpenIcon v-if="isAssetsOpen" @click="toggleAssets" />
     </div>
     <div v-else class="task-assets"><FolderIcon /></div>
@@ -22,7 +33,9 @@
       <span v-if="doc.author" :class="['initials', doc.author.team]">{{
         doc.author.initials
       }}</span>
-      <span v-else class="assign-author zoom"><AddCircleIcon /></span>
+      <span v-else class="assign-author zoom"
+        ><AddCircleIcon v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }"
+      /></span>
     </div>
     <div class="task-actions"><MoreIcon class="more-icon" /></div>
   </div>
@@ -39,16 +52,25 @@ import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/t
 
 export default {
   name: "TaskItem",
+  data() {
+    return {
+      isAssetsOpen: false,
+    };
+  },
   props: {
     doc: {
       type: Object,
       required: true,
     },
   },
-  data() {
-    return {
-      isAssetsOpen: false,
-    };
+  computed: {
+    docNotes() {
+      if (this.doc.notes.length <= 50) {
+        return this.doc.notes;
+      } else {
+        return this.doc.notes.slice(0, 35) + "...";
+      }
+    },
   },
   components: {
     AddCircleIcon,
@@ -73,8 +95,6 @@ export default {
   background-color: var(--color-body-background);
   border: 2px solid var(--color-body-border);
   border-radius: 8px;
-  padding-top: 8px;
-  padding-bottom: 8px;
   transition: all 0.1s ease-in-out;
 
   .task-vehicle {
@@ -144,6 +164,12 @@ export default {
   .task-notes {
     color: var(--color-body-text-tertiary);
     font-size: 11px;
+
+    .expand-notes {
+      color: var(--color-body-text-see-more);
+      cursor: pointer;
+      font-weight: bold;
+    }
   }
 
   .active-assets {
@@ -198,7 +224,7 @@ export default {
       cursor: pointer;
       transition: transform 0.2s ease-in-out;
       &:hover {
-        transform: scale(1.4);
+        transform: scale(1.2);
       }
     }
   }

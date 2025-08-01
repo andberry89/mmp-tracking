@@ -70,6 +70,7 @@
   --color-body-background: var(--white);
   --color-body-border: var(--gray-light-1);
   --color-body-text-priority: var(--orange);
+  --color-body-text-see-more: var(--blue);
   --color-body-active-assets: var(--gray-light-3);
   --color-body-more-icon: var(--gray-dark-2);
 

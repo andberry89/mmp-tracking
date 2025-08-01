@@ -60,7 +60,7 @@ export default {
   align-items: center;
   grid-template-columns: 20px 1fr 100px 120px 175px 1fr 50px 50px 8px;
   // TODO: WORK ON SPACING FOR RESPONSIBE PURPOSES
-  padding: 0 20px 0 4px;
+  padding: 8px 20px 8px 4px;
 }
 
 .grid {
