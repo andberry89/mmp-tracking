@@ -23,7 +23,7 @@
               />
             </div>
           </form>
-          <DropdownMenu :options="ranges" :label="'Author'" />
+          <DropdownMenu :options="sortedAuthors" :label="'Author'" />
           <DropdownMenu :options="ranges" :label="'Status'" />
           <SortIcon class="sort-icon header-icon" />
           <FilterIcon class="filter-icon header-icon" />
@@ -37,13 +37,9 @@
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 import TaskList from "@/components/layout/TaskList.vue";
-import {
-  FilterIcon,
-  // FolderOpenIcon,
-  SearchIcon,
-  SortIcon,
-} from "@/assets/icons";
+import { FilterIcon, SearchIcon, SortIcon } from "@/assets/icons";
 import testDocuments from "./test-documents";
+import authors from "./test-authors";
 
 export default {
   name: "App",
@@ -55,17 +51,38 @@ export default {
         { label: "This Week", value: "this_week" },
         { label: "This Month", value: "this_month" },
       ],
+      authors: authors,
       documents: testDocuments,
     };
   },
   components: {
     DashboardSidebar,
     FilterIcon,
-    // FolderOpenIcon,
     SearchIcon,
     SortIcon,
     TaskList,
     TopNav,
+  },
+  computed: {
+    sortedAuthors() {
+      // Sort authors by team and then by label
+      if (!this.authors || this.authors.length === 0) return [];
+      // Filter out inactive authors
+      const authors = this.authors.filter((author) => author.active);
+
+      // Group authors by team
+      const bg = authors.filter((author) => author.team === "bg");
+      const cd = authors.filter((author) => author.team === "cd");
+      const freelance = authors.filter((author) => author.team === "freelance");
+
+      // Sort each team alphabetically by label
+      bg.sort((a, b) => a.label.localeCompare(b.label));
+      cd.sort((a, b) => a.label.localeCompare(b.label));
+      freelance.sort((a, b) => a.label.localeCompare(b.label));
+
+      // Combine sorted arrays
+      return [...bg, ...cd, ...freelance];
+    },
   },
 };
 </script>

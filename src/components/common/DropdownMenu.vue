@@ -68,8 +68,8 @@ export default {
   justify-content: flex-start;
   align-content: center;
   position: relative;
-  width: max-content;
-  width: 110px;
+  width: auto;
+  min-width: 110px;
   height: 22px;
   font: 400 12px/1.2 "Asap", sans-serif;
   color: var(--color-dropdown-text);
@@ -86,6 +86,7 @@ export default {
     align-items: center;
 
     .active-label {
+      margin-left: 5px;
       color: var(--color-dropdown-text);
     }
 

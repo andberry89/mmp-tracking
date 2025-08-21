@@ -21,12 +21,29 @@
       {{ docNotes }} <span v-if="doc.notes.length > 50" class="expand-notes">see more</span>
     </div>
     <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
-      <FolderIcon
-        v-if="!isAssetsOpen"
-        @click="toggleAssets"
-        v-tooltip="{ theme: 'info-tooltip', content: 'Open Assets' }"
-      />
-      <FolderOpenIcon v-if="isAssetsOpen" @click="toggleAssets" />
+      <Popper placement="top" disableClickAway arrow>
+        <FolderIcon
+          v-if="!visible"
+          @click="toggleAssets"
+          v-tooltip="{ theme: 'info-tooltip', content: 'Open Assets' }"
+        />
+        <FolderOpenIcon
+          v-if="visible"
+          @click="toggleAssets"
+          v-tooltip="{ theme: 'info-tooltip', content: 'Close Assets' }"
+        />
+        <template #content>
+          <div class="assets-folder">
+            This is the Popper content.
+            <div v-for="(asset, idx) in doc.assets" :key="idx">
+              <span
+                ><a :href="asset.url" target="_blank">{{ asset.url }}</a></span
+              >
+              <span>// {{ asset.notes }}</span>
+            </div>
+          </div>
+        </template>
+      </Popper>
     </div>
     <div v-else class="task-assets"><FolderIcon /></div>
     <div class="task-author">
@@ -54,7 +71,8 @@ export default {
   name: "TaskItem",
   data() {
     return {
-      isAssetsOpen: false,
+      targetElement: null,
+      visible: false,
     };
   },
   props: {
@@ -84,18 +102,23 @@ export default {
     getDateText: getDateText,
     getStatus: getStatus,
     isHighPriority: isHighPriority,
-    toggleAssets() {
-      this.isAssetsOpen = !this.isAssetsOpen;
+    toggleAssets(evt) {
+      this.targetElement = evt.target;
+      this.visible = !this.visible;
     },
   },
 };
 </script>
 <style lang="scss" scoped>
+:deep(.popper) {
+  width: 25%;
+}
+
 .task-item {
   background-color: var(--color-body-background);
   border: 2px solid var(--color-body-border);
   border-radius: 8px;
-  transition: all 0.1s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   .task-vehicle {
     display: flex;
@@ -230,10 +253,7 @@ export default {
   }
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0px 15px 24px 6px rgba(0, 0, 0, 0.5);
-    -webkit-box-shadow: 0px 15px 24px 6px rgba(0, 0, 0, 0.5);
-    -moz-box-shadow: 0px 15px 24px 6px rgba(0, 0, 0, 0.5);
+    border-color: var(--black);
   }
 }
 </style>
