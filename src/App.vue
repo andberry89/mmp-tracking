@@ -5,39 +5,23 @@
       <TopNav />
     </header>
     <aside id="sidebar">
-      <DashboardSidebar :ranges="ranges" />
+      <DashboardSidebar
+        :documents="documents"
+        :ranges="ranges"
+        :authors="getActiveAuthors(authors)"
+      />
     </aside>
     <main id="content">
-      <section class="content-header">
-        <div>
-          <h1>MMPs</h1>
-        </div>
-        <div class="header-actions">
-          <form>
-            <div class="search-bar">
-              <SearchIcon class="search-icon" />
-              <input
-                type="search"
-                class="search-input"
-                placeholder="Search by vehicle or segment"
-              />
-            </div>
-          </form>
-          <DropdownMenu :options="sortedAuthors" :label="'Author'" />
-          <DropdownMenu :options="ranges" :label="'Status'" />
-          <SortIcon class="sort-icon header-icon" />
-          <FilterIcon class="filter-icon header-icon" />
-        </div>
-      </section>
-      <TaskList :documents="documents" />
+      <MainContent :documents="documents" :ranges="ranges" :authors="authors" />
     </main>
   </div>
 </template>
 <script>
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
-import TaskList from "@/components/layout/TaskList.vue";
-import { FilterIcon, SearchIcon, SortIcon } from "@/assets/icons";
+import MainContent from "@/components/layout/MainContent.vue";
+import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-functions";
+import { ranges } from "@/utils/constants";
 import testDocuments from "./test-documents";
 import authors from "./test-authors";
 
@@ -45,44 +29,33 @@ export default {
   name: "App",
   data() {
     return {
-      ranges: [
-        { label: "Last Week", value: "last_week" },
-        { label: "Last Month", value: "last_month" },
-        { label: "This Week", value: "this_week" },
-        { label: "This Month", value: "this_month" },
-      ],
-      authors: authors,
-      documents: testDocuments,
+      ranges: ranges,
+      authors: {
+        bg: [],
+        cd: [],
+        freelance: [],
+        all: [],
+      },
+      documents: {
+        published: [],
+        pending: [],
+        rtp: [],
+      },
     };
   },
   components: {
     DashboardSidebar,
-    FilterIcon,
-    SearchIcon,
-    SortIcon,
-    TaskList,
+    MainContent,
     TopNav,
   },
-  computed: {
-    sortedAuthors() {
-      // Sort authors by team and then by label
-      if (!this.authors || this.authors.length === 0) return [];
-      // Filter out inactive authors
-      const authors = this.authors.filter((author) => author.active);
-
-      // Group authors by team
-      const bg = authors.filter((author) => author.team === "bg");
-      const cd = authors.filter((author) => author.team === "cd");
-      const freelance = authors.filter((author) => author.team === "freelance");
-
-      // Sort each team alphabetically by label
-      bg.sort((a, b) => a.label.localeCompare(b.label));
-      cd.sort((a, b) => a.label.localeCompare(b.label));
-      freelance.sort((a, b) => a.label.localeCompare(b.label));
-
-      // Combine sorted arrays
-      return [...bg, ...cd, ...freelance];
-    },
+  methods: {
+    getActiveAuthors: getActiveAuthors,
+    sortDocuments: sortDocuments,
+    sortAuthors: sortAuthors,
+  },
+  created() {
+    this.documents = this.sortDocuments(testDocuments);
+    this.authors = this.sortAuthors(authors);
   },
 };
 </script>
@@ -90,7 +63,7 @@ export default {
 <style lang="scss" scoped>
 .layout-grid {
   display: grid;
-  grid-template-columns: 140px 1fr;
+  grid-template-columns: 175px 1fr;
   grid-template-rows: 100px 1fr;
   grid-template-areas:
     "logo header"
@@ -129,75 +102,6 @@ export default {
     padding: 20px;
     background: url("@/assets/bg-pattern.jpeg") repeat;
     background-size: auto;
-
-    .content-header {
-      display: flex;
-      flex-flow: row nowrap;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-
-      h1 {
-        font: 700 24px/1.2 "Monda", sans-serif;
-        color: var(--color-body-header-text);
-        margin: 0;
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-
-        .search-bar {
-          --padding: 4px;
-
-          width: max-content;
-          display: flex;
-          align-items: center;
-          background-color: var(--color-input-background);
-          border: 1px solid var(--color-input-border);
-          padding: var(--padding);
-          border-radius: 8px;
-          width: 220px;
-          height: 24px;
-
-          .search-input {
-            font: 400 12px/1 "Monda", sans-serif;
-            color: var(--color-search-text);
-            margin-left: var(--padding);
-            outline: none;
-            border: none;
-            background: transparent;
-            flex: 1;
-          }
-
-          .search-input::placeholder,
-          .search-icon {
-            color: var(--color-search-text-placeholder);
-          }
-        }
-        .header-icon {
-          --sides: 22px;
-
-          width: var(--sides);
-          height: var(--sides);
-          fill: var(--color-icon);
-          background-color: var(--color-input-background);
-          border: 1px solid var(--color-input-border);
-          border-radius: 4px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.4s ease-in-out;
-
-          &:hover {
-            background-color: var(--color-input-background-hover);
-            fill: var(--color-icon-hover);
-          }
-        }
-      }
-    }
   }
 }
 

@@ -1,8 +1,10 @@
 <template>
   <div class="dropdown-menu" v-click-outside="closeDropdown">
     <div class="menu-header" @click="isOpen = !isOpen">
-      <span class="label">{{ label }}:</span
-      ><span class="active-label">{{ active === "" ? "Select" : active }}</span>
+      <div>
+        <span class="label">{{ label }}:</span
+        ><span class="active-label">{{ active === "" ? "Select" : active }}</span>
+      </div>
       <svg
         fill="#b9b9b9"
         width="8px"
@@ -22,6 +24,9 @@
     </div>
     <transition name="fade" appear>
       <div class="sub-menu" v-if="isOpen">
+        <div class="menu-item clear" v-if="active !== ''" @click="setActive('')">
+          Clear Selection
+        </div>
         <div class="menu-item" v-for="(item, i) in options" :key="i" @click="setActive(item.label)">
           {{ item.label }}
         </div>
@@ -83,11 +88,12 @@ export default {
     padding: 4px;
     display: flex;
     justify-content: space-between;
+    gap: 5px;
     align-items: center;
 
     .active-label {
-      margin-left: 5px;
       color: var(--color-dropdown-text);
+      margin-left: 4px;
     }
 
     svg {
@@ -111,12 +117,19 @@ export default {
     width: 100%;
     border-radius: 0px 0px 8px 8px;
     background-color: var(--color-input-background);
+    border: 1px solid var(--color-dropdown-border);
+    border-top: none;
     overflow: hidden;
 
     .menu-item {
       color: var(--color-dropdown-text);
       padding: 4px;
       transition: 0.3s;
+
+      &.clear {
+        font-weight: 700;
+        color: var(--color-dropdown-clear-text);
+      }
 
       .active,
       &:hover {

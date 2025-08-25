@@ -20,7 +20,7 @@ export const getDateText = (doc) => {
       date = doc.embargoNotes;
     }
   } else if (doc.published) {
-    date = dateFormat(date, "mediumDate");
+    date = dateFormat(doc.publishedDate, "mediumDate");
   }
   return date;
 };

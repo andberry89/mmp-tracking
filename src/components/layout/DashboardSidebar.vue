@@ -2,80 +2,31 @@
   <div>
     <h3>Authors</h3>
     <div class="sidebar-wrapper">
-      <div class="team">
-        <h4>Buyer's Guide</h4>
-        <div class="author">
-          <span class="author-name">Joey Capparella</span>
-        </div>
-        <div class="author">
-          <span class="author-name">Drew Dorian</span>
-        </div>
-        <div class="author">
-          <span class="author-name">Austin Parsons</span>
-          <span class="assigned">1 Assigned</span>
-        </div>
-        <div class="author">
-          <span class="author-name">Andrew Wendler</span>
-          <span class="assigned">1 Assigned</span>
-        </div>
-      </div>
-      <div class="team">
-        <h4>C/D Staff</h4>
-        <div class="non-bg-team">
-          <span class="view-text">View All</span>
-          <span class="none-assigned">None Assigned</span>
-        </div>
-      </div>
-      <div class="team">
-        <h4>Freelancers</h4>
-        <div class="non-bg-team">
-          <span class="view-text">View Less</span>
-        </div>
-        <div class="author">
-          <span class="author-name">David Gluckman</span>
-          <span class="assigned">2 Assigned</span>
-        </div>
-        <div class="author">
-          <span class="author-name">Beth Nichols</span>
+      <div class="team" v-for="(team, idx) in teams" :key="idx">
+        <h4>{{ team.sidebarLabel }}</h4>
+        <div class="author" v-for="(author, authorIdx) in authors[team.slug]" :key="authorIdx">
+          <span class="author-name">{{ author.label }}</span>
+          <span class="assigned" v-if="assigned(author) > 0">{{ assigned(author) }} Assigned</span>
         </div>
       </div>
     </div>
     <h3>Quick Stats</h3>
     <div class="sidebar-wrapper">
-      <div class="stat-line">
-        <span class="dot"></span>
-        <span class="stat">Pending: </span><span class="stat-number">6</span>
-      </div>
-      <div class="stat-line">
-        <span class="dot"></span>
-        <span class="stat">Pending: </span><span class="stat-number">6</span>
-      </div>
-      <div class="stat-line">
-        <span class="dot"></span>
-        <span class="stat">Pending: </span><span class="stat-number">6</span>
-      </div>
-      <div class="stat-line">
-        <span class="dot"></span>
-        <span class="stat">Pending: </span><span class="stat-number">6</span>
+      <div class="stat-line" v-for="stat in quickStats" :key="stat">
+        <span :class="`dot ${stat.value}`"></span>
+        <span class="stat">{{ stat.label }}: </span
+        ><span class="stat-number">{{ stat.count }}</span>
       </div>
     </div>
     <h3>Published & Updates</h3>
     <DropdownMenu :options="ranges" :label="'Show'" />
     <div class="sidebar-wrapper">
-      <div class="stat-line">
-        <span class="dot"></span>
-        <span class="stat">Published: </span><span class="stat-number">14</span>
+      <div class="stat-line" v-for="stat in updatedAndPublished" :key="stat">
+        <span :class="`dot ${stat.value}`"></span>
+        <span class="stat">{{ stat.label }}: </span
+        ><span class="stat-number">{{ stat.count }}</span>
         <div class="stats-subtext">
-          <span>2027: 1</span>
-          <span>2026: 13</span>
-        </div>
-      </div>
-      <div class="stat-line">
-        <span class="dot"></span>
-        <span class="stat">Updated: </span><span class="stat-number">5</span>
-        <div class="stats-subtext">
-          <span>2026: 2</span>
-          <span>2025: 3</span>
+          <span v-for="[year, count] in stat.countByYear" :key="year">{{ year }}: {{ count }}</span>
         </div>
       </div>
     </div>
@@ -83,13 +34,89 @@
 </template>
 
 <script>
+import { teams, statuses } from "@/utils/constants";
+
 export default {
   name: "DashboardSidebar",
+  data() {
+    return {
+      quickStatValues: ["pending", "rte", "rtp", "scheduled"],
+      publishUpdateValues: ["published", "updated"],
+      statuses: statuses,
+      teams: {},
+    };
+  },
   props: {
+    authors: {
+      type: Object,
+      required: true,
+    },
+    documents: {
+      type: Object,
+      required: true,
+    },
     ranges: {
       type: Array,
       required: true,
     },
+  },
+  computed: {
+    quickStats() {
+      // Filter the statuses to only include those in quickStatValues
+      let quickStatsArr = this.statuses.filter((status) =>
+        this.quickStatValues.includes(status.value)
+      );
+      // Order the array based on the order in quickStatValues
+      quickStatsArr.sort((a, b) => {
+        return this.quickStatValues.indexOf(a.value) - this.quickStatValues.indexOf(b.value);
+      });
+      // Filter the documents to only include those with status in quickStatValues
+      let allRelevantDocs = [...this.documents.pending, ...this.documents.rtp];
+
+      // Find the number of documents for each status
+      quickStatsArr.forEach((stat) => {
+        stat.count = allRelevantDocs.filter((doc) => doc.status === stat.label).length;
+      });
+
+      return quickStatsArr;
+    },
+    updatedAndPublished() {
+      let publishUpdatesArr = this.statuses.filter((status) =>
+        this.publishUpdateValues.includes(status.value)
+      );
+      // Find the number of documents for each status
+      publishUpdatesArr.forEach((stat) => {
+        const docs = this.documents.published.filter((doc) => doc.status === stat.label);
+        // Find the count by model year
+        let countByYear = {};
+        docs.forEach((doc) => {
+          if (countByYear[doc.vehicle.modelYear]) {
+            countByYear[doc.vehicle.modelYear]++;
+          } else {
+            countByYear[doc.vehicle.modelYear] = 1;
+          }
+        });
+        // Sort the countByYear object by year descending
+        let arr = Object.entries(countByYear).sort((a, b) => b[0] - a[0]);
+        // arr is now a sorted array of [year, count] pairs
+
+        stat.count = docs.length;
+        stat.countByYear = arr;
+      });
+
+      return publishUpdatesArr;
+    },
+  },
+  methods: {
+    assigned(author) {
+      return this.documents.pending.filter((doc) => doc.author && doc.author.id === author.id)
+        .length;
+    },
+  },
+  created() {
+    let actualTeams = teams;
+    delete actualTeams.all;
+    this.teams = teams;
   },
 };
 </script>
@@ -153,7 +180,7 @@ h3 {
   }
 
   .stat-line {
-    font: 400 10pt/1.2 "Monda", sans-serif;
+    font: 400 12px/1.2 "Monda", sans-serif;
     color: var(--color-sidebar-text);
     padding: 6px 0;
 
@@ -162,8 +189,26 @@ h3 {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--color-body-pending);
       margin-right: 5px;
+
+      &.pending {
+        background: var(--color-body-pending);
+      }
+      &.rte {
+        background: var(--color-body-rte);
+      }
+      &.rtp {
+        background: var(--color-body-rtp);
+      }
+      &.scheduled {
+        background: var(--color-body-scheduled);
+      }
+      &.published {
+        background: var(--color-body-published);
+      }
+      &.updated {
+        background: var(--color-body-updated);
+      }
     }
     .stat {
       font-weight: 700;

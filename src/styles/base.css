@@ -31,6 +31,8 @@
   --mint: #40cba0;
   --red: #e2574c;
   --light-green-transparent: rgba(148, 191, 105, 0.6);
+
+  --blue-dark-1: #378294;
 }
 
 :root {
@@ -65,6 +67,8 @@
   --color-body-text: var(--black);
   --color-body-text-secondary: var(--gray-light-3);
   --color-body-text-tertiary: var(--gray-light-4);
+  --color-body-link: var(--blue-dark-1);
+  --color-body-link-hover: var(--red);
 
   /* MMP Task colors */
   --color-body-background: var(--white);
@@ -100,16 +104,19 @@
   --color-icon-hover: var(--white-soft);
   --color-dropdown-label: var(--gray-dark-2);
   --color-dropdown-text: var(--gray-light-4);
+  --color-dropdown-border: var(--gray-light-1);
+  --color-dropdown-clear-text: var(--gray-dark-2);
 }
 
 /* Popover colors */
 :root {
-  --popper-theme-background-color: var(--gray-light-2);
-  --popper-theme-background-color-hover: var(--gray-light-1);
+  --popper-theme-background-color: var(--white-soft);
+  --popper-theme-background-color-hover: var(--white-soft);
   --popper-theme-text-color: var(--black);
-  --popper-theme-border-width: 0px;
+  --popper-theme-border-width: 2px;
   --popper-theme-border-style: solid;
-  --popper-theme-border-radius: 8px;
+  --popper-theme-border-color: var(--black);
+  --popper-theme-border-radius: 12px;
   --popper-theme-padding: 32px;
   --popper-theme-box-shadow: 0 6px 30px -6px rgba(0, 0, 0, 0.25);
 }

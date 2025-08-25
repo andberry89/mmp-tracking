@@ -5,7 +5,10 @@ export default [
     lastName: "Nichols",
     label: "Beth Nichols",
     initials: "BN",
-    team: "freelance",
+    team: {
+      slug: "freelance",
+      label: "Freelance",
+    },
     active: true,
   },
   {
@@ -14,7 +17,10 @@ export default [
     lastName: "Dorian",
     label: "Drew Dorian",
     initials: "DD",
-    team: "bg",
+    team: {
+      slug: "bg",
+      label: "Buyer's Guide",
+    },
     active: true,
   },
   {
@@ -23,7 +29,10 @@ export default [
     lastName: "Capparella",
     label: "Joey Capparella",
     initials: "JC",
-    team: "bg",
+    team: {
+      slug: "bg",
+      label: "Buyer's Guide",
+    },
     active: true,
   },
   {
@@ -32,7 +41,10 @@ export default [
     lastName: "Wendler",
     label: "Andy Wendler",
     initials: "AW",
-    team: "bg",
+    team: {
+      slug: "bg",
+      label: "Buyer's Guide",
+    },
     active: true,
   },
   {
@@ -41,7 +53,10 @@ export default [
     lastName: "Parsons",
     label: "Austin Parsons",
     initials: "AP",
-    team: "bg",
+    team: {
+      slug: "bg",
+      label: "Buyer's Guide",
+    },
     active: true,
   },
   {
@@ -50,7 +65,10 @@ export default [
     lastName: "Lorio",
     label: "Joe Lorio",
     initials: "JL",
-    team: "cd",
+    team: {
+      slug: "cd",
+      label: "Car and Driver",
+    },
     active: true,
   },
   {
@@ -59,7 +77,10 @@ export default [
     lastName: "Miller",
     label: "Caleb Miller",
     initials: "CM",
-    team: "cd",
+    team: {
+      slug: "cd",
+      label: "Car and Driver",
+    },
     active: true,
   },
   {
@@ -68,7 +89,10 @@ export default [
     lastName: "Fitzgerald",
     label: "Jack Fitzgerald",
     initials: "JF",
-    team: "cd",
+    team: {
+      slug: "cd",
+      label: "Car and Driver",
+    },
     active: true,
   },
   {
@@ -77,7 +101,10 @@ export default [
     lastName: "Hackett",
     label: "Becca Hackett",
     initials: "BH",
-    team: "cd",
+    team: {
+      slug: "cd",
+      label: "Car and Driver",
+    },
     active: true,
   },
   {
@@ -86,7 +113,10 @@ export default [
     lastName: "Stafford",
     label: "Eric Stafford",
     initials: "ES",
-    team: "cd",
+    team: {
+      slug: "cd",
+      label: "Car and Driver",
+    },
     active: true,
   },
   {
@@ -95,7 +125,10 @@ export default [
     lastName: "Gluckman",
     label: "David Gluckman",
     initials: "DG",
-    team: "freelance",
+    team: {
+      slug: "freelance",
+      label: "Freelance",
+    },
     active: true,
   },
   {
@@ -104,7 +137,10 @@ export default [
     lastName: "Cruz",
     label: "Frankie Cruz",
     initials: "FC",
-    team: "bg",
+    team: {
+      slug: "bg",
+      label: "Buyer's Guide",
+    },
     active: false,
   },
   {
@@ -113,7 +149,10 @@ export default [
     lastName: "Printz",
     label: "Larry Printz",
     initials: "LP",
-    team: "freelance",
+    team: {
+      slug: "freelance",
+      label: "Freelance",
+    },
     active: false,
   },
 ];

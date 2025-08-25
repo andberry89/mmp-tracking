@@ -18,29 +18,36 @@
     <div :class="['task-status', getStatus(doc.status)]">{{ doc.status }}</div>
     <div :class="getDateFormat(doc)">{{ getDateText(doc) }}</div>
     <div class="task-notes">
-      {{ docNotes }} <span v-if="doc.notes.length > 50" class="expand-notes">see more</span>
+      <span>{{ docNotes }}</span>
+      <Popper placement="top" disableClickAway arrow>
+        <div class="expand-notes-container" @click="notesExpanded = !notesExpanded">
+          <span v-if="doc.notes.length > 50" class="expand-notes"
+            >see {{ notesExpanded ? "less" : "more" }}</span
+          >
+        </div>
+        <template #content>
+          <div class="full-notes">
+            <p>{{ doc.notes }}</p>
+          </div>
+        </template>
+      </Popper>
     </div>
     <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
       <Popper placement="top" disableClickAway arrow>
-        <FolderIcon
-          v-if="!visible"
-          @click="toggleAssets"
-          v-tooltip="{ theme: 'info-tooltip', content: 'Open Assets' }"
-        />
-        <FolderOpenIcon
-          v-if="visible"
-          @click="toggleAssets"
-          v-tooltip="{ theme: 'info-tooltip', content: 'Close Assets' }"
-        />
+        <div>
+          <FolderIcon v-if="!assetsVisible" @click="toggleAssets" />
+          <FolderOpenIcon v-if="assetsVisible" @click="toggleAssets" />
+        </div>
         <template #content>
           <div class="assets-folder">
-            This is the Popper content.
-            <div v-for="(asset, idx) in doc.assets" :key="idx">
-              <span
-                ><a :href="asset.url" target="_blank">{{ asset.url }}</a></span
-              >
-              <span>// {{ asset.notes }}</span>
-            </div>
+            <ul>
+              <li v-for="(asset, idx) in doc.assets" :key="idx">
+                <span>{{ asset.notes + ": " }}</span>
+                <span
+                  ><a :href="asset.url" target="_blank">{{ asset.url }}</a></span
+                >
+              </li>
+            </ul>
           </div>
         </template>
       </Popper>
@@ -72,7 +79,8 @@ export default {
   data() {
     return {
       targetElement: null,
-      visible: false,
+      assetsVisible: false,
+      notesExpanded: false,
     };
   },
   props: {
@@ -104,7 +112,7 @@ export default {
     isHighPriority: isHighPriority,
     toggleAssets(evt) {
       this.targetElement = evt.target;
-      this.visible = !this.visible;
+      this.assetsVisible = !this.assetsVisible;
     },
   },
 };
@@ -188,10 +196,37 @@ export default {
     color: var(--color-body-text-tertiary);
     font-size: 11px;
 
-    .expand-notes {
-      color: var(--color-body-text-see-more);
-      cursor: pointer;
-      font-weight: bold;
+    .expand-notes-container {
+      display: inline;
+
+      .expand-notes {
+        color: var(--color-body-text-see-more);
+        cursor: pointer;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .task-assets {
+    .assets-folder {
+      ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          margin-bottom: 3px;
+          a {
+            color: var(--color-body-link);
+            text-decoration: none;
+            transition: color 0.2s ease-in-out;
+            &:hover {
+              text-decoration: underline;
+              color: var(--color-body-link-hover);
+            }
+          }
+        }
+      }
     }
   }
 

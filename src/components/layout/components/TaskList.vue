@@ -31,7 +31,12 @@
       <span>Add New Task</span>
     </section>
     <section class="task-list">
-      <TaskItem v-for="doc in documents" :key="doc.id" :doc="doc" class="grid" />
+      <h3>Pending</h3>
+      <TaskItem v-for="doc in documents.pending" :key="doc.id" :doc="doc" class="grid" />
+      <h3>Ready to Publish</h3>
+      <TaskItem v-for="doc in documents.rtp" :key="doc.id" :doc="doc" class="grid" />
+      <h3>Published</h3>
+      <TaskItem v-for="doc in documents.published" :key="doc.id" :doc="doc" class="grid" />
     </section>
   </div>
 </template>
@@ -47,7 +52,7 @@ export default {
   },
   props: {
     documents: {
-      type: Array,
+      type: Object,
       required: true,
     },
   },
@@ -59,7 +64,7 @@ export default {
   justify-items: start;
   align-items: center;
   grid-template-columns: 20px 1fr 100px 120px 175px 1fr 50px 50px 8px;
-  // TODO: WORK ON SPACING FOR RESPONSIBE PURPOSES
+  // TODO: WORK ON SPACING FOR RESPONSIVE PURPOSES
   padding: 8px 20px 8px 4px;
 }
 
@@ -106,5 +111,11 @@ export default {
 
 .task-list {
   font: 400 12px/1.2 "Asap", sans-serif;
+
+  h3 {
+    margin: 20px 0 5px 0;
+    font: 700 16px/1.2 "Asap", sans-serif;
+    color: var(--color-body-header-text);
+  }
 }
 </style>
