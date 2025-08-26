@@ -1,8 +1,8 @@
 export const ranges = [
-  { label: "Last Week", value: "last_week" },
-  { label: "Last Month", value: "last_month" },
-  { label: "This Week", value: "this_week" },
-  { label: "This Month", value: "this_month" },
+  { label: "Last Week", id: "last_week" },
+  { label: "Last Month", id: "last_month" },
+  { label: "This Week", id: "this_week" },
+  { label: "This Month", id: "this_month" },
 ];
 
 export const teams = [

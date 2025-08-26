@@ -15,13 +15,19 @@
           class="author-dropdown"
           :options="authors.all.filter((author) => author.active)"
           :label="'Author'"
+          @update:selected="updateAuthor($event)"
         />
-        <DropdownMenu class="range-dropdown" :options="ranges" :label="'Status'" />
+        <DropdownMenu
+          class="range-dropdown"
+          :options="ranges"
+          :label="'Status'"
+          @update:selected="updateRange($event)"
+        />
         <SortIcon class="sort-icon header-icon" />
         <FilterIcon class="filter-icon header-icon" />
       </div>
     </section>
-    <TaskList :documents="documents" />
+    <TaskList :documents="filteredDocuments()" />
   </div>
 </template>
 <script>
@@ -30,6 +36,14 @@ import TaskList from "@/components/layout/components/TaskList.vue";
 
 export default {
   name: "TaskPage",
+  data() {
+    return {
+      filters: {
+        author: "",
+        range: "",
+      },
+    };
+  },
   props: {
     documents: {
       type: Object,
@@ -49,6 +63,33 @@ export default {
     SearchIcon,
     SortIcon,
     TaskList,
+  },
+  methods: {
+    filteredDocuments() {
+      let docs = this.documents;
+
+      // TODO: Check for range filter
+
+      if (this.filters.author !== "") {
+        docs = {
+          published: this.documents.published.filter(
+            (doc) => doc.author?.id === this.filters.author
+          ),
+          pending: this.documents.pending.filter((doc) => doc.author?.id === this.filters.author),
+          rtp: this.documents.rtp.filter((doc) => doc.author?.id === this.filters.author),
+        };
+      }
+
+      return docs;
+    },
+    updateAuthor(authorId) {
+      console.log("Author ID selected:", authorId);
+      this.filters.author = authorId;
+    },
+    updateRange(rangeId) {
+      console.log("Range ID selected:", rangeId);
+      this.filters.range = rangeId;
+    },
   },
 };
 </script>

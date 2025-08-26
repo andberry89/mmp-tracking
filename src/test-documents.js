@@ -145,7 +145,7 @@ export default [
     publishedDate: "",
   },
   {
-    id: "008",
+    id: "0008",
     highPriority: false,
     vehicle: {
       make: "Rivian",
@@ -316,7 +316,7 @@ export default [
     publishedDate: "",
   },
   {
-    id: "0010",
+    id: "0012",
     highPriority: false,
     vehicle: {
       make: "Acura",
@@ -341,10 +341,10 @@ export default [
     embargo: false,
     published: true,
     new: false,
-    publishedDate: "2025-06-29T13:01:00",
+    publishedDate: "2025-07-19T13:01:00",
   },
   {
-    id: "0011",
+    id: "0013",
     highPriority: false,
     vehicle: {
       make: "GMC",

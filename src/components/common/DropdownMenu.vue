@@ -24,10 +24,15 @@
     </div>
     <transition name="fade" appear>
       <div class="sub-menu" v-if="isOpen">
-        <div class="menu-item clear" v-if="active !== ''" @click="setActive('')">
+        <div class="menu-item clear" v-if="active !== ''" @click="setActive({ id: '', label: '' })">
           Clear Selection
         </div>
-        <div class="menu-item" v-for="(item, i) in options" :key="i" @click="setActive(item.label)">
+        <div
+          class="menu-item"
+          v-for="(item, i) in options"
+          :key="i + '-' + label"
+          @click="setActive(item)"
+        >
           {{ item.label }}
         </div>
       </div>
@@ -58,10 +63,10 @@ export default {
     closeDropdown() {
       this.isOpen = false;
     },
-    setActive(label) {
-      this.active = label;
+    setActive(item) {
+      this.active = item.label;
       this.isOpen = false;
-      this.$emit("update:selected", label);
+      this.$emit("update:selected", item.id);
     },
   },
 };
