@@ -42,9 +42,9 @@
           <div class="assets-folder">
             <ul>
               <li v-for="(asset, idx) in doc.assets" :key="idx">
-                <span>{{ asset.notes + ": " }}</span>
-                <span
-                  ><a :href="asset.url" target="_blank">{{ asset.url }}</a></span
+                <a :href="asset.url" target="_blank">
+                  <span class="material-symbols-outlined open-in-new-icon"> open_in_new </span>
+                  <span>{{ asset.notes }}</span></a
                 >
               </li>
             </ul>
@@ -120,6 +120,12 @@ export default {
 <style lang="scss" scoped>
 :deep(.popper) {
   width: 25%;
+}
+
+.open-in-new-icon {
+  color: var(--gray-dark-2);
+  font-size: 16px;
+  margin-right: 2px;
 }
 
 .task-item {
@@ -216,6 +222,7 @@ export default {
 
         li {
           margin-bottom: 3px;
+          font-size: 16px;
           a {
             color: var(--color-body-link);
             text-decoration: none;
