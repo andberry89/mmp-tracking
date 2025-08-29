@@ -61,7 +61,18 @@
         ><AddCircleIcon v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }"
       /></span>
     </div>
-    <div class="task-actions"><MoreIcon class="more-icon" /></div>
+    <div class="task-actions">
+      <Popper placement="left" class="more-actions-popper" arrow>
+        <MoreIcon class="more-icon" />
+        <template #content>
+          <div class="action-menu">
+            <div class="menu-item">Edit Task</div>
+            <div class="menu-item">Duplicate Task</div>
+            <div class="menu-item">Delete Task</div>
+          </div>
+        </template>
+      </Popper>
+    </div>
   </div>
 </template>
 <script>
@@ -119,7 +130,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 :deep(.popper) {
-  width: 25%;
+  width: auto;
+  max-width: 25%;
 }
 
 .open-in-new-icon {
@@ -238,7 +250,6 @@ export default {
   }
 
   .active-assets {
-    cursor: pointer;
     svg {
       fill: var(--color-body-active-assets);
     }
