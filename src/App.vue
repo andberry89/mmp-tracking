@@ -21,7 +21,7 @@ import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 import MainContent from "@/components/layout/MainContent.vue";
 import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-functions";
-import { ranges } from "@/utils/constants";
+import { ranges } from "@/constants/constants";
 import testDocuments from "./test-documents";
 import authors from "./test-authors";
 

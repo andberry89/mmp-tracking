@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { teams, statuses } from "@/utils/constants";
+import { teams, statuses } from "@/constants/constants";
 
 export default {
   name: "DashboardSidebar",

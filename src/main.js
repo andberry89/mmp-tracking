@@ -24,6 +24,7 @@ createApp(App)
   .mount("#app");
 
 /** TODO
+ * Add tailwind
  * Create a "More Options" Popper menu for each task item
  * Add ability to edit task items (maybe in a popper)
  * Add assign author functionality (maybe in a popper)
