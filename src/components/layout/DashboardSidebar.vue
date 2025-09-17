@@ -4,7 +4,11 @@
     <div class="sidebar-wrapper">
       <div class="team" v-for="(team, idx) in teams" :key="idx">
         <h4>{{ team.sidebarLabel }}</h4>
-        <div class="author" v-for="(author, authorIdx) in authors[team.slug]" :key="authorIdx">
+        <div
+          class="author"
+          v-for="(author, authorIdx) in authors[team.slug]"
+          :key="'author-' + authorIdx"
+        >
           <span class="author-name">{{ author.label }}</span>
           <span class="assigned" v-if="assigned(author) > 0">
             {{ assigned(author) }} Assigned
@@ -15,7 +19,7 @@
 
     <h3>Quick Stats</h3>
     <div class="sidebar-wrapper">
-      <div class="stat-line" v-for="stat in quickStats" :key="stat">
+      <div class="stat-line" v-for="(stat, statIdx) in quickStats" :key="'quickstat-' + statIdx">
         <span :class="`dot ${stat.value}`"></span>
         <span class="stat">{{ stat.label }}: </span>
         <span class="stat-number">{{ stat.count }}</span>
@@ -25,7 +29,11 @@
     <h3>Published & Updates</h3>
     <DropdownMenu :options="ranges" :label="'Show'" />
     <div class="sidebar-wrapper">
-      <div class="stat-line" v-for="stat in updatedAndPublished" :key="stat">
+      <div
+        class="stat-line"
+        v-for="(stat, statIdx) in updatedAndPublished"
+        :key="'pubstat-' + statIdx"
+      >
         <span :class="`dot ${stat.value}`"></span>
         <span class="stat">{{ stat.label }}: </span>
         <span class="stat-number">{{ stat.count }}</span>
@@ -86,37 +94,42 @@ const publishUpdateValues = ["published", "updated"];
 
 // Computed: Quick Stats
 const quickStats = computed(() => {
-  const quickStatsArr = statuses
-    .filter((status) => quickStatValues.includes(status.value))
-    .sort((a, b) => quickStatValues.indexOf(a.value) - quickStatValues.indexOf(b.value));
-
   const allRelevantDocs = [...props.documents.pending, ...props.documents.rtp];
 
-  quickStatsArr.forEach((stat) => {
-    stat.count = allRelevantDocs.filter((doc) => doc.status === stat.label).length;
-  });
-
-  return quickStatsArr;
+  return statuses
+    .filter((status) => quickStatValues.includes(status.value))
+    .sort((a, b) => quickStatValues.indexOf(a.value) - quickStatValues.indexOf(b.value))
+    .map((status) => {
+      const count = allRelevantDocs.filter((doc) => doc.status === status.label).length;
+      return { ...status, count };
+    });
 });
 
 // Computed: Updated & Published
 const updatedAndPublished = computed(() => {
-  const publishUpdatesArr = statuses.filter((status) => publishUpdateValues.includes(status.value));
+  const allDocs = props.documents.published;
 
-  publishUpdatesArr.forEach((stat) => {
-    const docs = props.documents.published.filter((doc) => doc.status === stat.label);
-    const countByYear: Record<string, number> = {};
+  return statuses
+    .filter((status) => publishUpdateValues.includes(status.value))
+    .map((status) => {
+      const docs = allDocs.filter((doc) => doc.status === status.label);
 
-    docs.forEach((doc) => {
-      const year = doc.vehicle.modelYear;
-      countByYear[year] = (countByYear[year] || 0) + 1;
+      const countByYearMap: Record<string, number> = {};
+      for (const doc of docs) {
+        const year = doc.vehicle.modelYear; // or use publishedDate if available
+        countByYearMap[year] = (countByYearMap[year] || 0) + 1;
+      }
+
+      const countByYear: [string, number][] = Object.entries(countByYearMap).sort(
+        ([a], [b]) => Number(b) - Number(a)
+      );
+
+      return {
+        ...status, // clone existing status
+        count: docs.length,
+        countByYear,
+      };
     });
-
-    stat.count = docs.length;
-    stat.countByYear = Object.entries(countByYear).sort((a, b) => Number(b[0]) - Number(a[0]));
-  });
-
-  return publishUpdatesArr;
 });
 
 // Method: Count assigned tasks for an author

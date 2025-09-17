@@ -31,7 +31,7 @@
       </div>
     </section>
 
-    <TaskList :documents="filteredDocuments.value" />
+    <TaskList :documents="filteredDocuments" />
   </div>
 </template>
 

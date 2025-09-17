@@ -95,17 +95,11 @@ import {
 
 import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
 import { computed, ref } from "vue";
+import type { TaskDocument } from "@/types";
 
 // Props
 const props = defineProps<{
-  doc: {
-    vehicle: { modelYear: string; make: string; model: string; segment: string };
-    notes: string;
-    status: string;
-    deadline: string;
-    assets: { url: string; notes: string }[];
-    author?: { initials: string; team: string };
-  };
+  doc: TaskDocument;
 }>();
 
 // Reactive state

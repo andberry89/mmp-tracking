@@ -3,7 +3,7 @@
     <div class="menu-header" @click="isOpen = !isOpen">
       <div>
         <span class="label">{{ label }}:</span>
-        <span class="active-label">{{ active.value === "" ? "Select" : active.value }}</span>
+        <span class="active-label">{{ activeLabel }}</span>
       </div>
       <svg
         fill="#b9b9b9"
@@ -26,7 +26,7 @@
       <div class="sub-menu" v-if="isOpen">
         <div
           class="menu-item clear"
-          v-if="active.value !== ''"
+          v-if="activeLabel !== ''"
           @click="setActive({ id: '', label: '' })"
         >
           Clear Selection
@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 interface OptionItem {
   id: string;
@@ -62,14 +62,17 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = ref(false);
-const active = ref("");
+const active = ref<OptionItem>({ id: "", label: "" });
+const activeLabel = computed(() => {
+  return active.value.label || "Select";
+});
 
 const closeDropdown = () => {
   isOpen.value = false;
 };
 
 const setActive = (item: OptionItem) => {
-  active.value = item.label;
+  active.value = item;
   isOpen.value = false;
   emit("update:selected", item.id);
 };
