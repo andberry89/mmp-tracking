@@ -1,47 +1,48 @@
 <template>
   <div class="layout-grid">
     <div id="logo" class="logo"></div>
-    <header><TopNav /></header>
+
+    <header>
+      <TopNav />
+    </header>
+
     <aside id="sidebar">
       <DashboardSidebar
-        :documents="documents"
+        :documents="sortedDocuments"
         :ranges="ranges"
-        :authors="getActiveAuthors(authors)"
+        :authors="getActiveAuthors(sortedAuthors)"
       />
     </aside>
+
     <main id="content">
-      <MainContent :documents="documents" :ranges="ranges" :authors="authors" />
+      <MainContent :documents="sortedDocuments" :ranges="ranges" :authors="sortedAuthors" />
     </main>
+
+    <ModalsContainer />
   </div>
 </template>
-<script>
+
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { ModalsContainer } from "vue-final-modal";
+
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
-import TopNav from "@/components/layout/TopNav.vue";
 import MainContent from "@/components/layout/MainContent.vue";
+import TopNav from "@/components/layout/TopNav.vue";
+
 import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-functions";
-import { ranges } from "@/constants/constants";
-import testDocuments from "./test-documents";
-import authors from "./test-authors";
-export default {
-  name: "App",
-  data() {
-    return {
-      ranges: ranges,
-      authors: { bg: [], cd: [], freelance: [], all: [] },
-      documents: { published: [], pending: [], rtp: [] },
-    };
-  },
-  components: { DashboardSidebar, MainContent, TopNav },
-  methods: {
-    getActiveAuthors: getActiveAuthors,
-    sortDocuments: sortDocuments,
-    sortAuthors: sortAuthors,
-  },
-  created() {
-    this.documents = this.sortDocuments(testDocuments);
-    this.authors = this.sortAuthors(authors);
-  },
-};
+import { ranges as defaultRanges } from "@/constants/constants";
+import { testDocuments, authors as testAuthors } from "@/test";
+
+import type { DocumentsByStatus } from "@/types/TaskDocument";
+import type { AuthorGroups } from "@/types/Author";
+
+// ─── Reactive State ──────────────────────────────────────────────────────────
+const ranges = ref(defaultRanges);
+
+// ─── Computed ──────────────────────────────────────────────
+const sortedDocuments = computed(() => sortDocuments(testDocuments));
+const sortedAuthors = computed(() => sortAuthors(testAuthors));
 </script>
 
 <style lang="scss" scoped>

@@ -74,15 +74,15 @@ const filteredDocuments = computed(() => {
 
   // TODO: Implement range filter if needed
 
-  if (filters.value.author !== "") {
-    docs = {
-      published: props.documents.published.filter((doc) => doc.author?.id === filters.value.author),
-      pending: props.documents.pending.filter((doc) => doc.author?.id === filters.value.author),
-      rtp: props.documents.rtp.filter((doc) => doc.author?.id === filters.value.author),
-    };
-  }
-
-  return docs;
+  return filters.value.author
+    ? {
+        published: props.documents.published.filter(
+          (doc) => doc.author?.id === filters.value.author
+        ),
+        pending: props.documents.pending.filter((doc) => doc.author?.id === filters.value.author),
+        rtp: props.documents.rtp.filter((doc) => doc.author?.id === filters.value.author),
+      }
+    : props.documents;
 });
 </script>
 <style lang="scss" scoped>

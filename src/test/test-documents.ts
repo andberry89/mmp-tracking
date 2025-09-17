@@ -8,7 +8,7 @@ let yyyy = tomorrow.getFullYear();
 
 let date = `${yyyy}-${mm < 10 ? "0" + mm : mm}-${dd < 10 ? "0" + dd : dd}`;
 
-export default [
+export const testDocuments = [
   {
     id: "0002",
     highPriority: false,

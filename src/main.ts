@@ -1,6 +1,8 @@
 import "./styles/main.css";
+import "vue-final-modal/style.css";
 
 import { createApp } from "vue";
+import { createVfm } from "vue-final-modal";
 import ClickOutside from "@/directives/ClickOutsideDirective";
 import App from "./App.vue";
 import DropdownMenu from "./components/common/DropdownMenu.vue";
@@ -18,13 +20,13 @@ createApp(App)
       },
     },
   })
+  .use(createVfm())
   .directive("click-outside", ClickOutside)
   .component("DropdownMenu", DropdownMenu)
   .component("Popper", Popper)
   .mount("#app");
 
 /** TODO
- * Add tailwind
  * Create a "More Options" Popper menu for each task item
  * Add ability to edit task items (maybe in a popper)
  * Add assign author functionality (maybe in a popper)

@@ -74,7 +74,7 @@
         <MoreIcon class="more-icon" />
         <template #content>
           <div class="action-menu">
-            <div class="menu-item">Edit Task</div>
+            <div class="menu-item"><button @click="open">Edit Task</button></div>
             <div class="menu-item">Duplicate Task</div>
             <div class="menu-item">Delete Task</div>
           </div>
@@ -95,7 +95,22 @@ import {
 
 import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
 import { computed, ref } from "vue";
+import { useModal } from "vue-final-modal";
+import ModalEditTask from "@/components/common/ModalEditTask.vue";
 import type { TaskDocument } from "@/types";
+
+const { open, close } = useModal({
+  component: ModalEditTask,
+  attrs: {
+    title: "Edit Task",
+    onClose() {
+      close();
+    },
+  },
+  slots: {
+    default: "<p>Modal Content</p>",
+  },
+});
 
 // Props
 const props = defineProps<{
