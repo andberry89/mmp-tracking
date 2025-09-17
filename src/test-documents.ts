@@ -223,7 +223,7 @@ export default [
     assets: [],
     embargoDate: "",
     embargoNotes: "",
-    embargo: "",
+    embargo: false,
     published: false,
     new: false,
     publishedDate: "",

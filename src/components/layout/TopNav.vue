@@ -7,11 +7,8 @@
     <span>Authors</span>
   </nav>
 </template>
-<script>
-export default {
-  name: "TopNav",
-};
-</script>
+
+<script setup lang="ts"></script>
 <style lang="scss" scoped>
 nav.wrapper {
   display: flex;

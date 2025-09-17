@@ -6,24 +6,29 @@
         v-tooltip="{ theme: 'info-tooltip', content: 'High Priority MMP' }"
       />
     </div>
+
     <div class="task-vehicle">
       <span class="vehicle">{{
-        doc.vehicle.modelYear + " " + doc.vehicle.make + " " + doc.vehicle.model
-      }}</span
-      ><span class="segment">{{ doc.vehicle.segment }}</span>
+        `${doc.vehicle.modelYear} ${doc.vehicle.make} ${doc.vehicle.model}`
+      }}</span>
+      <span class="segment">{{ doc.vehicle.segment }}</span>
     </div>
+
     <div :class="['task-deadline', isHighPriority(doc) ? 'due-soon' : '']">
       {{ doc.deadline }}
     </div>
+
     <div :class="['task-status', getStatus(doc.status)]">{{ doc.status }}</div>
+
     <div :class="getDateFormat(doc)">{{ getDateText(doc) }}</div>
+
     <div class="task-notes">
       <span>{{ docNotes }}</span>
       <Popper placement="top" disableClickAway arrow>
         <div class="expand-notes-container" @click="notesExpanded = !notesExpanded">
-          <span v-if="doc.notes.length > 50" class="expand-notes"
-            >see {{ notesExpanded ? "less" : "more" }}</span
-          >
+          <span v-if="doc.notes.length > 50" class="expand-notes">
+            see {{ notesExpanded ? "less" : "more" }}
+          </span>
         </div>
         <template #content>
           <div class="full-notes">
@@ -32,11 +37,12 @@
         </template>
       </Popper>
     </div>
+
     <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
       <Popper placement="top" disableClickAway arrow>
         <div>
           <FolderIcon v-if="!assetsVisible" @click="toggleAssets" />
-          <FolderOpenIcon v-if="assetsVisible" @click="toggleAssets" />
+          <FolderOpenIcon v-else @click="toggleAssets" />
         </div>
         <template #content>
           <div class="assets-folder">
@@ -44,8 +50,8 @@
               <li v-for="(asset, idx) in doc.assets" :key="idx">
                 <a :href="asset.url" target="_blank">
                   <span class="material-symbols-outlined open-in-new-icon"> open_in_new </span>
-                  <span>{{ asset.notes }}</span></a
-                >
+                  <span>{{ asset.notes }}</span>
+                </a>
               </li>
             </ul>
           </div>
@@ -53,14 +59,16 @@
       </Popper>
     </div>
     <div v-else class="task-assets"><FolderIcon /></div>
+
     <div class="task-author">
       <span v-if="doc.author" :class="['initials', doc.author.team]">{{
         doc.author.initials
       }}</span>
-      <span v-else class="assign-author zoom"
-        ><AddCircleIcon v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }"
-      /></span>
+      <span v-else class="assign-author zoom">
+        <AddCircleIcon v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }" />
+      </span>
     </div>
+
     <div class="task-actions">
       <Popper placement="left" class="more-actions-popper" arrow>
         <MoreIcon class="more-icon" />
@@ -75,7 +83,8 @@
     </div>
   </div>
 </template>
-<script>
+
+<script setup lang="ts">
 import {
   AddCircleIcon,
   FolderIcon,
@@ -83,50 +92,41 @@ import {
   HighPriorityIcon,
   MoreIcon,
 } from "@/assets/icons";
-import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
 
-export default {
-  name: "TaskItem",
-  data() {
-    return {
-      targetElement: null,
-      assetsVisible: false,
-      notesExpanded: false,
-    };
-  },
-  props: {
-    doc: {
-      type: Object,
-      required: true,
-    },
-  },
-  computed: {
-    docNotes() {
-      if (this.doc.notes.length <= 50) {
-        return this.doc.notes;
-      } else {
-        return this.doc.notes.slice(0, 35) + "...";
-      }
-    },
-  },
-  components: {
-    AddCircleIcon,
-    FolderIcon,
-    FolderOpenIcon,
-    HighPriorityIcon,
-    MoreIcon,
-  },
-  methods: {
-    getDateFormat: getDateFormat,
-    getDateText: getDateText,
-    getStatus: getStatus,
-    isHighPriority: isHighPriority,
-    toggleAssets(evt) {
-      this.targetElement = evt.target;
-      this.assetsVisible = !this.assetsVisible;
-    },
-  },
-};
+import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
+import { computed, ref } from "vue";
+
+// Props
+const props = defineProps<{
+  doc: {
+    vehicle: { modelYear: string; make: string; model: string; segment: string };
+    notes: string;
+    status: string;
+    deadline: string;
+    assets: { url: string; notes: string }[];
+    author?: { initials: string; team: string };
+  };
+}>();
+
+// Reactive state
+const targetElement = ref<null | EventTarget>(null);
+const assetsVisible = ref(false);
+const notesExpanded = ref(false);
+
+// Computed
+const docNotes = computed(() => {
+  if (props.doc.notes.length <= 50) {
+    return props.doc.notes;
+  } else {
+    return props.doc.notes.slice(0, 35) + "...";
+  }
+});
+
+// Methods
+function toggleAssets(evt: MouseEvent) {
+  targetElement.value = evt.target;
+  assetsVisible.value = !assetsVisible.value;
+}
 </script>
 <style lang="scss" scoped>
 :deep(.popper) {

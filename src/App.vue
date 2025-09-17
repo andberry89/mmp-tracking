@@ -1,9 +1,7 @@
 <template>
   <div class="layout-grid">
     <div id="logo" class="logo"></div>
-    <header>
-      <TopNav />
-    </header>
+    <header><TopNav /></header>
     <aside id="sidebar">
       <DashboardSidebar
         :documents="documents"
@@ -24,30 +22,16 @@ import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-funct
 import { ranges } from "@/constants/constants";
 import testDocuments from "./test-documents";
 import authors from "./test-authors";
-
 export default {
   name: "App",
   data() {
     return {
       ranges: ranges,
-      authors: {
-        bg: [],
-        cd: [],
-        freelance: [],
-        all: [],
-      },
-      documents: {
-        published: [],
-        pending: [],
-        rtp: [],
-      },
+      authors: { bg: [], cd: [], freelance: [], all: [] },
+      documents: { published: [], pending: [], rtp: [] },
     };
   },
-  components: {
-    DashboardSidebar,
-    MainContent,
-    TopNav,
-  },
+  components: { DashboardSidebar, MainContent, TopNav },
   methods: {
     getActiveAuthors: getActiveAuthors,
     sortDocuments: sortDocuments,

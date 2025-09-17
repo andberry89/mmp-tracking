@@ -6,120 +6,128 @@
         <h4>{{ team.sidebarLabel }}</h4>
         <div class="author" v-for="(author, authorIdx) in authors[team.slug]" :key="authorIdx">
           <span class="author-name">{{ author.label }}</span>
-          <span class="assigned" v-if="assigned(author) > 0">{{ assigned(author) }} Assigned</span>
+          <span class="assigned" v-if="assigned(author) > 0">
+            {{ assigned(author) }} Assigned
+          </span>
         </div>
       </div>
     </div>
+
     <h3>Quick Stats</h3>
     <div class="sidebar-wrapper">
       <div class="stat-line" v-for="stat in quickStats" :key="stat">
         <span :class="`dot ${stat.value}`"></span>
-        <span class="stat">{{ stat.label }}: </span
-        ><span class="stat-number">{{ stat.count }}</span>
+        <span class="stat">{{ stat.label }}: </span>
+        <span class="stat-number">{{ stat.count }}</span>
       </div>
     </div>
+
     <h3>Published & Updates</h3>
     <DropdownMenu :options="ranges" :label="'Show'" />
     <div class="sidebar-wrapper">
       <div class="stat-line" v-for="stat in updatedAndPublished" :key="stat">
         <span :class="`dot ${stat.value}`"></span>
-        <span class="stat">{{ stat.label }}: </span
-        ><span class="stat-number">{{ stat.count }}</span>
+        <span class="stat">{{ stat.label }}: </span>
+        <span class="stat-number">{{ stat.count }}</span>
         <div class="stats-subtext">
-          <span v-for="[year, count] in stat.countByYear" :key="year">{{ year }}: {{ count }}</span>
+          <span v-for="[year, count] in stat.countByYear" :key="year">
+            {{ year }}: {{ count }}
+          </span>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from "vue";
 import { teams, statuses } from "@/constants/constants";
 
-export default {
-  name: "DashboardSidebar",
-  data() {
-    return {
-      quickStatValues: ["pending", "rte", "rtp", "scheduled"],
-      publishUpdateValues: ["published", "updated"],
-      statuses: statuses,
-      teams: {},
-    };
-  },
-  props: {
-    authors: {
-      type: Object,
-      required: true,
-    },
-    documents: {
-      type: Object,
-      required: true,
-    },
-    ranges: {
-      type: Array,
-      required: true,
-    },
-  },
-  computed: {
-    quickStats() {
-      // Filter the statuses to only include those in quickStatValues
-      let quickStatsArr = this.statuses.filter((status) =>
-        this.quickStatValues.includes(status.value)
-      );
-      // Order the array based on the order in quickStatValues
-      quickStatsArr.sort((a, b) => {
-        return this.quickStatValues.indexOf(a.value) - this.quickStatValues.indexOf(b.value);
-      });
-      // Filter the documents to only include those with status in quickStatValues
-      let allRelevantDocs = [...this.documents.pending, ...this.documents.rtp];
+// Type definitions
+interface Author {
+  id: string;
+  label: string;
+}
 
-      // Find the number of documents for each status
-      quickStatsArr.forEach((stat) => {
-        stat.count = allRelevantDocs.filter((doc) => doc.status === stat.label).length;
-      });
+interface Vehicle {
+  modelYear: string;
+}
 
-      return quickStatsArr;
-    },
-    updatedAndPublished() {
-      let publishUpdatesArr = this.statuses.filter((status) =>
-        this.publishUpdateValues.includes(status.value)
-      );
-      // Find the number of documents for each status
-      publishUpdatesArr.forEach((stat) => {
-        const docs = this.documents.published.filter((doc) => doc.status === stat.label);
-        // Find the count by model year
-        let countByYear = {};
-        docs.forEach((doc) => {
-          if (countByYear[doc.vehicle.modelYear]) {
-            countByYear[doc.vehicle.modelYear]++;
-          } else {
-            countByYear[doc.vehicle.modelYear] = 1;
-          }
-        });
-        // Sort the countByYear object by year descending
-        let arr = Object.entries(countByYear).sort((a, b) => b[0] - a[0]);
-        // arr is now a sorted array of [year, count] pairs
+interface Document {
+  id: string;
+  status: string;
+  author?: Author;
+  vehicle: Vehicle;
+}
 
-        stat.count = docs.length;
-        stat.countByYear = arr;
-      });
+interface Status {
+  label: string;
+  value: string;
+  count?: number;
+  countByYear?: [string, number][];
+}
 
-      return publishUpdatesArr;
-    },
-  },
-  methods: {
-    assigned(author) {
-      return this.documents.pending.filter((doc) => doc.author && doc.author.id === author.id)
-        .length;
-    },
-  },
-  created() {
-    let actualTeams = teams;
-    delete actualTeams.all;
-    this.teams = teams;
-  },
-};
+interface Props {
+  authors: Record<string, Author[]>;
+  documents: {
+    pending: Document[];
+    rtp: Document[];
+    published: Document[];
+  };
+  ranges: { id: string; label: string }[];
+}
+
+// Props
+const props = defineProps<Props>();
+
+// Static values
+const quickStatValues = ["pending", "rte", "rtp", "scheduled"];
+const publishUpdateValues = ["published", "updated"];
+
+// Computed: Quick Stats
+const quickStats = computed(() => {
+  const quickStatsArr = statuses
+    .filter((status) => quickStatValues.includes(status.value))
+    .sort((a, b) => quickStatValues.indexOf(a.value) - quickStatValues.indexOf(b.value));
+
+  const allRelevantDocs = [...props.documents.pending, ...props.documents.rtp];
+
+  quickStatsArr.forEach((stat) => {
+    stat.count = allRelevantDocs.filter((doc) => doc.status === stat.label).length;
+  });
+
+  return quickStatsArr;
+});
+
+// Computed: Updated & Published
+const updatedAndPublished = computed(() => {
+  const publishUpdatesArr = statuses.filter((status) => publishUpdateValues.includes(status.value));
+
+  publishUpdatesArr.forEach((stat) => {
+    const docs = props.documents.published.filter((doc) => doc.status === stat.label);
+    const countByYear: Record<string, number> = {};
+
+    docs.forEach((doc) => {
+      const year = doc.vehicle.modelYear;
+      countByYear[year] = (countByYear[year] || 0) + 1;
+    });
+
+    stat.count = docs.length;
+    stat.countByYear = Object.entries(countByYear).sort((a, b) => Number(b[0]) - Number(a[0]));
+  });
+
+  return publishUpdatesArr;
+});
+
+// Method: Count assigned tasks for an author
+function assigned(author: Author): number {
+  return props.documents.pending.filter((doc) => doc.author?.id === author.id).length;
+}
+
+// Available to template
+const { authors, ranges } = props;
 </script>
+
 <style lang="scss" scoped>
 h3 {
   font-size: 12pt;

@@ -2,8 +2,8 @@
   <div class="dropdown-menu" v-click-outside="closeDropdown">
     <div class="menu-header" @click="isOpen = !isOpen">
       <div>
-        <span class="label">{{ label }}:</span
-        ><span class="active-label">{{ active === "" ? "Select" : active }}</span>
+        <span class="label">{{ label }}:</span>
+        <span class="active-label">{{ active.value === "" ? "Select" : active.value }}</span>
       </div>
       <svg
         fill="#b9b9b9"
@@ -24,7 +24,11 @@
     </div>
     <transition name="fade" appear>
       <div class="sub-menu" v-if="isOpen">
-        <div class="menu-item clear" v-if="active !== ''" @click="setActive({ id: '', label: '' })">
+        <div
+          class="menu-item clear"
+          v-if="active.value !== ''"
+          @click="setActive({ id: '', label: '' })"
+        >
           Clear Selection
         </div>
         <div
@@ -40,37 +44,37 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "DropdownMenu",
-  data() {
-    return {
-      isOpen: false,
-      active: "",
-    };
-  },
-  props: {
-    label: {
-      type: String,
-      default: "Select Range",
-    },
-    options: {
-      type: Array,
-      required: true,
-    },
-  },
-  methods: {
-    closeDropdown() {
-      this.isOpen = false;
-    },
-    setActive(item) {
-      this.active = item.label;
-      this.isOpen = false;
-      this.$emit("update:selected", item.id);
-    },
-  },
+<script setup lang="ts">
+import { ref } from "vue";
+
+interface OptionItem {
+  id: string;
+  label: string;
+}
+
+const props = defineProps<{
+  label?: string;
+  options: OptionItem[];
+}>();
+
+const emit = defineEmits<{
+  (e: "update:selected", id: string): void;
+}>();
+
+const isOpen = ref(false);
+const active = ref("");
+
+const closeDropdown = () => {
+  isOpen.value = false;
+};
+
+const setActive = (item: OptionItem) => {
+  active.value = item.label;
+  isOpen.value = false;
+  emit("update:selected", item.id);
 };
 </script>
+
 <style lang="scss" scoped>
 .dropdown-menu {
   display: flex;

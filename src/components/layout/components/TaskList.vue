@@ -26,37 +26,33 @@
         <span class="column-header-text">Author</span>
       </div>
     </section>
+
     <section class="add-new">
       <PlusIcon class="add-new-btn" />
       <span>Add New Task</span>
     </section>
+
     <section class="task-list">
       <h3>Pending</h3>
       <TaskItem v-for="doc in documents.pending" :key="doc.id" :doc="doc" class="grid" />
+
       <h3>Ready to Publish</h3>
       <TaskItem v-for="doc in documents.rtp" :key="doc.id" :doc="doc" class="grid" />
+
       <h3>Published</h3>
       <TaskItem v-for="doc in documents.published" :key="doc.id" :doc="doc" class="grid" />
     </section>
   </div>
 </template>
-<script>
+
+<script setup lang="ts">
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/layout/components/TaskItem.vue";
+import type { DocumentsByStatus } from "@/types";
 
-export default {
-  name: "TaskList",
-  components: {
-    PlusIcon,
-    TaskItem,
-  },
-  props: {
-    documents: {
-      type: Object,
-      required: true,
-    },
-  },
-};
+const props = defineProps<{
+  documents: DocumentsByStatus;
+}>();
 </script>
 <style lang="scss" scoped>
 @mixin column-layout() {

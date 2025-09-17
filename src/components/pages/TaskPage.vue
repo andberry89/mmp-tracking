@@ -11,87 +11,79 @@
             <input type="search" class="search-input" placeholder="Search by vehicle or segment" />
           </div>
         </form>
+
         <DropdownMenu
           class="author-dropdown"
           :options="authors.all.filter((author) => author.active)"
-          :label="'Author'"
-          @update:selected="updateAuthor($event)"
+          label="Author"
+          @update:selected="updateAuthor"
         />
+
         <DropdownMenu
           class="range-dropdown"
           :options="ranges"
-          :label="'Status'"
-          @update:selected="updateRange($event)"
+          label="Status"
+          @update:selected="updateRange"
         />
+
         <SortIcon class="sort-icon header-icon" />
         <FilterIcon class="filter-icon header-icon" />
       </div>
     </section>
-    <TaskList :documents="filteredDocuments()" />
+
+    <TaskList :documents="filteredDocuments.value" />
   </div>
 </template>
-<script>
+
+<script setup lang="ts">
+import { ref, computed } from "vue";
+
 import { FilterIcon, SearchIcon, SortIcon } from "@/assets/icons";
 import TaskList from "@/components/layout/components/TaskList.vue";
+import type { DocumentsByStatus, AuthorGroups } from "@/types";
 
-export default {
-  name: "TaskPage",
-  data() {
-    return {
-      filters: {
-        author: "",
-        range: "",
-      },
+// ─── Props ───────────────────────────────────────────────────────────────────
+
+// Define props with type safety
+const props = defineProps<{
+  documents: DocumentsByStatus;
+  authors: AuthorGroups;
+  ranges: Array<{ id: string; label: string }>;
+}>();
+
+// ─── State ───────────────────────────────────────────────────────────────────
+const filters = ref({
+  author: "",
+  range: "",
+});
+
+// ─── Methods ─────────────────────────────────────────────────────────────────
+function updateAuthor(authorId: string) {
+  console.log("Author ID selected:", authorId);
+  filters.value.author = authorId;
+}
+
+function updateRange(rangeId: string) {
+  console.log("Range ID selected:", rangeId);
+  filters.value.range = rangeId;
+}
+
+// ─── Computed: Filtered Documents ────────────────────────────────────────────
+const filteredDocuments = computed(() => {
+  let docs = props.documents;
+
+  // TODO: Implement range filter if needed
+
+  if (filters.value.author !== "") {
+    docs = {
+      published: props.documents.published.filter((doc) => doc.author?.id === filters.value.author),
+      pending: props.documents.pending.filter((doc) => doc.author?.id === filters.value.author),
+      rtp: props.documents.rtp.filter((doc) => doc.author?.id === filters.value.author),
     };
-  },
-  props: {
-    documents: {
-      type: Object,
-      required: true,
-    },
-    authors: {
-      type: Object,
-      required: true,
-    },
-    ranges: {
-      type: Array,
-      required: true,
-    },
-  },
-  components: {
-    FilterIcon,
-    SearchIcon,
-    SortIcon,
-    TaskList,
-  },
-  methods: {
-    filteredDocuments() {
-      let docs = this.documents;
+  }
 
-      // TODO: Check for range filter
-
-      if (this.filters.author !== "") {
-        docs = {
-          published: this.documents.published.filter(
-            (doc) => doc.author?.id === this.filters.author
-          ),
-          pending: this.documents.pending.filter((doc) => doc.author?.id === this.filters.author),
-          rtp: this.documents.rtp.filter((doc) => doc.author?.id === this.filters.author),
-        };
-      }
-
-      return docs;
-    },
-    updateAuthor(authorId) {
-      console.log("Author ID selected:", authorId);
-      this.filters.author = authorId;
-    },
-    updateRange(rangeId) {
-      console.log("Range ID selected:", rangeId);
-      this.filters.range = rangeId;
-    },
-  },
-};
+  return docs;
+});
 </script>
 <style lang="scss" scoped>
 .content-header {
