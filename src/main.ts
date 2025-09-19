@@ -20,7 +20,7 @@ createApp(App)
       },
     },
   })
-  .use(createVfm())
+  .use(createVfm({ componentPlugin: true }))
   .directive("click-outside", ClickOutside)
   .component("DropdownMenu", DropdownMenu)
   .component("Popper", Popper)

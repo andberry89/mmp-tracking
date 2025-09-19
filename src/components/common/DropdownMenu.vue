@@ -1,9 +1,15 @@
 <template>
-  <div class="dropdown-menu" v-click-outside="closeDropdown">
-    <div class="menu-header" @click="isOpen = !isOpen">
+  <div
+    class="relative flex flex-col min-w-[110px] h-[22px] font-asap font-normal text-xs leading-[1.2] text-[var(--color-dropdown-text)] bg-[var(--color-input-background)] border border-[var(--color-input-border)] rounded-t cursor-pointer"
+    v-click-outside="closeDropdown"
+  >
+    <div
+      class="flex justify-between items-center gap-[5px] p-1 text-[var(--color-search-text)]"
+      @click="isOpen = !isOpen"
+    >
       <div>
-        <span class="label">{{ label }}:</span>
-        <span class="active-label">{{ activeLabel }}</span>
+        <span>{{ label }}:</span>
+        <span class="ml-1 text-[var(--color-dropdown-text)]">{{ activeLabel }}</span>
       </div>
       <svg
         fill="#b9b9b9"
@@ -12,6 +18,7 @@
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
         stroke="#b9b9b9"
+        class="ml-2"
       >
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -22,17 +29,28 @@
         </g>
       </svg>
     </div>
-    <transition name="fade" appear>
-      <div class="sub-menu" v-if="isOpen">
+    <transition
+      appear
+      enter-active-class="transition-opacity duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        class="absolute top-full w-full border border-[var(--color-dropdown-border)] border-t-0 rounded-b bg-[var(--color-input-background)] overflow-hidden"
+        v-if="isOpen"
+      >
         <div
-          class="menu-item clear"
           v-if="activeLabel !== ''"
           @click="setActive({ id: '', label: '' })"
+          class="px-2 py-1 font-bold text-[var(--color-dropdown-clear-text)] hover:bg-[var(--color-input-hover)] transition duration-200 cursor-pointer"
         >
           Clear Selection
         </div>
         <div
-          class="menu-item"
+          class="px-2 py-1 text-[var(--color-dropdown-text)] hover:bg-[var(--color-input-hover)] transition duration-200 cursor-pointer"
           v-for="(item, i) in options"
           :key="i + '-' + label"
           @click="setActive(item)"
@@ -77,77 +95,3 @@ const setActive = (item: OptionItem) => {
   emit("update:selected", item.id);
 };
 </script>
-
-<style lang="scss" scoped>
-.dropdown-menu {
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: flex-start;
-  align-content: center;
-  position: relative;
-  width: auto;
-  min-width: 110px;
-  height: 22px;
-  font: 400 12px/1.2 "Asap", sans-serif;
-  color: var(--color-dropdown-text);
-  background-color: var(--color-input-background);
-  border: 1px solid var(--color-input-border);
-  border-radius: 4px 4px 0px 0px;
-  cursor: pointer;
-
-  .menu-header {
-    color: var(--color-search-text);
-    padding: 4px;
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-    align-items: center;
-
-    .active-label {
-      color: var(--color-dropdown-text);
-      margin-left: 4px;
-    }
-
-    svg {
-      margin-left: 8px;
-    }
-  }
-
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: all 0.4s ease-out;
-  }
-
-  .fade-enter-from,
-  .fade-leave-to {
-    opacity: 0;
-  }
-
-  .sub-menu {
-    position: absolute;
-    top: 100%;
-    width: 100%;
-    border-radius: 0px 0px 8px 8px;
-    background-color: var(--color-input-background);
-    border: 1px solid var(--color-dropdown-border);
-    border-top: none;
-    overflow: hidden;
-
-    .menu-item {
-      color: var(--color-dropdown-text);
-      padding: 4px;
-      transition: 0.3s;
-
-      &.clear {
-        font-weight: 700;
-        color: var(--color-dropdown-clear-text);
-      }
-
-      .active,
-      &:hover {
-        background-color: var(--color-input-hover);
-      }
-    }
-  }
-}
-</style>

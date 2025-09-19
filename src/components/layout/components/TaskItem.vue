@@ -74,12 +74,21 @@
         <MoreIcon class="more-icon" />
         <template #content>
           <div class="action-menu">
-            <div class="menu-item"><button @click="open">Edit Task</button></div>
+            <button
+              @click="showModal = true"
+              class="px-3 py-1 bg-gray-100 border rounded hover:bg-gray-200"
+            >
+              Open Modal
+            </button>
             <div class="menu-item">Duplicate Task</div>
             <div class="menu-item">Delete Task</div>
           </div>
         </template>
       </Popper>
+
+      <ModalEditTask v-model="showModal" title="Edit Task" @close="showModal = false">
+        <p>This is the modal content.</p>
+      </ModalEditTask>
     </div>
   </div>
 </template>
@@ -95,22 +104,9 @@ import {
 
 import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
 import { computed, ref } from "vue";
-import { useModal } from "vue-final-modal";
+import { ModalsContainer } from "vue-final-modal";
 import ModalEditTask from "@/components/common/ModalEditTask.vue";
 import type { TaskDocument } from "@/types";
-
-const { open, close } = useModal({
-  component: ModalEditTask,
-  attrs: {
-    title: "Edit Task",
-    onClose() {
-      close();
-    },
-  },
-  slots: {
-    default: "<p>Modal Content</p>",
-  },
-});
 
 // Props
 const props = defineProps<{
@@ -121,6 +117,7 @@ const props = defineProps<{
 const targetElement = ref<null | EventTarget>(null);
 const assetsVisible = ref(false);
 const notesExpanded = ref(false);
+const showModal = ref(false);
 
 // Computed
 const docNotes = computed(() => {
