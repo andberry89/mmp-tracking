@@ -1,5 +1,7 @@
 <template>
-  <div class="task-item">
+  <div
+    class="task-item bg-[var(--color-body-background)] border-2 border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-300 ease-in-out hover:border-black"
+  >
     <div>
       <HighPriorityIcon
         v-if="isHighPriority(doc)"
@@ -7,26 +9,43 @@
       />
     </div>
 
-    <div class="task-vehicle">
-      <span class="vehicle">{{
+    <div class="task-vehicle flex flex-col items-start pl-2 font-bold">
+      <span class="text-[var(--color-body-text)]">{{
         `${doc.vehicle.modelYear} ${doc.vehicle.make} ${doc.vehicle.model}`
       }}</span>
-      <span class="segment">{{ doc.vehicle.segment }}</span>
+      <span class="text-[var(--color-body-text-secondary)]">{{ doc.vehicle.segment }}</span>
     </div>
 
-    <div :class="['task-deadline', isHighPriority(doc) ? 'due-soon' : '']">
+    <div
+      :class="[
+        'font-bold',
+        isHighPriority(doc)
+          ? 'text-[var(--color-body-text-priority)]'
+          : 'text-[var(--color-body-text-secondary)]',
+      ]"
+    >
       {{ doc.deadline }}
     </div>
 
-    <div :class="['task-status', getStatus(doc.status)]">{{ doc.status }}</div>
+    <div
+      :class="[
+        'rounded-lg px-2 py-1 text-xs text-center font-bold w-[90%]',
+        getStatusClass(doc.status),
+      ]"
+    >
+      {{ doc.status }}
+    </div>
 
     <div :class="getDateFormat(doc)">{{ getDateText(doc) }}</div>
 
-    <div class="task-notes">
+    <div class="text-[var(--color-body-text-tertiary)] text-[11px]">
       <span>{{ docNotes }}</span>
       <Popper placement="top" disableClickAway arrow>
-        <div class="expand-notes-container" @click="notesExpanded = !notesExpanded">
-          <span v-if="doc.notes.length > 50" class="expand-notes">
+        <div class="inline" @click="notesExpanded = !notesExpanded">
+          <span
+            v-if="doc.notes.length > 50"
+            class="text-[var(--color-body-text-see-more)] cursor-pointer font-bold"
+          >
             see {{ notesExpanded ? "less" : "more" }}
           </span>
         </div>
@@ -38,17 +57,21 @@
       </Popper>
     </div>
 
-    <div v-if="doc.assets.length > 0" class="task-assets active-assets zoom">
+    <div v-if="doc.assets.length > 0" class="active-assets zoom">
       <Popper placement="top" disableClickAway arrow>
         <div>
           <FolderIcon v-if="!assetsVisible" @click="toggleAssets" />
           <FolderOpenIcon v-else @click="toggleAssets" />
         </div>
         <template #content>
-          <div class="assets-folder">
-            <ul>
-              <li v-for="(asset, idx) in doc.assets" :key="idx">
-                <a :href="asset.url" target="_blank">
+          <div>
+            <ul class="list-none p-0 m-0">
+              <li class="mb-3 text-base" v-for="(asset, idx) in doc.assets" :key="idx">
+                <a
+                  class="text-[var(--color-body-link)] no-underline transition-colors duration-200 ease-in-out hover:underline hover:text-[var(--color-body-link-hover)]"
+                  :href="asset.url"
+                  target="_blank"
+                >
                   <span class="material-symbols-outlined open-in-new-icon"> open_in_new </span>
                   <span>{{ asset.notes }}</span>
                 </a>
@@ -128,6 +151,20 @@ const docNotes = computed(() => {
   }
 });
 
+const statusClassMap = {
+  pending: "bg-yellow-200 text-yellow-900",
+  rte: "bg-blue-100 text-blue-900",
+  rtp: "bg-purple-200 text-purple-900",
+  scheduled: "bg-orange-200 text-orange-900",
+  updated: "bg-indigo-200 text-indigo-900",
+  published: "bg-green-200 text-green-900",
+};
+
+const getStatusClass = (status: string) => {
+  const normalized = getStatus(status);
+  return statusClassMap[normalized] || "bg-gray-200 text-gray-800";
+};
+
 // Methods
 function toggleAssets(evt: MouseEvent) {
   targetElement.value = evt.target;
@@ -147,33 +184,6 @@ function toggleAssets(evt: MouseEvent) {
 }
 
 .task-item {
-  background-color: var(--color-body-background);
-  border: 2px solid var(--color-body-border);
-  border-radius: 8px;
-  transition: all 0.3s ease-in-out;
-
-  .task-vehicle {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-left: 10px;
-    font-weight: bold;
-
-    .vehicle {
-      color: var(--color-body-text);
-    }
-
-    .segment {
-      color: var(--color-body-text-secondary);
-    }
-  }
-
-  .task-deadline {
-    color: var(--color-body-text-secondary);
-    font-weight: bold;
-  }
-
-  .due-soon,
   .embargo {
     color: var(--color-body-text-priority);
     font-weight: bold;
@@ -181,78 +191,6 @@ function toggleAssets(evt: MouseEvent) {
 
   .published {
     color: var(--color-body-text);
-  }
-
-  .task-status {
-    border-radius: 8px;
-    padding: 5px 0;
-    color: var(--color-body-text-status);
-    font-weight: bold;
-    font-size: 11px;
-    width: 80%;
-    text-align: center;
-
-    &.pending {
-      background-color: var(--color-body-pending);
-    }
-
-    &.rte {
-      background-color: var(--color-body-rte);
-    }
-
-    &.rtp {
-      background-color: var(--color-body-rtp);
-    }
-
-    &.scheduled {
-      background-color: var(--color-body-scheduled);
-    }
-
-    &.updated {
-      background-color: var(--color-body-updated);
-    }
-    &.published {
-      background-color: var(--color-body-published);
-    }
-  }
-
-  .task-notes {
-    color: var(--color-body-text-tertiary);
-    font-size: 11px;
-
-    .expand-notes-container {
-      display: inline;
-
-      .expand-notes {
-        color: var(--color-body-text-see-more);
-        cursor: pointer;
-        font-weight: bold;
-      }
-    }
-  }
-
-  .task-assets {
-    .assets-folder {
-      ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-
-        li {
-          margin-bottom: 3px;
-          font-size: 16px;
-          a {
-            color: var(--color-body-link);
-            text-decoration: none;
-            transition: color 0.2s ease-in-out;
-            &:hover {
-              text-decoration: underline;
-              color: var(--color-body-link-hover);
-            }
-          }
-        }
-      }
-    }
   }
 
   .active-assets {
@@ -309,10 +247,6 @@ function toggleAssets(evt: MouseEvent) {
         transform: scale(1.2);
       }
     }
-  }
-
-  &:hover {
-    border-color: var(--black);
   }
 }
 </style>

@@ -1,14 +1,19 @@
 <template>
   <VueFinalModal
     v-model="internalModelValue"
-    class="modal-edit-task"
-    content-class="modal-edit-task-content"
+    class="flex items-center justify-center p-4"
+    content-class="bg-white p-8 rounded-lg min-w-[400px] max-w-[600px] flex flex-col shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
     overlay-transition="vfm-fade"
     content-transition="vfm-fade"
   >
-    <h2>{{ title }}</h2>
+    <h2 class="text-xl font-semibold mb-4">{{ title }}</h2>
     <slot />
-    <button @click="$emit('close')">Close</button>
+    <button
+      @click="$emit('close')"
+      class="mt-6 self-end px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition"
+    >
+      Close
+    </button>
   </VueFinalModal>
 </template>
 
@@ -28,16 +33,3 @@ const internalModelValue = computed({
   set: (val) => emit("update:modelValue", val),
 });
 </script>
-<style lang="scss">
-.modal-edit-task-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  min-width: 400px;
-  max-width: 600px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-</style>
