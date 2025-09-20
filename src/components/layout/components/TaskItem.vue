@@ -84,9 +84,14 @@
     <div v-else class="task-assets"><FolderIcon /></div>
 
     <div class="task-author">
-      <span v-if="doc.author" :class="['initials', doc.author.team]">{{
-        doc.author.initials
-      }}</span>
+      <span
+        v-if="doc.author"
+        :class="[
+          'rounded-full h-6 w-6 flex items-center justify-center font-bold text-[14px] leading-[1.2] text-[var(--color-team-text)] font-[Asap,sans-serif]',
+          getTeamColorClass(doc.author.team),
+        ]"
+        >{{ doc.author.initials }}</span
+      >
       <span v-else class="assign-author zoom">
         <AddCircleIcon v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }" />
       </span>
@@ -160,9 +165,20 @@ const statusClassMap = {
   published: "bg-green-200 text-green-900",
 };
 
+const teamColorMap = {
+  freelance: " bg-pink-500",
+  bg: "bg-indigo-600",
+  cd: "bg-teal-400",
+};
+
 const getStatusClass = (status: string) => {
   const normalized = getStatus(status);
   return statusClassMap[normalized] || "bg-gray-200 text-gray-800";
+};
+
+const getTeamColorClass = (team: string) => {
+  const normalized = teamColorMap[team];
+  return normalized + " text-white";
 };
 
 // Methods
@@ -200,29 +216,6 @@ function toggleAssets(evt: MouseEvent) {
   }
 
   .task-author {
-    .initials {
-      border-radius: 50%;
-      color: var(--color-team-text);
-      height: 24px;
-      width: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font: 700 14px/1.2 "Asap", sans-serif;
-
-      &.freelance {
-        background-color: var(--color-team-fl);
-      }
-
-      &.bg {
-        background-color: var(--color-team-bg);
-      }
-
-      &.cd {
-        background-color: var(--color-team-cd);
-      }
-    }
-
     .assign-author {
       width: 24px;
       height: 24px;
