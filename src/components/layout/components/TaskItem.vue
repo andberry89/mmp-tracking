@@ -1,6 +1,6 @@
 <template>
   <div
-    class="task-item bg-[var(--color-body-background)] border-2 border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-300 ease-in-out hover:border-black"
+    class="bg-[var(--color-body-background)] border-2 border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-300 ease-in-out hover:border-black"
   >
     <div>
       <HighPriorityIcon
@@ -27,16 +27,11 @@
       {{ doc.deadline }}
     </div>
 
-    <div
-      :class="[
-        'rounded-lg px-2 py-1 text-xs text-center font-bold w-[90%]',
-        getStatusClass(doc.status),
-      ]"
-    >
+    <div :class="['status-badge', getStatusClass(doc.status)]">
       {{ doc.status }}
     </div>
 
-    <div :class="getDateFormat(doc)">{{ getDateText(doc) }}</div>
+    <div :class="getDateFormatClass(doc)">{{ getDateText(doc) }}</div>
 
     <div class="text-[var(--color-body-text-tertiary)] text-[11px]">
       <span>{{ docNotes }}</span>
@@ -50,29 +45,42 @@
           </span>
         </div>
         <template #content>
-          <div class="full-notes">
+          <div>
             <p>{{ doc.notes }}</p>
           </div>
         </template>
       </Popper>
     </div>
 
-    <div v-if="doc.assets.length > 0" class="active-assets zoom">
+    <div v-if="doc.assets.length > 0">
       <Popper placement="top" disableClickAway arrow>
         <div>
-          <FolderIcon v-if="!assetsVisible" @click="toggleAssets" />
-          <FolderOpenIcon v-else @click="toggleAssets" />
+          <FolderIcon
+            class="zoomable fill-[var(--color-body-active-assets)]"
+            v-if="!assetsVisible"
+            @click="toggleAssets"
+          />
+          <FolderOpenIcon
+            class="zoomable fill-[var(--color-body-active-assets)]"
+            v-else
+            @click="toggleAssets"
+          />
         </div>
         <template #content>
           <div>
-            <ul class="list-none p-0 m-0">
+            <ul class="popper-list">
               <li class="mb-3 text-base" v-for="(asset, idx) in doc.assets" :key="idx">
                 <a
                   class="text-[var(--color-body-link)] no-underline transition-colors duration-200 ease-in-out hover:underline hover:text-[var(--color-body-link-hover)]"
                   :href="asset.url"
                   target="_blank"
                 >
-                  <span class="material-symbols-outlined open-in-new-icon"> open_in_new </span>
+                  <span
+                    class="material-symbols-outlined mr-[2px] text-[var(--gray-dark-2)] align-middle leading-none"
+                    style="font-size: 16px"
+                  >
+                    open_in_new
+                  </span>
                   <span>{{ asset.notes }}</span>
                 </a>
               </li>
@@ -83,25 +91,23 @@
     </div>
     <div v-else class="task-assets"><FolderIcon /></div>
 
-    <div class="task-author">
-      <span
-        v-if="doc.author"
-        :class="[
-          'rounded-full h-6 w-6 flex items-center justify-center font-bold text-[14px] leading-[1.2] text-[var(--color-team-text)] font-[Asap,sans-serif]',
-          getTeamColorClass(doc.author.team),
-        ]"
-        >{{ doc.author.initials }}</span
-      >
-      <span v-else class="assign-author zoom">
-        <AddCircleIcon v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }" />
+    <div>
+      <span v-if="doc.author" :class="['team-badge', getTeamColorClass(doc.author.team)]">{{
+        doc.author.initials
+      }}</span>
+      <span v-else class="w-6 h-6 flex items-center justify-center-safe">
+        <AddCircleIcon
+          class="zoomable"
+          v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }"
+        />
       </span>
     </div>
 
-    <div class="task-actions">
-      <Popper placement="left" class="more-actions-popper" arrow>
-        <MoreIcon class="more-icon" />
+    <div id="task-actions">
+      <Popper placement="left" arrow>
+        <MoreIcon class="fill-[var(--color-body-more-icon)] cursor-pointer" />
         <template #content>
-          <div class="action-menu">
+          <div>
             <button
               @click="showModal = true"
               class="px-3 py-1 bg-gray-100 border rounded hover:bg-gray-200"
@@ -156,6 +162,11 @@ const docNotes = computed(() => {
   }
 });
 
+const dateFormatMap = {
+  embargo: "text-orange-400 font-bold",
+  published: "text-gray-900",
+};
+
 const statusClassMap = {
   pending: "bg-yellow-200 text-yellow-900",
   rte: "bg-blue-100 text-blue-900",
@@ -169,6 +180,12 @@ const teamColorMap = {
   freelance: " bg-pink-500",
   bg: "bg-indigo-600",
   cd: "bg-teal-400",
+};
+
+const getDateFormatClass = (doc: TaskDocument) => {
+  const dateFormat = getDateFormat(doc);
+  const normalized = dateFormatMap[dateFormat];
+  return normalized || "";
 };
 
 const getStatusClass = (status: string) => {
@@ -191,55 +208,5 @@ function toggleAssets(evt: MouseEvent) {
 :deep(.popper) {
   width: auto;
   max-width: 25%;
-}
-
-.open-in-new-icon {
-  color: var(--gray-dark-2);
-  font-size: 16px;
-  margin-right: 2px;
-}
-
-.task-item {
-  .embargo {
-    color: var(--color-body-text-priority);
-    font-weight: bold;
-  }
-
-  .published {
-    color: var(--color-body-text);
-  }
-
-  .active-assets {
-    svg {
-      fill: var(--color-body-active-assets);
-    }
-  }
-
-  .task-author {
-    .assign-author {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  .task-actions {
-    .more-icon {
-      fill: var(--color-body-more-icon);
-      cursor: pointer;
-    }
-  }
-
-  .zoom {
-    svg {
-      cursor: pointer;
-      transition: transform 0.2s ease-in-out;
-      &:hover {
-        transform: scale(1.2);
-      }
-    }
-  }
 }
 </style>

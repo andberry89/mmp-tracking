@@ -1,7 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Monda:wght@400..700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=open_in_new");
+
 @import "tailwindcss";
 @import "./base.css";
+@import "./tokens.css";
+@import "./utilities.css";
 @import "floating-vue/dist/style.css";
 
 #app {
@@ -9,21 +12,4 @@
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
-}
-
-/* Tooltip styles */
-
-.v-popper--theme-info-tooltip .v-popper__inner {
-  background: #ffffff;
-  color: #000000;
-  border: 1px #8c8c8c solid;
-}
-
-.v-popper--theme-info-tooltip .v-popper__arrow-outer {
-  border-color: #8c8c8c;
-}
-
-.v-popper--theme-info-tooltip .v-popper__arrow-inner {
-  visibility: visible;
-  border-color: #ffffff;
 }

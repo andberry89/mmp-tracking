@@ -1,0 +1,16 @@
+/* Tooltip styles */
+
+.v-popper--theme-info-tooltip .v-popper__inner {
+  background: #ffffff;
+  color: #000000;
+  border: 1px #8c8c8c solid;
+}
+
+.v-popper--theme-info-tooltip .v-popper__arrow-outer {
+  border-color: #8c8c8c;
+}
+
+.v-popper--theme-info-tooltip .v-popper__arrow-inner {
+  visibility: visible;
+  border-color: #ffffff;
+}

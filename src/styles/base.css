@@ -1,127 +1,20 @@
-:root {
-  /* Gray color palette */
-  --white: #ffffff;
-  --white-muted: #f1f1f1;
-  --white-soft: #f2f2f2;
-  --gray-light-1: #e2e2e2;
-  --gray-light-1-transparent: rgba(226, 226, 226, 0.4);
-  --gray-light-2: #b6b6b6;
-  --gray-light-3: #9a9a9a;
-  --gray-light-4: #595959;
-  --gray: #535353;
-  --gray-dark-2: #4c4c4c;
-  --gray-dark-3: #404040;
-  --gray-dark-4: #333333;
-  --gray-dark-5: #272727;
-  --black: #000000;
-  --black-transparent-1: rgba(0, 0, 0, 0.25);
+/* Tailwind Utility Classes */
+@layer utilities {
+  .zoomable {
+    @apply cursor-pointer transition-transform duration-200 hover:scale-110;
+  }
 
-  /* Primary color palette */
-  --blue: #45b8d3;
-  --orange: #ed7356;
-  --purple: #c750fd;
-  --yellow: #eab02f;
-  --green: #6ac742;
-  --green-2: #94bf69;
-  --teal: #42c79f;
-  --pink: #fd5086;
-  --indigo: #7250fd;
-  --mint: #40cba0;
-  --red: #e2574c;
-  --light-green-transparent: rgba(148, 191, 105, 0.6);
+  .status-badge {
+    @apply rounded-lg text-xs text-center font-bold px-2 py-1 w-[90%];
+  }
 
-  --blue-dark-1: #378294;
-}
+  .team-badge {
+    @apply rounded-full h-6 w-6 flex items-center justify-center font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-team-text)];
+  }
 
-:root {
-  --color-background: var(--white-soft);
-  --color-background-header: var(--white);
-  --color-background-logo: var(--gray-dark-3);
-  --color-background-sidebar: var(--gray-dark-4);
-
-  --color-border: var(--gray-light-1);
-  --color-border-hover: var(--gray-dark-4);
-
-  --color-sidebar-text: var(--white);
-  --color-sidebar-text-header: var(--gray-light-3);
-  --color-sidebar-text-subtext: var(--gray-light-3);
-  --color-sidebar-text-hover: var(--gray-dark-3);
-  --color-sidebar-divider: var(--gray-light-1-transparent);
-
-  /* Header colors */
-  --color-header-text: var(--gray-light-3);
-  --color-header-text-active: var(--gray);
-  --color-header-text-hover: var(--gray);
-  --color-header-text-underline: var(--green-2);
-
-  /* Add New Item colors */
-  --color-add-new: var(--green-2);
-
-  /* Body colors */
-  --color-body-header-text: var(--gray-dark-5);
-  --color-body-column-header-text: var(--gray-light-4);
-  --color-add-new-item-text: var(--gray-light-4);
-  --color-add-new-item-border: var(--light-green-transparent);
-  --color-body-text: var(--black);
-  --color-body-text-secondary: var(--gray-light-3);
-  --color-body-text-tertiary: var(--gray-light-4);
-  --color-body-link: var(--blue-dark-1);
-  --color-body-link-hover: var(--red);
-
-  /* MMP Task colors */
-  --color-body-background: var(--white);
-  --color-body-border: var(--gray-light-1);
-  --color-body-text-priority: var(--orange);
-  --color-body-text-see-more: var(--blue);
-  --color-body-active-assets: var(--gray-light-3);
-  --color-body-more-icon: var(--gray-dark-2);
-
-  /* Status colors */
-  --color-body-pending: var(--blue);
-  --color-body-published: var(--green);
-  --color-body-rte: var(--purple); /* Ready to Edit */
-  --color-body-rtp: var(--orange); /* Ready to Publish */
-  --color-body-scheduled: var(--yellow);
-  --color-body-updated: var(--teal);
-  --color-body-text-status: var(--white);
-
-  /* Team Button colors */
-  --color-team-text: var(--white);
-  --color-team-bg: var(--indigo); /* Buyer's Guide */
-  --color-team-cd: var(--mint); /* C/D */
-  --color-team-fl: var(--pink); /* Freelance */
-
-  /* Input colors */
-  --color-input-background: var(--white);
-  --color-input-background-hover: var(--gray-dark-2);
-  --color-input-border: var(--white-muted);
-  --color-input-hover: var(--gray-light-1);
-  --color-search-text: var(--black);
-  --color-search-text-placeholder: var(--black-transparent-1);
-  --color-icon: var(--gray-light-2);
-  --color-icon-hover: var(--white-soft);
-  --color-dropdown-label: var(--gray-dark-2);
-  --color-dropdown-text: var(--gray-light-4);
-  --color-dropdown-border: var(--gray-light-1);
-  --color-dropdown-clear-text: var(--gray-dark-2);
-}
-
-/* Popover colors */
-:root {
-  --popper-theme-background-color: var(--white-soft);
-  --popper-theme-background-color-hover: var(--white-soft);
-  --popper-theme-text-color: var(--black);
-  --popper-theme-border-width: 2px;
-  --popper-theme-border-style: solid;
-  --popper-theme-border-color: var(--black);
-  --popper-theme-border-radius: 12px;
-  --popper-theme-padding: 32px;
-  --popper-theme-box-shadow: 0 6px 30px -6px rgba(0, 0, 0, 0.25);
-}
-
-/* Utility Classes */
-.zoomable {
-  @apply cursor-pointer transition-transform duration-200 hover:scale-110;
+  .popper-list {
+    @apply list-none p-0 m-0;
+  }
 }
 
 /* SVG icons */
@@ -130,18 +23,18 @@
 }
 
 /* Global styles */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-body {
-  min-height: 100vh;
-  color: var(--color-body-text);
-  font: 400 12pt/1.2 "Asap", sans-serif;
-  background: var(--color-background);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  body {
+    min-height: 100vh;
+    color: var(--color-body-text);
+    font: 400 12pt/1.2 "Asap", sans-serif;
+    background: var(--color-background);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
