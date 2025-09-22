@@ -1,6 +1,6 @@
 <template>
   <div>
-    <section class="content-column-headers grid">
+    <section class="mt-5 grid">
       <div class="content-column-header">
         <span class="column-header-text"></span>
       </div>
@@ -27,19 +27,33 @@
       </div>
     </section>
 
-    <section class="add-new">
-      <PlusIcon class="add-new-btn" />
+    <section
+      class="flex items-center gap-[10px] px-[5px] py-[8px] text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border-2 border-dashed border-[var(--color-add-new-item-border)] cursor-pointer mb-[5px] hover:border-[var(--color-add-new-item-border-hover)] transition-colors duration-200 ease-in-out hover:bg-[var(--white)]"
+    >
+      <PlusIcon class="fill-[var(--color-add-new)] p-0 m-0 cursor-pointer" />
       <span>Add New Task</span>
     </section>
 
-    <section class="task-list">
-      <h3>Pending</h3>
+    <section class="font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
+      <h3
+        class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
+      >
+        Pending
+      </h3>
       <TaskItem v-for="doc in documents.pending" :key="doc.id" :doc="doc" class="grid" />
 
-      <h3>Ready to Publish</h3>
+      <h3
+        class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
+      >
+        Ready to Publish
+      </h3>
       <TaskItem v-for="doc in documents.rtp" :key="doc.id" :doc="doc" class="grid" />
 
-      <h3>Published</h3>
+      <h3
+        class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
+      >
+        Published
+      </h3>
       <TaskItem v-for="doc in documents.published" :key="doc.id" :doc="doc" class="grid" />
     </section>
   </div>
@@ -66,52 +80,5 @@ const props = defineProps<{
 
 .grid {
   @include column-layout();
-}
-
-.content-column-headers {
-  margin-top: 20px;
-
-  .content-column-header {
-    text-align: center;
-    padding: 10px 0;
-    background-color: var(--color-header-background);
-    border-radius: 4px;
-
-    .column-header-text {
-      font: 700 14px/1.2 "Asap", sans-serif;
-      color: var(--color-body-column-header-text);
-      display: block;
-      width: 100%;
-    }
-  }
-}
-
-.add-new {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 5px;
-  color: var(--color-add-new-item-text);
-  font: 700 14px/1.2 "Asap", sans-serif;
-  border: 2px dashed var(--color-add-new-item-border);
-  cursor: pointer;
-  margin-bottom: 5px;
-
-  .add-new-btn {
-    fill: var(--color-add-new);
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
-  }
-}
-
-.task-list {
-  font: 400 12px/1.2 "Asap", sans-serif;
-
-  h3 {
-    margin: 20px 0 5px 0;
-    font: 700 16px/1.2 "Asap", sans-serif;
-    color: var(--color-body-header-text);
-  }
 }
 </style>

@@ -30,6 +30,7 @@
     --mint: #40cba0;
     --red: #e2574c;
     --light-green-transparent: rgba(148, 191, 105, 0.6);
+    --red-transparent: rgba(226, 87, 76, 0.6);
 
     --blue-dark-1: #378294;
 
@@ -56,12 +57,13 @@
 
     /* Add New Item colors */
     --color-add-new: var(--green-2);
+    --color-add-new-item-text: var(--gray-light-4);
+    --color-add-new-item-border: var(--light-green-transparent);
+    --color-add-new-item-border-hover: var(--red-transparent);
 
     /* Body colors */
     --color-body-header-text: var(--gray-dark-5);
     --color-body-column-header-text: var(--gray-light-4);
-    --color-add-new-item-text: var(--gray-light-4);
-    --color-add-new-item-border: var(--light-green-transparent);
     --color-body-text: var(--black);
     --color-body-text-secondary: var(--gray-light-3);
     --color-body-text-tertiary: var(--gray-light-4);

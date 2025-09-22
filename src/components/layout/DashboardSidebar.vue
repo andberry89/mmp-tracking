@@ -1,43 +1,67 @@
 <template>
   <div>
-    <h3>Authors</h3>
-    <div class="sidebar-wrapper">
-      <div class="team" v-for="(team, idx) in teams" :key="idx">
-        <h4>{{ team.sidebarLabel }}</h4>
+    <h3 class="text-base font-bold color-[var(--color-sidebar-text-header)] uppercase mb-[15px]">
+      Authors
+    </h3>
+    <div class="pl-[5px] font-[Asap,sans-serif] mb-7">
+      <div class="mb-4" v-for="(team, idx) in teams" :key="idx">
+        <h4 class="text-sm font-bold uppercase color-[var(--color-sidebar-text)]">
+          {{ team.sidebarLabel }}
+        </h4>
         <div
-          class="author"
+          class="text-[13.3px] leading-none text-[var(--color-sidebar-text)] py-2 flex flex-col border-b border-[var(--color-sidebar-divider) last:border-b-0]"
           v-for="(author, authorIdx) in authors[team.slug]"
           :key="'author-' + authorIdx"
         >
-          <span class="author-name">{{ author.label }}</span>
-          <span class="assigned" v-if="assigned(author) > 0">
+          <span>{{ author.label }}</span>
+          <span class="text-[var(--color-sidebar-text-subtext)]" v-if="assigned(author) > 0">
             {{ assigned(author) }} Assigned
           </span>
         </div>
       </div>
     </div>
 
-    <h3>Quick Stats</h3>
-    <div class="sidebar-wrapper">
-      <div class="stat-line" v-for="(stat, statIdx) in quickStats" :key="'quickstat-' + statIdx">
-        <span :class="`dot ${stat.value}`"></span>
-        <span class="stat">{{ stat.label }}: </span>
-        <span class="stat-number">{{ stat.count }}</span>
+    <h3 class="text-base font-bold color-[var(--color-sidebar-text-header)] uppercase mb-[15px]">
+      Quick Stats
+    </h3>
+    <div class="pl-[5px] font-[Asap,sans-serif] mb-7">
+      <div
+        class="font-[400] text-[12px] leading-[1.2] font-[Monda,sans-serif] text-[var(--color-sidebar-text)] py-[6px]"
+        v-for="(stat, statIdx) in quickStats"
+        :key="'quickstat-' + statIdx"
+      >
+        <span
+          :class="[
+            'inline-block w-[6px] h-[6px] rounded-full mr-[5px]',
+            `bg-[var(--color-body-${stat.value})]`,
+          ]"
+        ></span>
+        <span class="font-bold">{{ stat.label }}: </span>
+        <span>{{ stat.count }}</span>
       </div>
     </div>
 
-    <h3>Published & Updates</h3>
+    <h3 class="text-base font-bold color-[var(--color-sidebar-text-header)] uppercase mb-[15px]">
+      Published & Updates
+    </h3>
     <DropdownMenu :options="ranges" :label="'Show'" />
-    <div class="sidebar-wrapper">
+    <div class="pl-[5px] font-[Asap,sans-serif]">
       <div
-        class="stat-line"
+        class="font-[400] text-[12px] leading-[1.2] font-[Monda,sans-serif] text-[var(--color-sidebar-text)] py-[6px]"
         v-for="(stat, statIdx) in updatedAndPublished"
         :key="'pubstat-' + statIdx"
       >
-        <span :class="`dot ${stat.value}`"></span>
-        <span class="stat">{{ stat.label }}: </span>
-        <span class="stat-number">{{ stat.count }}</span>
-        <div class="stats-subtext">
+        <span
+          :class="[
+            'inline-block w-[6px] h-[6px] rounded-full mr-[5px]',
+            `bg-[var(--color-body-${stat.value})]`,
+          ]"
+        ></span>
+        <span class="font-bold">{{ stat.label }}: </span>
+        <span>{{ stat.count }}</span>
+        <div
+          class="text-[12px] text-[var(--color-sidebar-text-subtext)] pl-5 flex flex-col gap-1 mt-1"
+        >
           <span v-for="[year, count] in stat.countByYear" :key="year">
             {{ year }}: {{ count }}
           </span>
@@ -87,6 +111,16 @@ interface Props {
 
 // Props
 const props = defineProps<Props>();
+
+// Color Maps
+const statusBgMap: Record<string, string> = {
+  pending: "bg-[var(--color-body-pending)]",
+  rte: "bg-[var(--color-body-rte)]",
+  rtp: "bg-[var(--color-body-rtp)]",
+  scheduled: "bg-[var(--color-body-scheduled)]",
+  published: "bg-[var(--color-body-published)]",
+  updated: "bg-[var(--color-body-updated)]",
+};
 
 // Static values
 const quickStatValues = ["pending", "rte", "rtp", "scheduled"];
@@ -142,112 +176,20 @@ const { authors, ranges } = props;
 </script>
 
 <style lang="scss" scoped>
-h3 {
-  font-size: 12pt;
-  font-weight: 700;
-  color: var(--color-sidebar-text-header);
-  text-transform: uppercase;
-  margin-bottom: 15px;
-}
+.non-bg-team {
+  font-size: 10pt;
+  line-height: 1;
+  color: var(--color-sidebar-text);
+  display: flex;
+  flex-flow: column nowrap;
 
-.sidebar-wrapper {
-  padding-left: 5px;
-  font-family: "Asap", sans-serif;
-
-  .team {
-    margin-bottom: 16px;
-
-    h4 {
-      font-size: 11pt;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--color-sidebar-text);
-    }
-
-    .author {
-      font-size: 10pt;
-      line-height: 1;
-      color: var(--color-sidebar-text);
-      padding: 8px 0;
-      display: flex;
-      flex-flow: column nowrap;
-      border-bottom: var(--color-sidebar-divider) solid 1px;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .assigned {
-        color: var(--color-sidebar-text-subtext);
-      }
-    }
-
-    .non-bg-team {
-      font-size: 10pt;
-      line-height: 1;
-      color: var(--color-sidebar-text);
-      display: flex;
-      flex-flow: column nowrap;
-
-      .view-text {
-        cursor: pointer;
-      }
-
-      .none-assigned {
-        margin-top: 10px;
-        color: var(--color-sidebar-text-subtext);
-      }
-    }
+  .view-text {
+    cursor: pointer;
   }
 
-  .stat-line {
-    font: 400 12px/1.2 "Monda", sans-serif;
-    color: var(--color-sidebar-text);
-    padding: 6px 0;
-
-    .dot {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin-right: 5px;
-
-      &.pending {
-        background: var(--color-body-pending);
-      }
-      &.rte {
-        background: var(--color-body-rte);
-      }
-      &.rtp {
-        background: var(--color-body-rtp);
-      }
-      &.scheduled {
-        background: var(--color-body-scheduled);
-      }
-      &.published {
-        background: var(--color-body-published);
-      }
-      &.updated {
-        background: var(--color-body-updated);
-      }
-    }
-    .stat {
-      font-weight: 700;
-    }
-
-    .stats-subtext {
-      font-size: 9pt;
-      color: var(--color-sidebar-text-subtext);
-      padding-left: 20px;
-      display: flex;
-      flex-flow: column nowrap;
-      gap: 4px;
-      margin-top: 4px;
-    }
-
-    &:last-child {
-      margin-bottom: 30px;
-    }
+  .none-assigned {
+    margin-top: 10px;
+    color: var(--color-sidebar-text-subtext);
   }
 }
 </style>

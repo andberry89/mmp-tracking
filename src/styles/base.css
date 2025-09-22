@@ -1,7 +1,12 @@
 /* Tailwind Utility Classes */
-@layer utilities {
-  .zoomable {
-    @apply cursor-pointer transition-transform duration-200 hover:scale-110;
+@layer components {
+  .column-header-text {
+    @apply block w-full font-bold text-[14px] leading-[1.2] text-[var(--color-body-column-header-text)];
+    font-family: "Asap", sans-serif;
+  }
+
+  .content-column-header {
+    @apply text-center py-[10px] bg-[var(--color-header-background)] rounded;
   }
 
   .status-badge {
@@ -9,11 +14,18 @@
   }
 
   .team-badge {
-    @apply rounded-full h-6 w-6 flex items-center justify-center font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-team-text)];
+    @apply rounded-full h-6 w-6 flex items-center justify-center font-bold text-[14px] leading-[1.2] text-[var(--color-team-text)];
+    font-family: "Asap", sans-serif;
   }
 
   .popper-list {
     @apply list-none p-0 m-0;
+  }
+}
+
+@layer utilities {
+  .zoomable {
+    @apply cursor-pointer transition-transform duration-200 hover:scale-110;
   }
 }
 

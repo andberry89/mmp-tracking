@@ -1,6 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx,html}", "./src/styles/**/*.css"],
+  safelist: ["font-asap", "font-monda"],
   theme: {
     extend: {
       fontFamily: {
