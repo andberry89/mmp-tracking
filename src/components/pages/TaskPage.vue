@@ -1,33 +1,43 @@
 <template>
   <div>
-    <section class="content-header">
+    <section class="flex flex-nowrap items-start justify-between gap-[10px]">
       <div>
-        <h1>MMPs</h1>
+        <h1
+          class="font-bold text-2xl leading-[1.2] font-[Monda,sans-serif] text-[var(--color-body-header-text)] m-0"
+        >
+          MMPs
+        </h1>
       </div>
-      <div class="header-actions">
+      <div class="flex items-start gap-[10px]">
         <form>
-          <div class="search-bar">
-            <SearchIcon class="search-icon" />
-            <input type="search" class="search-input" placeholder="Search by vehicle or segment" />
+          <div
+            class="flex items-center w-[220px] h-[24px] bg-[var(--color-input-background)] border border-[var(--color-input-border)] px-[4px] rounded-[8px]"
+          >
+            <SearchIcon class="text-[var(--color-search-text-placeholder)]" />
+            <input
+              type="search"
+              class="ml-[4px] flex-1 outline-none border-none bg-transparent text-[12px] font-[400] leading-[1] font-[Monda,sans-serif] text-[var(--color-search-text)] placeholder:text-[var(--color-search-text-placeholder)]"
+              placeholder="Search by vehicle or segment"
+            />
           </div>
         </form>
 
         <DropdownMenu
-          class="author-dropdown"
+          class="min-w-[175px]"
           :options="authors.all.filter((author) => author.active)"
           label="Author"
           @update:selected="updateAuthor"
         />
 
         <DropdownMenu
-          class="range-dropdown"
+          class="min-w-[130px]"
           :options="ranges"
           label="Status"
           @update:selected="updateRange"
         />
 
-        <SortIcon class="sort-icon header-icon" />
-        <FilterIcon class="filter-icon header-icon" />
+        <SortIcon class="header-icon" />
+        <FilterIcon class="header-icon" />
       </div>
     </section>
 
@@ -85,80 +95,3 @@ const filteredDocuments = computed(() => {
     : props.documents;
 });
 </script>
-<style lang="scss" scoped>
-.content-header {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-
-  h1 {
-    font: 700 24px/1.2 "Monda", sans-serif;
-    color: var(--color-body-header-text);
-    margin: 0;
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-
-    .author-dropdown {
-      min-width: 175px;
-    }
-    .range-dropdown {
-      min-width: 130px;
-    }
-
-    .search-bar {
-      --padding: 4px;
-
-      width: max-content;
-      display: flex;
-      align-items: center;
-      background-color: var(--color-input-background);
-      border: 1px solid var(--color-input-border);
-      padding: var(--padding);
-      border-radius: 8px;
-      width: 220px;
-      height: 24px;
-
-      .search-input {
-        font: 400 12px/1 "Monda", sans-serif;
-        color: var(--color-search-text);
-        margin-left: var(--padding);
-        outline: none;
-        border: none;
-        background: transparent;
-        flex: 1;
-      }
-
-      .search-input::placeholder,
-      .search-icon {
-        color: var(--color-search-text-placeholder);
-      }
-    }
-    .header-icon {
-      --sides: 22px;
-
-      width: var(--sides);
-      height: var(--sides);
-      fill: var(--color-icon);
-      background-color: var(--color-input-background);
-      border: 1px solid var(--color-input-border);
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.4s ease-in-out;
-
-      &:hover {
-        background-color: var(--color-input-background-hover);
-        fill: var(--color-icon-hover);
-      }
-    }
-  }
-}
-</style>

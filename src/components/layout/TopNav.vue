@@ -1,37 +1,22 @@
 <template>
-  <nav class="wrapper">
-    <span class="active">MMPs</span>
-    <span>Makes</span>
-    <span>Models</span>
-    <span>Segments</span>
-    <span>Authors</span>
+  <nav class="flex flex-nowrap w-full pl-5">
+    <span
+      v-for="label in tabs"
+      :key="label"
+      :class="[
+        'inline-block font-bold text-[32px] leading-[1.2] font-[Monda,sans-serif] text-[var(--color-header-text)] mr-10 cursor-pointer pb-[10px] hover:text-[var(--color-header-text-hover)]',
+        label === activeTab && 'border-b-[4px] border-[var(--color-header-text-underline)]',
+      ]"
+      @click="activeTab = label"
+    >
+      {{ label }}
+    </span>
   </nav>
 </template>
 
-<script setup lang="ts"></script>
-<style lang="scss" scoped>
-nav.wrapper {
-  display: flex;
-  flex-flow: row nowrap;
-  margin: 0;
-  padding: 0 0 0 20px;
-  width: 100%;
+<script setup lang="ts">
+import { ref } from "vue";
 
-  span {
-    font: 700 2rem/1.2 "Monda", sans-serif;
-    color: var(--color-header-text);
-    margin-right: 2.5rem;
-    cursor: pointer;
-    display: inline-block;
-    padding-bottom: 10px;
-
-    &.active {
-      border-bottom: 4px solid var(--color-header-text-underline);
-    }
-
-    &:hover {
-      color: var(--color-header-text-hover);
-    }
-  }
-}
-</style>
+const tabs = ["MMPs", "Makes", "Models", "Segments", "Authors"];
+const activeTab = ref("MMPs");
+</script>

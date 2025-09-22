@@ -9,6 +9,12 @@
     @apply text-center py-[10px] bg-[var(--color-header-background)] rounded;
   }
 
+  .header-icon {
+    @apply w-[22px] h-[22px] fill-[var(--color-icon)] bg-[var(--color-input-background)]
+    border border-[var(--color-input-border)] rounded cursor-pointer flex items-center justify-center
+    transition-all duration-400 hover:bg-[var(--color-input-background-hover)] hover:fill-[var(--color-icon-hover)];
+  }
+
   .status-badge {
     @apply rounded-lg text-xs text-center font-bold px-2 py-1 w-[90%];
   }

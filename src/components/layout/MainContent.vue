@@ -18,4 +18,3 @@ const props = defineProps<{
 // Destructure for template clarity (optional)
 const { documents, authors, ranges } = props;
 </script>
-<style lang="scss" scoped></style>
