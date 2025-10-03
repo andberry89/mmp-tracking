@@ -9,6 +9,8 @@ import DropdownMenu from "./components/common/DropdownMenu.vue";
 import FloatingVue from "floating-vue";
 import Popper from "vue3-popper";
 
+const vfm = createVfm({ componentPlugin: true });
+
 createApp(App)
   .use(FloatingVue, {
     themes: {
@@ -20,7 +22,7 @@ createApp(App)
       },
     },
   })
-  .use(createVfm({ componentPlugin: true }))
+  .use(vfm)
   .directive("click-outside", ClickOutside)
   .component("DropdownMenu", DropdownMenu)
   .component("Popper", Popper)

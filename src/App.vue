@@ -3,7 +3,7 @@
     <div id="logo" class="logo"></div>
 
     <header>
-      <TopNav />
+      <TopNav @tab-change="onTabChange" />
     </header>
 
     <aside id="sidebar">
@@ -15,7 +15,12 @@
     </aside>
 
     <main id="content">
-      <MainContent :documents="sortedDocuments" :ranges="ranges" :authors="sortedAuthors" />
+      <MainContent
+        :documents="sortedDocuments"
+        :ranges="ranges"
+        :authors="sortedAuthors"
+        :activeLabel="activeLabel"
+      />
     </main>
 
     <ModalsContainer />
@@ -38,11 +43,17 @@ import type { DocumentsByStatus } from "@/types/TaskDocument";
 import type { AuthorGroups } from "@/types/Author";
 
 // ─── Reactive State ──────────────────────────────────────────────────────────
+const activeLabel = ref("MMPs");
 const ranges = ref(defaultRanges);
 
 // ─── Computed ──────────────────────────────────────────────
 const sortedDocuments = computed(() => sortDocuments(testDocuments));
 const sortedAuthors = computed(() => sortAuthors(testAuthors));
+
+// ─── Methods ────────────────────────────────────────────────────────────────
+function onTabChange(label: string) {
+  activeLabel.value = label;
+}
 </script>
 
 <style lang="scss" scoped>
