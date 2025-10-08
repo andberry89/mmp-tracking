@@ -2,24 +2,11 @@
   <div>
     <section class="flex flex-nowrap items-start justify-between gap-[10px]">
       <div>
-        <h1
-          class="font-bold text-2xl leading-[1.2] font-[Monda,sans-serif] text-[var(--color-body-header-text)] m-0"
-        >
-          MMPs
-        </h1>
+        <h1 class="page-header">MMPs</h1>
       </div>
       <div class="flex items-start gap-[10px]">
         <form>
-          <div
-            class="flex items-center w-[220px] h-[24px] bg-[var(--color-input-background)] border border-[var(--color-input-border)] px-[4px] rounded-[8px]"
-          >
-            <SearchIcon class="text-[var(--color-search-text-placeholder)]" />
-            <input
-              type="search"
-              class="ml-[4px] flex-1 outline-none border-none bg-transparent text-[12px] font-[400] leading-[1] font-[Monda,sans-serif] text-[var(--color-search-text)] placeholder:text-[var(--color-search-text-placeholder)]"
-              placeholder="Search by vehicle or segment"
-            />
-          </div>
+          <SearchBar v-model="searchQuery" placeholder="Search by vehicle or segment" />
         </form>
 
         <DropdownMenu
@@ -66,6 +53,7 @@ const filters = ref({
   author: "",
   range: "",
 });
+const searchQuery = ref("");
 
 // ─── Methods ─────────────────────────────────────────────────────────────────
 function updateAuthor(authorId: string) {
