@@ -28,7 +28,7 @@
       </div>
     </section>
 
-    <TaskList :documents="filteredDocuments" />
+    <TaskList :documents="filteredDocuments" :authors="authors" />
   </div>
 </template>
 

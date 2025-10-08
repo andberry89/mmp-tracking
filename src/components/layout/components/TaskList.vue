@@ -40,7 +40,13 @@
       >
         Pending
       </h3>
-      <TaskItem v-for="doc in documents.pending" :key="doc.id" :doc="doc" class="grid" />
+      <TaskItem
+        v-for="doc in documents.pending"
+        :key="doc.id"
+        :doc="doc"
+        class="grid"
+        :activeAuthorsByTeam="activeAuthorsByTeam"
+      />
 
       <h3
         class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
@@ -60,13 +66,36 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/layout/components/TaskItem.vue";
 import type { DocumentsByStatus } from "@/types";
 
+// Props ------------------------------------
 const props = defineProps<{
   documents: DocumentsByStatus;
 }>();
+
+// Computed --------------------------------
+// filter active authors then sort by team
+const activeAuthorsByTeam = computed(() => {
+  const active = authors.filter((a) => a.active);
+
+  active.sort((a, b) => {
+    const teamCompare = a.team.label.localeCompare(b.team.label);
+    if (teamCompare !== 0) return teamCompare;
+    return a.lastName.localeCompare(b.lastName);
+  });
+
+  const groups: Record<string, typeof active> = {};
+  active.forEach((author) => {
+    if (!groups[author.team.label]) groups[author.team.label] = [];
+    groups[author.team.label].push(author);
+  });
+
+  return Object.entries(groups).map(([team, members]) => ({ team, members }));
+});
 </script>
 <style lang="scss" scoped>
 @mixin column-layout() {
