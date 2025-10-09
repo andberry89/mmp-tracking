@@ -39,8 +39,6 @@ import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-funct
 import { ranges as defaultRanges } from "@/constants/constants";
 import { testDocuments, authors as testAuthors } from "@/test";
 
-// TODO: REFORMAT SORT AUTHORS
-
 import type { DocumentsByStatus } from "@/types/TaskDocument";
 import type { AuthorGroups } from "@/types/Author";
 

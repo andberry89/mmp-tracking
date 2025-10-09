@@ -75,6 +75,7 @@ import type { DocumentsByStatus } from "@/types";
 // Props ------------------------------------
 const props = defineProps<{
   documents: DocumentsByStatus;
+  activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
 }>();
 
 // Computed --------------------------------

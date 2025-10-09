@@ -75,6 +75,8 @@
 import { computed } from "vue";
 import { teams, statuses } from "@/constants/constants";
 
+//TODO: refactor to accept activeAuthorsByTeam prop and use that to filter authors list
+
 // Type definitions
 interface Author {
   id: string;
