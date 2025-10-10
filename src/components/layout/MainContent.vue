@@ -45,62 +45,124 @@ const props = defineProps<{
 }>();
 
 const headerProps = computed(() => {
+  const activeAuthorsByLastName = props.authors.all
+    .filter((a) => a.active)
+    .sort((a, b) => a.lastName.localeCompare(b.lastName));
   switch (props.activeLabel) {
     case "MMPs":
       return {
         title: "MMPs",
         searchPlaceholder: "Search by make or segment...",
-        authors: props.authors.all.filter((a) => a.active),
-        ranges: props.ranges,
-        showRanges: true,
-        showStatus: false,
+        dropdowns: [
+          {
+            id: "author",
+            label: "Author",
+            options: activeAuthorsByLastName.map((a) => ({ id: a.id, label: a.label })),
+            onSelect: (id: string) => console.log("Author selected:", id),
+            class: "min-w-[175px]",
+          },
+          {
+            id: "range",
+            label: "Status",
+            options: props.ranges,
+            onSelect: (id: string) => console.log("Range selected:", id),
+            class: "min-w-[130px]",
+          },
+        ],
       };
     case "Makes":
       return {
         title: "Makes",
         searchPlaceholder: "Search by make...",
-        showAuthor: false,
-        statuses: [
-          { id: "active", label: "Active" },
-          { id: "inactive", label: "Inactive" },
+        dropdowns: [
+          {
+            id: "status",
+            label: "Status",
+            options: [
+              { id: "active", label: "Active" },
+              { id: "inactive", label: "Inactive" },
+            ],
+            onSelect: (id: string) => console.log("Status selected:", id),
+            class: "min-w-[130px]",
+          },
+          {
+            id: "range",
+            label: "Range",
+            options: props.ranges,
+            onSelect: (id: string) => console.log("Range selected:", id),
+            class: "min-w-[130px]",
+          },
         ],
-        authors: props.authors.all.filter((a) => a.active),
-        ranges: props.ranges,
       };
     case "Models":
       return {
         title: "Models",
         searchPlaceholder: "Search by make or model...",
-        authorLabel: "Make",
-        statusLabel: "Status",
-        authors: props.authors.all.filter((a) => a.active),
-        showFilter: false,
+        dropdowns: [
+          {
+            id: "make",
+            label: "Make",
+            options: [
+              { id: "toyota", label: "Toyota" },
+              { id: "ford", label: "Ford" },
+            ],
+            onSelect: (id: string) => console.log("Make selected:", id),
+            class: "min-w-[175px]",
+          },
+          {
+            id: "status",
+            label: "Status",
+            options: [
+              { id: "active", label: "Active" },
+              { id: "inactive", label: "Inactive" },
+            ],
+            onSelect: (id: string) => console.log("Status selected:", id),
+            class: "min-w-[130px]",
+          },
+        ], //TODO: Dynamic makes
       };
     case "Segments":
       return {
         title: "Segments",
         searchPlaceholder: "Search by segment...",
-        showAuthor: false,
-        showStatus: false,
       };
     case "Authors":
       return {
         title: "Authors",
-        showAuthor: false,
-        statusLabel: "Status",
-        statuses: [
-          { id: "active", label: "Active" },
-          { id: "inactive", label: "Inactive" },
+        searchPlaceholder: "Search by name...",
+        dropdowns: [
+          {
+            id: "status",
+            label: "Status",
+            options: [
+              { id: "active", label: "Active" },
+              { id: "inactive", label: "Inactive" },
+            ],
+            onSelect: (id: string) => console.log("Status selected:", id),
+            class: "min-w-[130px]",
+          },
         ],
       };
     default:
       return {
         title: "MMPs",
-        searchPlaceholder: "Search by name...",
-        authorLabel: "Author",
-        statusLabel: "Status",
-        authors: props.authors.all.filter((a) => a.active),
-        ranges: props.ranges,
+        searchPlaceholder: "Search by make or segment...",
+        dropdowns: [
+          {
+            id: "author",
+            label: "Author",
+            options: activeAuthorsByLastName.map((a) => ({ id: a.id, label: a.label })),
+            onSelect: (id: string) => console.log("Author selected:", id),
+            class: "min-w-[175px]",
+          },
+          {
+            id: "range",
+            label: "Status",
+            options: props.ranges,
+            onSelect: (id: string) => console.log("Range selected:", id),
+            class: "min-w-[130px]",
+          },
+        ],
       };
   }
 });

@@ -9,27 +9,12 @@
       </form>
 
       <DropdownMenu
-        v-if="showAuthor"
-        class="min-w-[175px]"
-        :options="authors"
-        :label="authorLabel"
-        @update:selected="emitAuthor"
-      />
-
-      <DropdownMenu
-        v-if="showRanges"
-        class="min-w-[175px]"
-        :options="ranges"
-        :label="rangeLabel"
-        @update:selected="emitRange"
-      />
-
-      <DropdownMenu
-        v-if="showStatus"
-        class="min-w-[130px]"
-        :options="statuses"
-        :label="statusLabel"
-        @update:selected="emitRange"
+        v-for="dropdown in dropdowns"
+        :key="dropdown.id"
+        :options="dropdown.options"
+        :label="dropdown.label"
+        :class="dropdown.class"
+        @update:selected="dropdown.onSelect"
       />
 
       <SortIcon v-if="showSort" class="header-icon" @click="$emit('sort-click')" />
@@ -39,35 +24,24 @@
 </template>
 
 <script setup lang="ts">
+//TODO: Cleanup Dropdown Menu
 import { ref, watch } from "vue";
 import { FilterIcon, SortIcon } from "@/assets/icons";
+import { Dropdown } from "floating-vue";
+import type { DropdownConfig } from "@/types";
 
-interface Props {
+interface PageHeaderProps {
   title: string;
   searchPlaceholder?: string;
-  authors?: Array<{ id: string; label: string }>;
-  ranges?: Array<{ id: string; label: string }>;
-  statuses?: Array<{ id: string; label: string }>;
-  authorLabel?: string;
-  rangeLabel?: string;
-  statusLabel?: string;
-  showAuthor?: boolean;
-  showRanges?: boolean;
-  showStatus?: boolean;
+  dropdowns?: DropdownConfig[];
   showSort?: boolean;
   showFilter?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  authorLabel: "Author",
-  rangeLabel: "Date Range",
-  statusLabel: "Status",
+const props = withDefaults(defineProps<PageHeaderProps>(), {
   searchPlaceholder: "Search...",
   showSort: true,
   showFilter: true,
-  showAuthor: true,
-  showRanges: false,
-  showStatus: true,
 });
 
 const emit = defineEmits([
