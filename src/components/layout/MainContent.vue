@@ -30,14 +30,32 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * MainContent.vue
+ * ---------------------------
+ * This component serves as the main content area of the application.
+ * It dynamically renders different pages based on the active label
+ * selected from the TopNav (e.g., MMPs, Makes, Models, Segments)
+ */
+
 import { computed, ref, watch } from "vue";
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 import type { DocumentsByStatus, AuthorGroups } from "@/types";
+import { getHeaderConfig } from "@/config/headerConfigs";
 
+// Reactive State --------------------------------
+
+// UI state for loading spinner during transitions
 const isLoading = ref(false);
-const selectedAuthorId = ref<string | null>(null);
 
+// Filter states
+const selectedAuthorId = ref<string | null>(null);
+const selectedRangeId = ref<string | null>(null);
+const selectedStatusId = ref<string | null>(null);
+const selectedMakeId = ref<string | null>(null);
+
+// Props ------------------------------------
 const props = defineProps<{
   documents: DocumentsByStatus;
   authors: AuthorGroups;
@@ -47,6 +65,7 @@ const props = defineProps<{
 
 // Computed --------------------------------
 
+// Filter documents based on selected author
 const filteredDocuments = computed(() => {
   if (!selectedAuthorId.value) return props.documents;
 
@@ -57,129 +76,23 @@ const filteredDocuments = computed(() => {
   };
 });
 
-const headerProps = computed(() => {
-  const activeAuthorsByLastName = props.authors.all
-    .filter((a) => a.active)
-    .sort((a, b) => a.lastName.localeCompare(b.lastName));
-  switch (props.activeLabel) {
-    case "MMPs":
-      return {
-        title: "MMPs",
-        searchPlaceholder: "Search by make or segment...",
-        dropdowns: [
-          {
-            id: "author",
-            label: "Author",
-            options: activeAuthorsByLastName.map((a) => ({ id: a.id, label: a.label })),
-            onSelect: (id: string) => (selectedAuthorId.value = id),
-            class: "min-w-[175px]",
-          },
-          {
-            id: "range",
-            label: "Status",
-            options: props.ranges,
-            onSelect: (id: string) => console.log("Range selected:", id),
-            class: "min-w-[130px]",
-          },
-        ],
-      };
-    case "Makes":
-      return {
-        title: "Makes",
-        searchPlaceholder: "Search by make...",
-        dropdowns: [
-          {
-            id: "status",
-            label: "Status",
-            options: [
-              { id: "active", label: "Active" },
-              { id: "inactive", label: "Inactive" },
-            ],
-            onSelect: (id: string) => console.log("Status selected:", id),
-            class: "min-w-[130px]",
-          },
-          {
-            id: "range",
-            label: "Range",
-            options: props.ranges,
-            onSelect: (id: string) => console.log("Range selected:", id),
-            class: "min-w-[130px]",
-          },
-        ],
-      };
-    case "Models":
-      return {
-        title: "Models",
-        searchPlaceholder: "Search by make or model...",
-        dropdowns: [
-          {
-            id: "make",
-            label: "Make",
-            options: [
-              { id: "toyota", label: "Toyota" },
-              { id: "ford", label: "Ford" },
-            ],
-            onSelect: (id: string) => console.log("Make selected:", id),
-            class: "min-w-[175px]",
-          },
-          {
-            id: "status",
-            label: "Status",
-            options: [
-              { id: "active", label: "Active" },
-              { id: "inactive", label: "Inactive" },
-            ],
-            onSelect: (id: string) => console.log("Status selected:", id),
-            class: "min-w-[130px]",
-          },
-        ], //TODO: Dynamic makes
-      };
-    case "Segments":
-      return {
-        title: "Segments",
-        searchPlaceholder: "Search by segment...",
-      };
-    case "Authors":
-      return {
-        title: "Authors",
-        searchPlaceholder: "Search by name...",
-        dropdowns: [
-          {
-            id: "status",
-            label: "Status",
-            options: [
-              { id: "active", label: "Active" },
-              { id: "inactive", label: "Inactive" },
-            ],
-            onSelect: (id: string) => console.log("Status selected:", id),
-            class: "min-w-[130px]",
-          },
-        ],
-      };
-    default:
-      return {
-        title: "MMPs",
-        searchPlaceholder: "Search by make or segment...",
-        dropdowns: [
-          {
-            id: "author",
-            label: "Author",
-            options: activeAuthorsByLastName.map((a) => ({ id: a.id, label: a.label })),
-            onSelect: (id: string) => console.log("Author selected:", id),
-            class: "min-w-[175px]",
-          },
-          {
-            id: "range",
-            label: "Status",
-            options: props.ranges,
-            onSelect: (id: string) => console.log("Range selected:", id),
-            class: "min-w-[130px]",
-          },
-        ],
-      };
-  }
-});
+/**
+ * Compute PageHeader props based on the current activeLabel.
+ * Delegates layout and dropdown setup to getHeaderConfig(),
+ * passing reactive filter setters for authors, ranges, status, and makes.
+ */
+const headerProps = computed(() =>
+  getHeaderConfig(props.activeLabel, {
+    authors: props.authors,
+    ranges: props.ranges,
+    setAuthor: (id: string) => (selectedAuthorId.value = id),
+    setRange: (id: string) => (selectedRangeId.value = id),
+    setStatus: (id: string) => (selectedStatusId.value = id),
+    setMake: (id: string) => (selectedMakeId.value = id),
+  })
+);
 
+// Determine which component to render based on the active label
 const activeComponent = computed(() => {
   switch (props.activeLabel) {
     case "MMPs":
@@ -197,6 +110,7 @@ const activeComponent = computed(() => {
   }
 });
 
+// Compute active authors grouped by team
 const activeAuthorsByTeam = computed(() => {
   const allAuthors = props.authors.all || [];
   const active = allAuthors.filter((a) => a.active);
@@ -223,13 +137,18 @@ const activeAuthorsByTeam = computed(() => {
 });
 
 // Watchers --------------------------------
+
+// Clear filters when activeLabel changes
 watch(
   () => props.activeLabel,
   () => {
-    selectedAuthorId.value = null; // Reset author filter when active label changes
+    selectedAuthorId.value = null;
+    selectedRangeId.value = null;
+    selectedStatusId.value = null;
+    selectedMakeId.value = null;
   }
 );
 
-// Destructure for template clarity (optional)
+// Destructure for template clarity
 const { documents, authors, ranges } = props;
 </script>
