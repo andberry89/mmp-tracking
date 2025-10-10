@@ -19,7 +19,7 @@
           <PageHeader v-bind="headerProps" />
           <component
             :is="activeComponent"
-            :documents="documents"
+            :documents="filteredDocuments"
             :authors="authors"
             :activeAuthorsByTeam="activeAuthorsByTeam"
           />
@@ -30,12 +30,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 import type { DocumentsByStatus, AuthorGroups } from "@/types";
 
 const isLoading = ref(false);
+const selectedAuthorId = ref<string | null>(null);
 
 const props = defineProps<{
   documents: DocumentsByStatus;
@@ -43,6 +44,18 @@ const props = defineProps<{
   ranges: Array<{ id: string; label: string }>;
   activeLabel: string;
 }>();
+
+// Computed --------------------------------
+
+const filteredDocuments = computed(() => {
+  if (!selectedAuthorId.value) return props.documents;
+
+  return {
+    pending: props.documents.pending.filter((doc) => doc.author?.id === selectedAuthorId.value),
+    rtp: props.documents.rtp.filter((doc) => doc.author?.id === selectedAuthorId.value),
+    published: props.documents.published.filter((doc) => doc.author?.id === selectedAuthorId.value),
+  };
+});
 
 const headerProps = computed(() => {
   const activeAuthorsByLastName = props.authors.all
@@ -58,7 +71,7 @@ const headerProps = computed(() => {
             id: "author",
             label: "Author",
             options: activeAuthorsByLastName.map((a) => ({ id: a.id, label: a.label })),
-            onSelect: (id: string) => console.log("Author selected:", id),
+            onSelect: (id: string) => (selectedAuthorId.value = id),
             class: "min-w-[175px]",
           },
           {
@@ -208,6 +221,14 @@ const activeAuthorsByTeam = computed(() => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([team, members]) => ({ team, members }));
 });
+
+// Watchers --------------------------------
+watch(
+  () => props.activeLabel,
+  () => {
+    selectedAuthorId.value = null; // Reset author filter when active label changes
+  }
+);
 
 // Destructure for template clarity (optional)
 const { documents, authors, ranges } = props;
