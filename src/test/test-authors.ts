@@ -8,6 +8,7 @@ export const authors = [
     team: {
       slug: "freelance",
       label: "Freelance",
+      sidebar: "Freelancers",
     },
     active: true,
   },
@@ -20,6 +21,7 @@ export const authors = [
     team: {
       slug: "bg",
       label: "Buyer's Guide",
+      sidebar: "B/G Staff",
     },
     active: true,
   },
@@ -32,6 +34,7 @@ export const authors = [
     team: {
       slug: "bg",
       label: "Buyer's Guide",
+      sidebar: "B/G Staff",
     },
     active: true,
   },
@@ -44,6 +47,7 @@ export const authors = [
     team: {
       slug: "bg",
       label: "Buyer's Guide",
+      sidebar: "B/G Staff",
     },
     active: true,
   },
@@ -56,6 +60,7 @@ export const authors = [
     team: {
       slug: "bg",
       label: "Buyer's Guide",
+      sidebar: "B/G Staff",
     },
     active: true,
   },
@@ -68,6 +73,7 @@ export const authors = [
     team: {
       slug: "cd",
       label: "Car and Driver",
+      sidebar: "C/D Staff",
     },
     active: true,
   },
@@ -80,6 +86,7 @@ export const authors = [
     team: {
       slug: "cd",
       label: "Car and Driver",
+      sidebar: "C/D Staff",
     },
     active: true,
   },
@@ -92,6 +99,7 @@ export const authors = [
     team: {
       slug: "cd",
       label: "Car and Driver",
+      sidebar: "C/D Staff",
     },
     active: true,
   },
@@ -104,6 +112,7 @@ export const authors = [
     team: {
       slug: "cd",
       label: "Car and Driver",
+      sidebar: "C/D Staff",
     },
     active: true,
   },
@@ -116,6 +125,7 @@ export const authors = [
     team: {
       slug: "cd",
       label: "Car and Driver",
+      sidebar: "C/D Staff",
     },
     active: true,
   },
@@ -128,6 +138,7 @@ export const authors = [
     team: {
       slug: "freelance",
       label: "Freelance",
+      sidebar: "Freelancers",
     },
     active: true,
   },
@@ -140,6 +151,7 @@ export const authors = [
     team: {
       slug: "bg",
       label: "Buyer's Guide",
+      sidebar: "B/G Staff",
     },
     active: false,
   },
@@ -152,6 +164,7 @@ export const authors = [
     team: {
       slug: "freelance",
       label: "Freelance",
+      sidebar: "Freelancers",
     },
     active: false,
   },

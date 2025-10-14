@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-[var(--color-body-background)] border-2 border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-300 ease-in-out hover:border-black"
+    class="bg-[var(--color-body-background)] border-2 border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-100 ease-in-out hover:border-black"
   >
     <div>
       <HighPriorityIcon
@@ -170,14 +170,80 @@
         </template>
       </Popper>
 
-      <ModalEditTask v-model="showModal" title="Edit Task" @close="showModal = false">
-        <p>This is the modal content.</p>
-      </ModalEditTask>
+      <ModalEdit v-model="showModal" title="Edit Task" :task="doc" @close="showModal = false">
+        <template #default>
+          <form @submit.prevent="saveTask" id="task-edit-form">
+            <!-- Vehicle Info (readonly)-->
+            <div class="mb-4">
+              <label class="blck text-sm font-semibold text-gray-700 mb-1">Vehicle</label>
+              <input
+                type="text"
+                v-model="editableTask.vehicleDisplay"
+                readonly
+                class="w-full border border-gray-300 rounded p-2 bg-gray-100 text-gray-700"
+              />
+            </div>
+
+            <!-- Status -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+              <select
+                v-model="editableTask.status"
+                class="w-full border broder-gray-300 rounded p-2"
+              >
+                <option v-for="status in statuses" :key="status" :value="status">
+                  {{ status }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Deadline -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Deadline</label>
+              <input
+                type="date"
+                v-model="editableTask.deadline"
+                class="w-full border border-gray-300 rounded p-2"
+              />
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Notes</label>
+              <textarea
+                v-model="editableTask.notes"
+                rows="4"
+                class="w-full border border-gray-300 rounded p-2"
+              ></textarea>
+            </div>
+          </form>
+        </template>
+        <!-- Footer -->
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              @click="showModal = false"
+              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="task-edit-form"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Save
+            </button>
+          </div>
+        </template>
+      </ModalEdit>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+//TODO: Refactor to reduce overhead
 import {
   AddCircleIcon,
   FolderIcon,
@@ -187,9 +253,9 @@ import {
 } from "@/assets/icons";
 
 import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";
-import { computed, ref, defineProps, defineEmits } from "vue";
+import { computed, ref, defineProps, defineEmits, watch } from "vue";
 import { ModalsContainer } from "vue-final-modal";
-import ModalEditTask from "@/components/common/ModalEditTask.vue";
+import ModalEdit from "@/components/common/ModalEdit.vue";
 import type { TaskDocument } from "@/types";
 import { authors } from "@/test";
 
@@ -208,8 +274,15 @@ const targetElement = ref<null | EventTarget>(null);
 const assetsVisible = ref(false);
 const notesExpanded = ref(false);
 const showModal = ref(false);
+const editableTask = ref({
+  ...props.doc,
+  vehicleDisplay: `${props.doc.vehicle.modelYear} ${props.doc.vehicle.make} ${props.doc.vehicle.model}`,
+});
 const assignedAuthor = ref<string | null>(null);
 const assignedAuthorHeader = ref("Assign Author");
+
+// Status options
+const statuses = ["pending", "rte", "rtp", "scheduled", "published", "updated"];
 
 // Computed
 const docNotes = computed(() => {
@@ -274,6 +347,22 @@ function assignAuthor(author) {
   }, 2000);
   console.log("Assigned author:", author);
 }
+
+function saveTask() {
+  // Emit save event with updated task data
+  console.log("Saving task:", editableTask.value);
+  // emit("save", { ...editableTask.value });
+  showModal.value = false;
+}
+
+watch(showModal, (val) => {
+  if (val) {
+    editableTask.value = {
+      ...props.doc,
+      vehicleDisplay: `${props.doc.vehicle.modelYear} ${props.doc.vehicle.make} ${props.doc.vehicle.model}`,
+    };
+  }
+});
 </script>
 <style lang="scss" scoped>
 :deep(.popper) {
