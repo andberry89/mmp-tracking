@@ -69,7 +69,7 @@
 import { computed } from "vue";
 import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
-import TaskItem from "@/components/layout/components/TaskItem.vue";
+import TaskItem from "@/components/task/TaskItem.vue";
 import type { DocumentsByStatus } from "@/types";
 
 // Props ------------------------------------

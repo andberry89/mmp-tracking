@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import TaskList from "@/components/layout/components/TaskList.vue";
+import TaskList from "@/components/task/TaskList.vue";
 import type { DocumentsByStatus, AuthorGroups } from "@/types";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
