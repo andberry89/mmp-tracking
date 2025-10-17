@@ -1,29 +1,8 @@
 <template>
   <div>
     <section class="mt-5 grid">
-      <div class="content-column-header">
-        <span class="column-header-text"></span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Vehicle/Segment</span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Deadline</span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Status</span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Embargo/Publish Date</span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Notes</span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Assets</span>
-      </div>
-      <div class="content-column-header">
-        <span class="column-header-text">Author</span>
+      <div class="content-column-header" v-for="header in headers" :key="header">
+        <span class="column-header-text">{{ header }}</span>
       </div>
     </section>
 
@@ -46,6 +25,9 @@
         :doc="doc"
         class="grid"
         :activeAuthorsByTeam="activeAuthorsByTeam"
+        @open-edit="openModal"
+        @duplicate="duplicateTask"
+        @delete="deleteTask"
       />
 
       <h3
@@ -53,23 +35,48 @@
       >
         Ready to Publish
       </h3>
-      <TaskItem v-for="doc in documents.rtp" :key="doc.id" :doc="doc" class="grid" />
+      <TaskItem
+        v-for="doc in documents.rtp"
+        :key="doc.id"
+        :doc="doc"
+        class="grid"
+        @open-edit="openModal"
+        @duplicate="duplicateTask"
+        @delete="deleteTask"
+      />
 
       <h3
         class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
       >
         Published
       </h3>
-      <TaskItem v-for="doc in documents.published" :key="doc.id" :doc="doc" class="grid" />
+      <TaskItem
+        v-for="doc in documents.published"
+        :key="doc.id"
+        :doc="doc"
+        class="grid"
+        @open-edit="openModal"
+        @duplicate="duplicateTask"
+        @delete="deleteTask"
+      />
     </section>
+    <ModalEdit
+      v-if="selectedTask"
+      v-model="showModal"
+      title="Edit Task"
+      :task="selectedTask"
+      @close="closeModal"
+      @save="saveTask"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
+import ModalEdit from "@/components/common/ModalEdit.vue";
 import type { DocumentsByStatus } from "@/types";
 
 // Props ------------------------------------
@@ -77,6 +84,34 @@ const props = defineProps<{
   documents: DocumentsByStatus;
   activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
 }>();
+
+// State ------------------------------------
+const showModal = ref(false);
+const selectedTask = ref<any | null>(null);
+
+// Handlers --------------------------------
+function openModal(task) {
+  selectedTask.value = task;
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+  selectedTask.value = null;
+}
+
+function saveTask(updatedTask) {
+  console.log("Saved task:", updatedTask);
+  closeModal();
+}
+
+function duplicateTask(task) {
+  console.log("Duplicated task:", task);
+}
+
+function deleteTask(task) {
+  console.log("Deleted task with ID:", task);
+}
 
 // Computed --------------------------------
 // filter active authors then sort by team
@@ -97,7 +132,19 @@ const activeAuthorsByTeam = computed(() => {
 
   return Object.entries(groups).map(([team, members]) => ({ team, members }));
 });
+
+const headers = [
+  "",
+  "Vehicle/Segment",
+  "Deadline",
+  "Status",
+  "Embargo/Publish Date",
+  "Notes",
+  "Assets",
+  "Author",
+];
 </script>
+
 <style lang="scss" scoped>
 @mixin column-layout() {
   display: grid;
