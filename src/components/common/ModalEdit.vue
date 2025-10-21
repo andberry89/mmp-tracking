@@ -1,48 +1,91 @@
 <template>
-  <VueFinalModal
-    v-model="internalModelValue"
-    class="flex items-center justify-center p-4"
-    content-class="bg-white p-8 rounded-lg min-w-[400px] max-w-[600px] flex flex-col shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
-    overlay-transition="vfm-fade"
-    content-transition="vfm-fade"
-  >
-    <h2 class="text-xl font-semibold mb-4">{{ title || "Edit Task" }}</h2>
-    <slot />
-    <slot name="footer">
-      <button
-        @click="$emit('close')"
-        class="mt-6 self-end px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition"
-      >
-        Close
-      </button>
-    </slot>
-  </VueFinalModal>
+  <BaseModal v-model="localModel" title="Edit Task" size="lg" @close="$emit('close')">
+    <form @submit.prevent="handleSave" id="task-edit-form">
+      <!-- form content -->
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Vehicle</label>
+        <input
+          type="text"
+          v-model="editableTask.vehicle.make"
+          readonly
+          class="w-full border border-gray-300 rounded p-2 bg-gray-100"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+        <select v-model="editableTask.status" class="w-full border border-gray-300 rounded p-2">
+          <option v-for="status in statuses" :key="status" :value="status">{{ status }}</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Deadline</label>
+        <input
+          type="date"
+          v-model="editableTask.deadline"
+          class="w-full border border-gray-300 rounded p-2"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Notes</label>
+        <textarea
+          v-model="editableTask.notes"
+          rows="4"
+          class="w-full border border-gray-300 rounded p-2"
+        ></textarea>
+      </div>
+    </form>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          @click="$emit('close')"
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="task-edit-form"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Save
+        </button>
+      </div>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
-/**
- * Generic modal wrapper component.
- * Uses Vue Final Modal under the hood and exposes
- * a slot for arbitrary content plus `close`/`save` events.
- */
-
-import { VueFinalModal } from "vue-final-modal";
-import { computed } from "vue";
+//todo: figure out how task data displays (editableTask)
+import { ref, watch, computed } from "vue";
+import BaseModal from "@/components/common/BaseModal.vue";
 import type { TaskDocument } from "@/types";
 
 const props = defineProps<{
   modelValue: boolean;
-  title?: string;
+  task: TaskDocument;
 }>();
+const emit = defineEmits(["update:modelValue", "save", "close"]);
 
-const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "close"): void;
-  (e: "save", payload: any): void;
-}>();
-
-const internalModelValue = computed({
+const localModel = computed({
   get: () => props.modelValue,
   set: (val) => emit("update:modelValue", val),
 });
+
+const editableTask = ref({ ...props.task });
+const statuses = ["pending", "rte", "rtp", "scheduled", "published", "updated"];
+
+watch(
+  () => props.task,
+  (t) => (editableTask.value = { ...t })
+);
+
+function handleSave() {
+  emit("save", editableTask.value);
+  emit("update:modelValue", false);
+}
 </script>

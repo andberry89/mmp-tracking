@@ -17,7 +17,7 @@
       @assign="(author) => emit('assign-author', { doc, author })"
     />
     <TaskActions
-      @open-edit="emit('open-edit', doc)"
+      @edit="emit('edit', doc)"
       @duplicate="emit('duplicate', doc)"
       @delete="emit('delete', doc)"
     />
@@ -49,7 +49,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "assign-author", payload: { doc: TaskDocument; author: any }): void;
-  (e: "open-edit", doc: TaskDocument): void;
+  (e: "edit", doc: TaskDocument): void;
   (e: "duplicate", doc: TaskDocument): void;
   (e: "delete", doc: TaskDocument): void;
 }>();

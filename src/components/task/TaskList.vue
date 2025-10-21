@@ -25,9 +25,9 @@
         :doc="doc"
         class="grid"
         :activeAuthorsByTeam="activeAuthorsByTeam"
-        @open-edit="openModal"
-        @duplicate="duplicateTask"
-        @delete="deleteTask"
+        @edit="handleEdit"
+        @duplicate="handleDuplicate"
+        @delete="handleDelete"
       />
 
       <h3
@@ -40,9 +40,9 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
-        @open-edit="openModal"
-        @duplicate="duplicateTask"
-        @delete="deleteTask"
+        @edit="handleEdit"
+        @duplicate="handleDuplicate"
+        @delete="handleDelete"
       />
 
       <h3
@@ -55,18 +55,17 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
-        @open-edit="openModal"
-        @duplicate="duplicateTask"
-        @delete="deleteTask"
+        @edit="handleEdit"
+        @duplicate="handleDuplicate"
+        @delete="handleDelete"
       />
     </section>
-    <ModalEdit
-      v-if="selectedTask"
+    <component
+      :is="currentModal"
+      v-if="modalType"
       v-model="showModal"
-      title="Edit Task"
-      :task="selectedTask"
+      v-bind="modalProps"
       @close="closeModal"
-      @save="saveTask"
     />
   </div>
 </template>
@@ -77,6 +76,8 @@ import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
 import ModalEdit from "@/components/common/ModalEdit.vue";
+import ModalDelete from "@/components/common/ModalDelete.vue";
+import ModalDuplicate from "@/components/common/ModalDuplicate.vue";
 import type { DocumentsByStatus } from "@/types";
 
 // Props ------------------------------------
@@ -87,17 +88,20 @@ const props = defineProps<{
 
 // State ------------------------------------
 const showModal = ref(false);
-const selectedTask = ref<any | null>(null);
+const modalType = ref<"edit" | "duplicate" | "delete" | null>(null);
+const modalPayload = ref<any | null>(null);
 
 // Handlers --------------------------------
-function openModal(task) {
-  selectedTask.value = task;
+function openModal(type: "edit" | "duplicate" | "delete", payload: any) {
+  modalType.value = type;
+  modalPayload.value = payload;
   showModal.value = true;
 }
 
 function closeModal() {
   showModal.value = false;
-  selectedTask.value = null;
+  modalType.value = null;
+  modalPayload.value = null;
 }
 
 function saveTask(updatedTask) {
@@ -105,12 +109,26 @@ function saveTask(updatedTask) {
   closeModal();
 }
 
-function duplicateTask(task) {
+function confirmDuplicate(task) {
   console.log("Duplicated task:", task);
+  closeModal();
 }
 
-function deleteTask(task) {
-  console.log("Deleted task with ID:", task);
+function confirmDelete() {
+  console.log("Task deleted");
+  closeModal();
+}
+
+function handleEdit(task) {
+  openModal("edit", task);
+}
+
+function handleDuplicate(task) {
+  openModal("duplicate", task);
+}
+
+function handleDelete(task) {
+  openModal("delete", task);
 }
 
 // Computed --------------------------------
@@ -131,6 +149,27 @@ const activeAuthorsByTeam = computed(() => {
   });
 
   return Object.entries(groups).map(([team, members]) => ({ team, members }));
+});
+
+const modalComponents = {
+  edit: ModalEdit,
+  delete: ModalDelete,
+  duplicate: ModalDuplicate,
+};
+
+const currentModal = computed(() => (modalType.value ? modalComponents[modalType.value] : null));
+
+const modalProps = computed(() => {
+  switch (modalType.value) {
+    case "edit":
+      return { title: "Edit Task", task: modalPayload.value };
+    case "delete":
+      return { title: "Delete Task", message: "Are you sure you want to delete this task?" };
+    case "duplicate":
+      return { title: "Duplicate Task", task: modalPayload.value };
+    default:
+      return {};
+  }
 });
 
 const headers = [
