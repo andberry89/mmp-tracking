@@ -65,25 +65,30 @@
       v-if="modalType"
       v-model="showModal"
       v-bind="modalProps"
+      @save="saveTask"
       @close="closeModal"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
 import ModalEdit from "@/components/common/ModalEdit.vue";
 import ModalDelete from "@/components/common/ModalDelete.vue";
 import ModalDuplicate from "@/components/common/ModalDuplicate.vue";
-import type { DocumentsByStatus } from "@/types";
+import type { DocumentsByStatus, TaskDocument } from "@/types";
 
-// Props ------------------------------------
+// Props & Emits ---------------------------
 const props = defineProps<{
   documents: DocumentsByStatus;
   activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
+}>();
+
+const emit = defineEmits<{
+  (e: "updateTask", updatedTask: TaskDocument): void;
 }>();
 
 // State ------------------------------------
@@ -105,7 +110,7 @@ function closeModal() {
 }
 
 function saveTask(updatedTask) {
-  console.log("Saved task:", updatedTask);
+  emit("updateTask", updatedTask);
   closeModal();
 }
 

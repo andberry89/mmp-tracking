@@ -39,7 +39,7 @@ import TaskAuthor from "@/components/task/components/TaskAuthor.vue";
 import TaskActions from "@/components/task/components/TaskActions.vue";
 import type { TaskDocument } from "@/types";
 import { authors } from "@/test";
-import { dateFormatMap, statusClassMap, teamColorMap } from "@/constants/task-style-maps";
+import { dateFormatMap, statusClassMap, teamColorMap } from "@/constants";
 
 // Props & Emits
 const props = defineProps<{
@@ -67,6 +67,15 @@ const docNotes = computed(() => {
   }
 });
 
+const statusLabel = computed(() => {
+  const match = taskStatuses.find((s) => s.value === props.doc.status);
+  return match ? match.label : props.doc.status;
+});
+
+const statusColor = computed(() => {
+  const match = taskStatuses.find((s) => s.value === props.doc.status);
+  return match ? match.color : "inherit";
+});
 const getDateFormatClass = (doc: TaskDocument) => {
   const dateFormat = getDateFormat(doc);
   const normalized = dateFormatMap[dateFormat];
