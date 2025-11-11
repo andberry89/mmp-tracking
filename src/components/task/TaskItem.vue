@@ -38,7 +38,7 @@ import TaskAuthor from "@/components/task/components/TaskAuthor.vue";
 import TaskActions from "@/components/task/components/TaskActions.vue";
 import type { TaskDocument } from "@/types";
 import { authors } from "@/test";
-import { dateFormatMap, statusClassMap, teamColorMap } from "@/constants";
+import { DATE_FORMAT_MAP, TEAM_COLOR_MAP } from "@/constants";
 
 // Props & Emits
 const props = defineProps<{
@@ -68,7 +68,7 @@ const docNotes = computed(() => {
 
 const getDateFormatClass = (doc: TaskDocument) => {
   const dateFormat = getDateFormat(doc);
-  const normalized = dateFormatMap[dateFormat];
+  const normalized = DATE_FORMAT_MAP[dateFormat];
   return normalized || "";
 };
 

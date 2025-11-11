@@ -1,9 +1,9 @@
-export const dateFormatMap = {
+export const DATE_FORMAT_MAP = {
   embargo: "text-orange-400 font-bold",
   published: "text-gray-900",
 };
 
-export const statusClassMap = {
+export const STATUS_CLASS_MAP = {
   pending: "bg-sky-600 text-sky-50",
   rte: "bg-purple-600 text-purple-50",
   rtp: "bg-orange-600 text-orange-50",
@@ -12,7 +12,7 @@ export const statusClassMap = {
   published: "bg-green-600 text-green-50",
 } as const;
 
-export const teamColorMap = {
+export const TEAM_COLOR_MAP = {
   freelance: " bg-pink-500",
   bg: "bg-indigo-600",
   cd: "bg-teal-400",

@@ -66,7 +66,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { AddCircleIcon } from "@/assets/icons";
-import { teamColorMap } from "@/constants/task-style-maps";
+import { TEAM_COLOR_MAP } from "@/constants/task-style-maps";
 
 defineProps<{
   author?: { initials: string; team; string };
@@ -81,7 +81,7 @@ const selectedAuthor = ref<string | null>(null);
 const headerText = ref("Assign Author");
 
 const getTeamColorClass = (team: string) => {
-  const normalized = teamColorMap[team];
+  const normalized = TEAM_COLOR_MAP[team];
   return normalized + " text-white";
 };
 

@@ -7,7 +7,7 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-import { STATUS_VALUE_MAP, statuses, statusClassMap } from "@/constants";
+import { STATUS_VALUE_MAP, statuses, STATUS_CLASS_MAP } from "@/constants";
 
 // Props =------------------------------------
 const props = defineProps<{
@@ -48,6 +48,6 @@ const statusColor = computed(() => statusInfo.value.color);
 
 // Class mapping
 const statusClass = computed(
-  () => statusClassMap[normalizedStatus.value] || "bg-gray-200 text-gray-800"
+  () => STATUS_CLASS_MAP[normalizedStatus.value] || "bg-gray-200 text-gray-800"
 );
 </script>
