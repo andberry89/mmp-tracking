@@ -5,7 +5,6 @@
     <TaskHeader :doc="doc" />
     <TaskStatus
       :status="doc.status"
-      :statusClass="getStatusClass(doc.status)"
       :dateClass="getDateFormatClass(doc)"
       :dateText="getDateText(doc)"
     />
@@ -67,24 +66,10 @@ const docNotes = computed(() => {
   }
 });
 
-const statusLabel = computed(() => {
-  const match = taskStatuses.find((s) => s.value === props.doc.status);
-  return match ? match.label : props.doc.status;
-});
-
-const statusColor = computed(() => {
-  const match = taskStatuses.find((s) => s.value === props.doc.status);
-  return match ? match.color : "inherit";
-});
 const getDateFormatClass = (doc: TaskDocument) => {
   const dateFormat = getDateFormat(doc);
   const normalized = dateFormatMap[dateFormat];
   return normalized || "";
-};
-
-const getStatusClass = (status: string) => {
-  const normalized = getStatus(status);
-  return statusClassMap[normalized] || "bg-gray-200 text-gray-800";
 };
 
 // Methods
