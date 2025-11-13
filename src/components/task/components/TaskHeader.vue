@@ -21,7 +21,7 @@
         : 'text-[var(--color-body-text-secondary)]',
     ]"
   >
-    {{ doc.deadline }}
+    {{ doc.published ? "" : doc.deadline }}
   </div>
 </template>
 <script setup lang="ts">

@@ -37,6 +37,7 @@ import MainContent from "@/components/layout/MainContent.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 
 import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-functions";
+import { applyTaskRules } from "@/utils/apply-task-rules";
 import { ranges as defaultRanges } from "@/constants/constants";
 import { testDocuments, authors as testAuthors } from "@/test";
 
@@ -53,17 +54,19 @@ const sortedAuthors = computed(() => sortAuthors(testAuthors));
 
 // ─── Methods ────────────────────────────────────────────────────────────────
 function handleTaskUpdate(updatedTask: TaskDocument) {
+  const normalized = applyTaskRules(updatedTask);
+
   // Check to see that the task exists and update it
-  const taskExists = documents.value.some((t) => t.id === updatedTask.id);
+  const taskExists = documents.value.some((t) => t.id === normalized.id);
 
   // If task exists, map to documents.value a new array
-  // For each task check to see if its the updatedTask, if so return updatedTask, else return t
-  // If task does not exist, spread documents.value and add updatedTask to the end
+  // For each task check to see if its the updated task, if so return the updated task, else return t
+  // If task does not exist, spread documents.value and add the updated task to the end
   documents.value = taskExists
-    ? documents.value.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-    : [...documents.value, updatedTask];
+    ? documents.value.map((t) => (t.id === normalized.id ? normalized : t))
+    : [...documents.value, normalized];
 
-  console.log("✅ Task updated and regrouped:", updatedTask);
+  console.log("✅ Task updated and regrouped:", normalized);
 }
 
 function onTabChange(label: string) {

@@ -8,7 +8,7 @@
       :dateClass="getDateFormatClass(doc)"
       :dateText="getDateText(doc)"
     />
-    <TaskNotes :docNotes="docNotes" :notes="doc.notes" />
+    <TaskNotes :doc="doc" />
     <TaskAssets :assets="doc.assets" />
     <TaskAuthor
       :author="doc.author"
@@ -57,25 +57,16 @@ const emit = defineEmits<{
 const assignedAuthor = ref<string | null>(null);
 const assignedAuthorHeader = ref("Assign Author");
 
-// Computed
-const docNotes = computed(() => {
-  if (props.doc.notes.length <= 50) {
-    return props.doc.notes;
-  } else {
-    return props.doc.notes.slice(0, 35) + "...";
-  }
-});
+// Methods
+function assignAuthor(author) {
+  emit("assign-author", { doc: props.doc, author });
+}
 
 const getDateFormatClass = (doc: TaskDocument) => {
   const dateFormat = getDateFormat(doc);
   const normalized = DATE_FORMAT_MAP[dateFormat];
   return normalized || "";
 };
-
-// Methods
-function assignAuthor(author) {
-  emit("assign-author", { doc: props.doc, author });
-}
 </script>
 <style lang="scss" scoped>
 :deep(.popper) {
