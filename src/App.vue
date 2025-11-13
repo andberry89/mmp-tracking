@@ -20,6 +20,7 @@
         :ranges="ranges"
         :authors="sortedAuthors"
         :activeLabel="activeLabel"
+        @updateTask="handleTaskUpdate"
       />
     </main>
 
@@ -39,18 +40,32 @@ import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-funct
 import { ranges as defaultRanges } from "@/constants/constants";
 import { testDocuments, authors as testAuthors } from "@/test";
 
-import type { DocumentsByStatus } from "@/types/TaskDocument";
-import type { AuthorGroups } from "@/types/Author";
+import type { DocumentsByStatus, AuthorGroups, TaskDocument } from "@/types";
 
 // ─── Reactive State ──────────────────────────────────────────────────────────
 const activeLabel = ref("MMPs");
 const ranges = ref(defaultRanges);
+const documents = ref<TaskDocument[]>(structuredClone(testDocuments));
 
 // ─── Computed ──────────────────────────────────────────────
-const sortedDocuments = computed(() => sortDocuments(testDocuments));
+const sortedDocuments = computed(() => sortDocuments(documents.value));
 const sortedAuthors = computed(() => sortAuthors(testAuthors));
 
 // ─── Methods ────────────────────────────────────────────────────────────────
+function handleTaskUpdate(updatedTask: TaskDocument) {
+  // Check to see that the task exists and update it
+  const taskExists = documents.value.some((t) => t.id === updatedTask.id);
+
+  // If task exists, map to documents.value a new array
+  // For each task check to see if its the updatedTask, if so return updatedTask, else return t
+  // If task does not exist, spread documents.value and add updatedTask to the end
+  documents.value = taskExists
+    ? documents.value.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    : [...documents.value, updatedTask];
+
+  console.log("✅ Task updated and regrouped:", updatedTask);
+}
+
 function onTabChange(label: string) {
   activeLabel.value = label;
 }

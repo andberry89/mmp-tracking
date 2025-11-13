@@ -82,7 +82,7 @@
 import { ref, watch, computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import type { TaskDocument } from "@/types";
-import { statuses as taskStatuses } from "@/constants/constants";
+import { statuses as taskStatuses } from "@/constants";
 
 // Props and Emits ----------------------
 const props = defineProps<{

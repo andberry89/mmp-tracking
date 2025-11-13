@@ -22,6 +22,7 @@
             :documents="filteredDocuments"
             :authors="authors"
             :activeAuthorsByTeam="activeAuthorsByTeam"
+            @updateTask="handleTaskUpdate"
           />
         </div>
       </div>
@@ -41,7 +42,7 @@
 import { computed, ref, watch } from "vue";
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
-import type { DocumentsByStatus, AuthorGroups } from "@/types";
+import type { DocumentsByStatus, AuthorGroups, TaskDocument } from "@/types";
 import { getHeaderConfig } from "@/config/headerConfigs";
 
 // Reactive State --------------------------------
@@ -61,6 +62,10 @@ const props = defineProps<{
   authors: AuthorGroups;
   ranges: Array<{ id: string; label: string }>;
   activeLabel: string;
+}>();
+
+const emit = defineEmits<{
+  (e: "updateTask", updatedTask: TaskDocument): void;
 }>();
 
 // Computed --------------------------------
@@ -135,6 +140,11 @@ const activeAuthorsByTeam = computed(() => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([team, members]) => ({ team, members }));
 });
+
+// Methods --------------------------------
+function handleTaskUpdate(updatedTask: TaskDocument) {
+  emit("updateTask", updatedTask);
+}
 
 // Watchers --------------------------------
 

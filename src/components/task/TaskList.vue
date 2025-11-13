@@ -72,6 +72,7 @@
 </template>
 
 <script setup lang="ts">
+//TODO: GOTTA CLEAN UP THE CHAIN OF COMMAND FROM APP.VUE
 import { ref, computed, watch } from "vue";
 import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
