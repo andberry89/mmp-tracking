@@ -22,6 +22,7 @@
         :activeLabel="activeLabel"
         @updateTask="handleTaskUpdate"
         @deleteTask="handleTaskDelete"
+        @duplicateTask="handleTaskDuplicate"
       />
     </main>
 
@@ -73,6 +74,12 @@ function handleTaskUpdate(updatedTask: TaskDocument) {
 function handleTaskDelete(id: string) {
   documents.value = documents.value.filter((t) => t.id !== id);
   console.log("🗑️ Task deleted with ID:", id);
+}
+
+function handleTaskDuplicate(task: TaskDocument) {
+  const newTask = { ...task, id: crypto.randomUUID() };
+  documents.value = [...documents.value, newTask];
+  console.log("📄 Task duplicated:", newTask);
 }
 
 function onTabChange(label: string) {

@@ -22,11 +22,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import type { TaskDocument } from "@/types";
 
-defineProps<{ modelValue: boolean; task: TaskDocument }>();
-defineEmits(["update:modelValue", "duplicate", "close"]);
+const props = defineProps<{ modelValue: boolean; task: TaskDocument }>();
+const emit = defineEmits(["update:modelValue", "duplicate", "close"]);
 
 const localModel = computed({
   get: () => props.modelValue,

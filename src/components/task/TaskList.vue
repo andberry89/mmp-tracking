@@ -68,6 +68,7 @@
       @save="saveTask"
       @close="closeModal"
       @delete="confirmDelete"
+      @duplicate="confirmDuplicate"
     />
   </div>
 </template>
@@ -91,6 +92,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "updateTask", updatedTask: TaskDocument): void;
   (e: "deleteTask", id: string): void;
+  (e: "duplicateTask", task: TaskDocument): void;
 }>();
 
 // State ------------------------------------
@@ -117,7 +119,7 @@ function saveTask(updatedTask) {
 }
 
 function confirmDuplicate(task) {
-  console.log("Duplicated task:", task);
+  emit("duplicateTask", task);
   closeModal();
 }
 

@@ -24,6 +24,7 @@
             :activeAuthorsByTeam="activeAuthorsByTeam"
             @updateTask="handleTaskUpdate"
             @deleteTask="emit('deleteTask', $event)"
+            @duplicateTask="emit('duplicateTask', $event)"
           />
         </div>
       </div>
@@ -68,6 +69,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "updateTask", updatedTask: TaskDocument): void;
   (e: "deleteTask", id: string): void;
+  (e: "duplicateTask", task: TaskDocument): void;
 }>();
 
 // Computed --------------------------------

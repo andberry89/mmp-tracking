@@ -5,6 +5,7 @@
     :activeAuthorsByTeam="activeAuthorsByTeam"
     @updateTask="emit('updateTask', $event)"
     @deleteTask="emit('deleteTask', $event)"
+    @duplicateTask="emit('duplicateTask', $event)"
   />
 </template>
 
@@ -24,6 +25,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "updateTask", updatedTask: TaskDocument): void;
   (e: "deleteTask", id: string): void;
+  (e: "duplicateTask", task: TaskDocument): void;
 }>();
 
 // ─── Methods ─────────────────────────────────────────────────────────────────
