@@ -67,12 +67,12 @@
       v-bind="modalProps"
       @save="saveTask"
       @close="closeModal"
+      @delete="confirmDelete"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-//TODO: GOTTA CLEAN UP THE CHAIN OF COMMAND FROM APP.VUE
 import { ref, computed, watch } from "vue";
 import { authors } from "@/test";
 import { PlusIcon } from "@/assets/icons";
@@ -90,6 +90,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "updateTask", updatedTask: TaskDocument): void;
+  (e: "deleteTask", id: string): void;
 }>();
 
 // State ------------------------------------
@@ -121,7 +122,7 @@ function confirmDuplicate(task) {
 }
 
 function confirmDelete() {
-  console.log("Task deleted");
+  emit("deleteTask", modalPayload.value.id);
   closeModal();
 }
 

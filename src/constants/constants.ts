@@ -12,11 +12,10 @@ export const teams = [
 ];
 
 export const statuses = [
-  { label: "All", value: "all", color: "var(--red)" },
   { label: "Pending", value: "pending", color: "var(--color-body-pending)" },
+  { label: "Ready to Edit", value: "rte", color: "var(--color-body-rte)" },
+  { label: "Ready to Publish", value: "rtp", color: "var(--color-body-rtp)" },
   { label: "Scheduled", value: "scheduled", color: "var(--color-body-scheduled)" },
   { label: "Published", value: "published", color: "var(--color-body-published)" },
-  { label: "Ready to Publish", value: "rtp", color: "var(--color-body-rtp)" },
-  { label: "Ready to Edit", value: "rte", color: "var(--color-body-rte)" },
   { label: "Updated", value: "updated", color: "var(--color-body-updated)" },
 ];

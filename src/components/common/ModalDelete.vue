@@ -10,7 +10,7 @@
           Cancel
         </button>
         <button
-          @click="$emit('confirm')"
+          @click="$emit('delete')"
           class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         >
           Delete
@@ -21,10 +21,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 
-defineProps<{ modelValue: boolean; message?: string }>();
-defineEmits(["update:modelValue", "confirm", "close"]);
+const props = defineProps<{
+  modelValue: boolean;
+  message?: string;
+}>();
+const emit = defineEmits(["update:modelValue", "delete", "close"]);
 
 const localModel = computed({
   get: () => props.modelValue,

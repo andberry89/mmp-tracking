@@ -21,6 +21,7 @@
         :authors="sortedAuthors"
         :activeLabel="activeLabel"
         @updateTask="handleTaskUpdate"
+        @deleteTask="handleTaskDelete"
       />
     </main>
 
@@ -67,6 +68,11 @@ function handleTaskUpdate(updatedTask: TaskDocument) {
     : [...documents.value, normalized];
 
   console.log("✅ Task updated and regrouped:", normalized);
+}
+
+function handleTaskDelete(id: string) {
+  documents.value = documents.value.filter((t) => t.id !== id);
+  console.log("🗑️ Task deleted with ID:", id);
 }
 
 function onTabChange(label: string) {

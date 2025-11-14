@@ -4,6 +4,7 @@
     :authors="authors"
     :activeAuthorsByTeam="activeAuthorsByTeam"
     @updateTask="emit('updateTask', $event)"
+    @deleteTask="emit('deleteTask', $event)"
   />
 </template>
 
@@ -22,6 +23,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "updateTask", updatedTask: TaskDocument): void;
+  (e: "deleteTask", id: string): void;
 }>();
 
 // ─── Methods ─────────────────────────────────────────────────────────────────
