@@ -79,6 +79,7 @@
 
 <script setup lang="ts">
 //todo: figure out how task data displays (editableTask)
+// TODO: get the select to default to the current status
 import { ref, watch, computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import type { TaskDocument } from "@/types";

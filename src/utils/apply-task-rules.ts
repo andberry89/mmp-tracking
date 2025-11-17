@@ -9,6 +9,11 @@ export const applyTaskRules = (task: TaskDocument): TaskDocument => {
   const normalizedStatus = task.status?.toLowerCase().trim();
   const updatedTask = { ...task };
 
+  console.log(normalizedStatus);
+
+  // --- Normalize "Ready to Edit" flag ------------------
+  if (normalizedStatus === "rte") updatedTask.notes = "";
+
   // --- Normalize published/updated flag ------------------
   if (normalizedStatus === "published" || normalizedStatus === "updated") {
     updatedTask.published = true;
