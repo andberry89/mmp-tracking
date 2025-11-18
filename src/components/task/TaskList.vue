@@ -25,6 +25,7 @@
         :doc="doc"
         class="grid"
         :activeAuthorsByTeam="activeAuthorsByTeam"
+        @assign-author="handleAssignAuthor"
         @edit="handleEdit"
         @duplicate="handleDuplicate"
         @delete="handleDelete"
@@ -40,6 +41,7 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
+        @assign-author="handleAssignAuthor"
         @edit="handleEdit"
         @duplicate="handleDuplicate"
         @delete="handleDelete"
@@ -55,6 +57,7 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
+        @assign-author="handleAssignAuthor"
         @edit="handleEdit"
         @duplicate="handleDuplicate"
         @delete="handleDelete"
@@ -113,9 +116,9 @@ function closeModal() {
   modalPayload.value = null;
 }
 
-function saveTask(updatedTask) {
+function saveTask(updatedTask, options = { closeModal: true }) {
   emit("updateTask", updatedTask);
-  closeModal();
+  if (options.closeModal) closeModal();
 }
 
 function confirmDuplicate(task) {
@@ -126,6 +129,14 @@ function confirmDuplicate(task) {
 function confirmDelete() {
   emit("deleteTask", modalPayload.value.id);
   closeModal();
+}
+
+function handleAssignAuthor({ doc, author }) {
+  //TODO: AUTHOR IS UPDATING BUT NOT SHOWING IN CORRECT COLORS ON UI
+  console.log(author);
+  doc.author = author;
+  doc.author.team = author.team.slug;
+  saveTask(doc, { closeModal: false });
 }
 
 function handleEdit(task) {

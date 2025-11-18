@@ -86,12 +86,12 @@ const getTeamColorClass = (team: string) => {
 };
 
 function handleAssign(author) {
-  emit("assign", author);
   selectedAuthor.value = author.id;
   headerText.value = `Assigned to ${author.firstName}`;
   setTimeout(() => {
     selectedAuthor.value = null;
     headerText.value = "Assign Author";
+    emit("assign", author);
   }, 2000);
 }
 </script>
