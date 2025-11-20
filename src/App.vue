@@ -69,6 +69,7 @@ function handleTaskUpdate(updatedTask: TaskDocument) {
     : [...documents.value, normalized];
 
   console.log("✅ Task updated and regrouped:", normalized);
+  // TODO: WHEN AUTHOR IS UPDATED, PENDING DOESN'T REORGANIZE BY TEAM. CHECK WHY.
 }
 
 function handleTaskDelete(id: string) {

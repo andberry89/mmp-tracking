@@ -1,19 +1,31 @@
 <template>
   <div class="task-author">
-    <!-- If author assigned -->
-    <span v-if="author" :class="['team-badge', getTeamColorClass(author.team)]">{{
-      author.initials
-    }}</span>
+    <Popper placement="top" arrow>
+      <span
+        v-if="author"
+        :class="['team-badge cursor-pointer', getTeamColorClass(author.team.slug)]"
+        role="button"
+        tabindex="0"
+      >
+        {{ author.initials }}
+      </span>
 
-    <!-- If no author assigned, show assign popup -->
-    <span v-else class="w-6 h-6 flex items-center justify-center-safe">
-      <Popper placement="top" arrow>
-        <AddCircleIcon
-          class="zoomable"
-          v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }"
-        />
-        <template #content>
+      <AddCircleIcon
+        v-else
+        class="zoomable cursor-pointer"
+        v-tooltip="{ theme: 'info-tooltip', content: 'Assign an author' }"
+      />
+
+      <template #content="{ close }">
+        <div @click.stop>
           <h3 class="font-bold mb-4 text-sm text-center">{{ headerText }}</h3>
+          <button
+            v-if="author"
+            class="block mx-auto mb-4 px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-200 border border-gray-300 rounded-md shadow-sm transition cursor-pointer"
+            @click="handleAssign(null, close)"
+          >
+            Unassign Author
+          </button>
 
           <div v-for="group in authorsByTeam" :key="group.team" class="mb-4">
             <h3 class="text-xs font-bold text-gray-600 mb-1 border-b border-dotted border-gray-600">
@@ -23,7 +35,7 @@
               <div
                 v-for="authorItem in group.members"
                 :key="authorItem.id"
-                @click="handleAssign(authorItem)"
+                @click="handleAssign(authorItem, close)"
                 class="flex flex-col items-center justify-start w-20 h-20 p-2 cursor-pointer rounded-md hover:bg-gray-300 transition duration-200 ease-in-out"
               >
                 <span
@@ -58,15 +70,17 @@
               </div>
             </div>
           </div>
-        </template>
-      </Popper>
-    </span>
+        </div>
+      </template>
+    </Popper>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref } from "vue";
 import { AddCircleIcon } from "@/assets/icons";
 import { TEAM_COLOR_MAP } from "@/constants/task-style-maps";
+import type { Author } from "@/types";
 
 defineProps<{
   author?: { initials: string; team; string };
@@ -74,7 +88,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "assign", author: any): void;
+  (e: "assign", author: Author | null): void;
 }>();
 
 const selectedAuthor = ref<string | null>(null);
@@ -85,13 +99,28 @@ const getTeamColorClass = (team: string) => {
   return normalized + " text-white";
 };
 
-function handleAssign(author) {
-  selectedAuthor.value = author.id;
-  headerText.value = `Assigned to ${author.firstName}`;
-  setTimeout(() => {
-    selectedAuthor.value = null;
-    headerText.value = "Assign Author";
-    emit("assign", author);
-  }, 2000);
+function handleAssign(author: Author | null, close?: () => void) {
+  if (author) {
+    // assign the author
+    selectedAuthor.value = author.id;
+    headerText.value = `Assigned to ${author.firstName}`;
+
+    setTimeout(() => {
+      selectedAuthor.value = null;
+      headerText.value = "Assign Author";
+      emit("assign", author);
+      close?.();
+    }, 1000);
+  } else {
+    // unassign the author
+    emit("assign", null);
+    headerText.value = "Author removed";
+    setTimeout(() => {
+      headerText.value = "Assign Author";
+      close?.();
+    }, 1000);
+  }
 }
+
+function handleUnassign() {}
 </script>

@@ -132,10 +132,8 @@ function confirmDelete() {
 }
 
 function handleAssignAuthor({ doc, author }) {
-  //TODO: AUTHOR IS UPDATING BUT NOT SHOWING IN CORRECT COLORS ON UI
   console.log(author);
   doc.author = author;
-  doc.author.team = author.team.slug;
   saveTask(doc, { closeModal: false });
 }
 
