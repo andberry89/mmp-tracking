@@ -12,6 +12,29 @@
         />
       </div>
 
+      <div class="mb-4 flex items-center gap-3">
+        <label for="highPriority" class="text-sm font-semibold text-gray-700">
+          High Priority
+        </label>
+
+        <button
+          type="button"
+          id="highPriority"
+          @click="editableTask.highPriority = !editableTask.highPriority"
+          :class="[
+            'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
+            editableTask.highPriority ? 'bg-red-600' : 'bg-gray-300',
+          ]"
+        >
+          <span
+            :class="[
+              'inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200',
+              editableTask.highPriority ? 'translate-x-6' : 'translate-x-1',
+            ]"
+          />
+        </button>
+      </div>
+
       <div class="mb-4">
         <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
         <select v-model="editableTask.status" class="w-full border border-gray-300 rounded p-2">
