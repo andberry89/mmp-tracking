@@ -44,10 +44,10 @@ export const getHeaderConfig = (
           },
           {
             id: "range",
-            label: "Status",
+            label: "Date Range",
             options: ranges,
             onSelect: setRange,
-            class: "min-w-[130px]",
+            class: "min-w-[160px]",
           },
         ] satisfies DropdownConfig[],
       };

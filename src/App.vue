@@ -40,7 +40,7 @@ import TopNav from "@/components/layout/TopNav.vue";
 
 import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-functions";
 import { applyTaskRules } from "@/utils/apply-task-rules";
-import { ranges as defaultRanges } from "@/constants/constants";
+import { ranges as defaultRanges } from "@/constants";
 import { testDocuments, authors as testAuthors } from "@/test";
 
 import type { DocumentsByStatus, AuthorGroups, TaskDocument } from "@/types";
