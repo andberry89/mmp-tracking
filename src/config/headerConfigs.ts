@@ -33,7 +33,7 @@ export const getHeaderConfig = (
     case "MMPs":
       return {
         title: "MMPs",
-        searchPlaceholder: "Search by make or segment...",
+        searchPlaceholder: "Search by make, model, year or segment...",
         dropdowns: [
           {
             id: "author",

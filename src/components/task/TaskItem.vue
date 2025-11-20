@@ -24,7 +24,6 @@
 </template>
 
 <script setup lang="ts">
-//TODO: Refactor to reduce overhead
 import { AddCircleIcon, HighPriorityIcon, MoreIcon } from "@/assets/icons";
 
 import { getDateFormat, getDateText, getStatus, isHighPriority } from "@/utils/task-item-utils";

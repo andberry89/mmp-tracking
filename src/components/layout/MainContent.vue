@@ -16,7 +16,7 @@
           <LoadingSpinner />
         </div>
         <div v-else>
-          <PageHeader v-bind="headerProps" />
+          <PageHeader v-bind="headerProps" @update:search="onSearchUpdate" />
           <component
             :is="activeComponent"
             :documents="filteredDocuments"
@@ -51,6 +51,7 @@ import { getHeaderConfig } from "@/config/headerConfigs";
 
 // UI state for loading spinner during transitions
 const isLoading = ref(false);
+const searchQuery = ref("");
 
 // Filter states
 const selectedAuthorId = ref<string | null>(null);
@@ -76,13 +77,43 @@ const emit = defineEmits<{
 
 // Filter documents based on selected author
 const filteredDocuments = computed(() => {
-  if (!selectedAuthorId.value) return props.documents;
+  // Start with base author filtering
+  let base = props.documents;
 
-  return {
-    pending: props.documents.pending.filter((doc) => doc.author?.id === selectedAuthorId.value),
-    rtp: props.documents.rtp.filter((doc) => doc.author?.id === selectedAuthorId.value),
-    published: props.documents.published.filter((doc) => doc.author?.id === selectedAuthorId.value),
-  };
+  if (selectedAuthorId.value) {
+    base = {
+      pending: base.pending.filter((doc) => doc.author?.id === selectedAuthorId.value),
+      rtp: base.rtp.filter((doc) => doc.author?.id === selectedAuthorId.value),
+      published: base.published.filter((doc) => doc.author?.id === selectedAuthorId.value),
+    };
+  }
+
+  // If MMPs is active, filter by make or segment
+  if (props.activeLabel === "MMPs" && searchQuery.value.trim()) {
+    const query = searchQuery.value.trim().toLowerCase();
+
+    const filterBySearch = (arr: TaskDocument[]) =>
+      arr.filter((doc) => {
+        const makeMatch = doc.vehicle?.make?.toLowerCase() ?? "";
+        const segmentMatch = doc.vehicle?.segment?.toLowerCase() ?? "";
+        const modelMatch = doc.vehicle?.model?.toLowerCase() ?? "";
+        const yearMatch = doc.vehicle?.modelYear?.toString() ?? "";
+        return (
+          makeMatch.includes(query) ||
+          segmentMatch.includes(query) ||
+          modelMatch.includes(query) ||
+          yearMatch.includes(query)
+        );
+      });
+
+    base = {
+      pending: filterBySearch(base.pending),
+      rtp: filterBySearch(base.rtp),
+      published: filterBySearch(base.published),
+    };
+  }
+
+  return base;
 });
 
 /**
@@ -148,6 +179,10 @@ const activeAuthorsByTeam = computed(() => {
 // Methods --------------------------------
 function handleTaskUpdate(updatedTask: TaskDocument) {
   emit("updateTask", updatedTask);
+}
+
+function onSearchUpdate(query: string) {
+  searchQuery.value = query;
 }
 
 // Watchers --------------------------------

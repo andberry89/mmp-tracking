@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center w-[220px] h-[24px] bg-[var(--color-input-background)] border border-[var(--color-input-border)] px-[4px] rounded-[8px]"
+    class="flex items-center w-[320px] h-[24px] bg-[var(--color-input-background)] border border-[var(--color-input-border)] px-[4px] rounded-[8px]"
   >
     <SearchIcon class="text-[var(--color-search-text-placeholder)]" />
     <input
