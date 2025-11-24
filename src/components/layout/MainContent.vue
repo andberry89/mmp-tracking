@@ -45,7 +45,9 @@ import { computed, ref, watch } from "vue";
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 import type { DocumentsByStatus, AuthorGroups, TaskDocument } from "@/types";
+import { getRangeDates } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
+import { isWithinInterval } from "date-fns";
 
 // Reactive State --------------------------------
 
@@ -80,6 +82,22 @@ const filteredDocuments = computed(() => {
   // Start with base author filtering
   let base = props.documents;
 
+  // Apply date range filtering if a range is selected
+  const rangeDates = getRangeDates(selectedRangeId.value);
+  if (rangeDates) {
+    const { start, end } = rangeDates;
+    console.log(rangeDates);
+    base = {
+      pending: [],
+      rtp: [],
+      published: base.published.filter((doc) => {
+        if (!doc.publishedDate) return false;
+        return isWithinInterval(new Date(doc.publishedDate), { start, end });
+      }),
+    };
+  }
+
+  // If an author is selected, filter by author
   if (selectedAuthorId.value) {
     base = {
       pending: base.pending.filter((doc) => doc.author?.id === selectedAuthorId.value),
@@ -114,6 +132,8 @@ const filteredDocuments = computed(() => {
   }
 
   return base;
+  //TODO: implement date range filtering
+  // write a helper function to establish date ranges since they're dynamic.
 });
 
 /**

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
+    "date-fns": "^4.1.0",
     "dateformat": "^5.0.3",
     "floating-vue": "^5.2.2",
     "vue-final-modal": "^4.5.5",
@@ -26,6 +27,7 @@
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.21",
+    "baseline-browser-mapping": "^2.8.31",
     "eslint": "^9.35.0",
     "eslint-plugin-vue": "~10.2.0",
     "globals": "^16.2.0",
