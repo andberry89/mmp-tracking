@@ -42,5 +42,7 @@ export const applyTaskRules = (task: TaskDocument): TaskDocument => {
     updatedTask.embargo = true;
   }
 
+  updatedTask.updatedDate.push(new Date().toISOString());
+
   return updatedTask;
 };

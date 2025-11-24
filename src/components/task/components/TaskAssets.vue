@@ -1,9 +1,9 @@
 <template>
-  <div v-if="assets.length > 0">
+  <div>
     <Popper placement="top" disableClickAway arrow>
       <div>
         <FolderIcon
-          class="zoomable fill-[var(--color-body-active-assets)]"
+          :class="['zoomable', hasAssets ? 'fill-[var(--color-body-active-assets)]' : '']"
           v-if="!assetsVisible"
           @click="toggleAssets"
         />
@@ -15,10 +15,14 @@
       </div>
       <template #content>
         <div>
-          <ul class="popper-list">
-            <li class="mb-3 text-base" v-for="(asset, idx) in assets" :key="idx">
+          <ul class="popper-list mb-4">
+            <li
+              class="mb-3 text-base flex justify-between items-center"
+              v-for="(asset, idx) in assets"
+              :key="idx"
+            >
               <a
-                class="text-[var(--color-body-link)] no-underline transition-colors duration-200 ease-in-out hover:underline hover:text-[var(--color-body-link-hover)]"
+                class="flex-1 text-[var(--color-body-link)] no-underline transition-colors duration-200 ease-in-out hover:underline hover:text-[var(--color-body-link-hover)]"
                 :href="asset.url"
                 target="_blank"
               >
@@ -28,32 +32,86 @@
                 >
                   open_in_new
                 </span>
-                <span>{{ asset.notes }}</span>
+                {{ asset.notes }}
               </a>
+              <button
+                @click="removeAsset(idx)"
+                class="ml-2 text-red-500 hover:text-red-700 hover:cursor-pointer"
+                title="Delete Asset"
+              >
+                x
+              </button>
             </li>
           </ul>
+          <div class="border-t pt-3">
+            <h2 class="text-center text-sm mb-2">Add New Asset</h2>
+            <div class="mb-2">
+              <label class="block text-xs mb-1">Label</label>
+              <input
+                v-model="newNotes"
+                class="w-full px-2 py-1 border rounded text-sm"
+                placeholder="e.g. Press Release"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="block text-xs mb-1">URL</label>
+              <input
+                v-model="newUrl"
+                class="w-full px-2 py-1 border rounded text-sm"
+                placeholder="https://..."
+              />
+            </div>
+
+            <button
+              @click="addAsset"
+              class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 hover:cursor-pointer w-full"
+            >
+              Add Asset
+            </button>
+          </div>
         </div>
       </template>
     </Popper>
   </div>
-  <div v-else class="task-assets"><FolderIcon /></div>
 </template>
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { FolderIcon, FolderOpenIcon } from "@/assets/icons";
 
-// Props ------------------------------------
+// Props & Emits ----------------------------
 const props = defineProps<{
   assets: { url: string; notes: string }[];
+}>();
+
+const emit = defineEmits<{
+  (e: "delete-asset", index: number): void;
+  (e: "add-asset", asset: { url: string; notes: string }): void;
 }>();
 
 // Reactive state ----------------------------
 const targetElement = ref<null | EventTarget>(null);
 const assetsVisible = ref(false);
+const newNotes = ref("");
+const newUrl = ref("");
+
+// Computed -------------------------------
+const hasAssets = computed(() => props.assets.length > 0);
 
 // Methods --------------------------------
 function toggleAssets(evt: MouseEvent) {
   targetElement.value = evt.target;
   assetsVisible.value = !assetsVisible.value;
+}
+
+function removeAsset(idx: number) {
+  emit("delete-asset", idx);
+}
+
+function addAsset() {
+  if (!newNotes.value.trim() || !newUrl.value.trim()) return;
+  emit("add-asset", { url: newUrl.value.trim(), notes: newNotes.value.trim() });
+
+  newNotes.value = "";
+  newUrl.value = "";
 }
 </script>

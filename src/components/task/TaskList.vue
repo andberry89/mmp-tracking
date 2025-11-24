@@ -29,6 +29,8 @@
         @edit="handleEdit"
         @duplicate="handleDuplicate"
         @delete="handleDelete"
+        @add-asset="handleAddAsset"
+        @delete-asset="handleDeleteAsset"
       />
 
       <h3
@@ -45,6 +47,8 @@
         @edit="handleEdit"
         @duplicate="handleDuplicate"
         @delete="handleDelete"
+        @add-asset="handleAddAsset"
+        @delete-asset="handleDeleteAsset"
       />
 
       <h3
@@ -61,6 +65,8 @@
         @edit="handleEdit"
         @duplicate="handleDuplicate"
         @delete="handleDelete"
+        @add-asset="handleAddAsset"
+        @delete-asset="handleDeleteAsset"
       />
     </section>
     <component
@@ -147,6 +153,16 @@ function handleDuplicate(task) {
 
 function handleDelete(task) {
   openModal("delete", task);
+}
+
+function handleDeleteAsset({ doc, idx }) {
+  doc.assets.splice(idx, 1);
+  saveTask(doc, { closeModal: false });
+}
+
+function handleAddAsset({ doc, asset }) {
+  doc.assets.push(asset);
+  saveTask(doc, { closeModal: false });
 }
 
 // Computed --------------------------------

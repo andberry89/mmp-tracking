@@ -132,8 +132,6 @@ const filteredDocuments = computed(() => {
   }
 
   return base;
-  //TODO: implement date range filtering
-  // write a helper function to establish date ranges since they're dynamic.
 });
 
 /**

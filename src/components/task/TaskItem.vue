@@ -9,7 +9,11 @@
       :dateText="getDateText(doc)"
     />
     <TaskNotes :doc="doc" />
-    <TaskAssets :assets="doc.assets" />
+    <TaskAssets
+      :assets="doc.assets"
+      @delete-asset="(idx) => emit('delete-asset', { doc, idx })"
+      @add-asset="(asset) => emit('add-asset', { doc, asset })"
+    />
     <TaskAuthor
       :author="doc.author"
       :authorsByTeam="activeAuthorsByTeam"
@@ -50,6 +54,8 @@ const emit = defineEmits<{
   (e: "edit", doc: TaskDocument): void;
   (e: "duplicate", doc: TaskDocument): void;
   (e: "delete", doc: TaskDocument): void;
+  (e: "delete-asset", idx: number): void;
+  (e: "add-asset", asset: { url: string; notes: string }): void;
 }>();
 
 // Reactive state

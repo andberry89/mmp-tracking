@@ -13,7 +13,7 @@ export const testDocuments = [
     id: "0002",
     highPriority: false,
     createdDate: "2025-06-15T10:00:00",
-    updatedDate: "2025-06-20T12:00:00",
+    updatedDate: ["2025-06-20T12:00:00"],
     vehicle: {
       make: "Fearrari",
       model: "Roma Spider",
