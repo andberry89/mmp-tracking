@@ -15,7 +15,7 @@
       </div>
       <template #content>
         <div>
-          <ul class="popper-list mb-4">
+          <transition-group name="asset" tag="ul" class="popper-list mb-4">
             <li
               class="mb-3 text-base flex justify-between items-center"
               v-for="(asset, idx) in assets"
@@ -42,7 +42,7 @@
                 x
               </button>
             </li>
-          </ul>
+          </transition-group>
           <div class="border-t pt-3">
             <h2 class="text-center text-sm mb-2">Add New Asset</h2>
             <div class="mb-2">
@@ -58,8 +58,15 @@
               <input
                 v-model="newUrl"
                 class="w-full px-2 py-1 border rounded text-sm"
+                :class="{
+                  'border-red-500': newUrl && !isValidUrl(newUrl),
+                  'border-gray-300': !newUrl || isValidUrl(newUrl),
+                }"
                 placeholder="https://..."
               />
+              <p v-if="newUrl && !isValidUrl(newUrl)" class="text-xs text-red-500 mt-1">
+                Enter a valid URL (must begin with http:// or https://)
+              </p>
             </div>
 
             <button
@@ -108,10 +115,31 @@ function removeAsset(idx: number) {
 }
 
 function addAsset() {
-  if (!newNotes.value.trim() || !newUrl.value.trim()) return;
+  const notes = newNotes.value.trim();
+  const url = newUrl.value.trim();
+
+  if (!notes) {
+    alert("Please enter a label for the asset.");
+    return;
+  }
+
+  if (!isValidUrl(url)) {
+    alert("Please enter a valid URL.");
+    return;
+  }
+
   emit("add-asset", { url: newUrl.value.trim(), notes: newNotes.value.trim() });
 
   newNotes.value = "";
   newUrl.value = "";
+}
+
+function isValidUrl(url: string) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
 }
 </script>
