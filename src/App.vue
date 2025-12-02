@@ -67,9 +67,6 @@ function handleTaskUpdate(updatedTask: TaskDocument) {
   documents.value = taskExists
     ? documents.value.map((t) => (t.id === normalized.id ? normalized : t))
     : [...documents.value, normalized];
-
-  console.log("✅ Task updated and regrouped:", normalized);
-  // TODO: WHEN AUTHOR IS UPDATED, PENDING DOESN'T REORGANIZE BY TEAM. CHECK WHY.
 }
 
 function handleTaskDelete(id: string) {
@@ -132,22 +129,4 @@ function onTabChange(label: string) {
     background-size: auto;
   }
 }
-
-// @media (min-width: 1024px) {
-//   header {
-//     display: flex;
-//     place-items: center;
-//     padding-right: calc(var(--section-gap) / 2);
-//   }
-
-//   .logo {
-//     margin: 0 2rem 0 0;
-//   }
-
-//   header .wrapper {
-//     display: flex;
-//     place-items: flex-start;
-//     flex-wrap: wrap;
-//   }
-// }
 </style>

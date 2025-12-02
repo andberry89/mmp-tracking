@@ -1,3 +1,5 @@
 export * from "./Author";
-export * from "./Dropdown";
+export * from "./TaskAsset";
+export * from "./TaskVehicle";
 export * from "./TaskDocument";
+export * from "./Dropdown";

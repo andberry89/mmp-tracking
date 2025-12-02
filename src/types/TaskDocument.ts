@@ -1,33 +1,36 @@
+import type { TaskAuthor } from "./Author";
+import type { TaskAsset } from "./TaskAsset";
+import type { TaskVehicle } from "./TaskVehicle";
+
+export type TaskStatus =
+  | "Pending"
+  | "Ready to Edit"
+  | "Ready to Publish"
+  | "Scheduled"
+  | "Published"
+  | "Updated";
+
 export interface TaskDocument {
   id: string;
   highPriority: boolean;
-  vehicle: {
-    make: string;
-    model: string;
-    segment: string;
-    modelYear: number;
-  };
-  author: null | {
-    id: string;
-    firstName: string;
-    lastName: string;
-    initials: string;
-    team: "bg" | "cd" | "freelance";
-    active: boolean;
-  };
+
+  vehicle: TaskVehicle;
+
+  author: TaskAuthor | null;
+
   deadline: string;
-  status: "Pending" | "Ready to Edit" | "Ready to Publish" | "Scheduled" | "Published" | "Updated"; // add any others if needed
+  status: TaskStatus;
   notes: string;
-  assets: {
-    url: string;
-    notes: string;
-  }[];
-  embargoDate: string; // ISO 8601 date or empty string
+
+  assets: TaskAsset[];
+
+  embargoDate: string;
   embargoNotes: string;
   embargo: boolean;
+
   published: boolean;
   new: boolean;
-  publishedDate: string; // ISO string or empty
+  publishedDate: string;
 }
 
 export interface DocumentsByStatus {
