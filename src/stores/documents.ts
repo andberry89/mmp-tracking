@@ -1,34 +1,30 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
+import { applyTaskRules } from "@/utils/apply-task-rules";
+import { testDocuments } from "@/test";
+
 import type { TaskDocument, TaskStatus, TaskAsset, TaskAuthor, TaskVehicle } from "@/types";
 
 export const useDocumentsStore = defineStore("documents", () => {
-  // -------------
+  // ------------------------------
   // STATE
-  // -------------
+  // ------------------------------
   const documents = ref<TaskDocument[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const hasLoaded = ref(false);
 
-  // -------------
+  // ------------------------------
   // GETTERS
-  // -------------
+  // ------------------------------
   const getDocumentById = (id: string) =>
     computed(() => documents.value.find((doc) => doc.id === id));
 
   const getDocumentsByStatus = (status: TaskStatus) =>
     computed(() => documents.value.filter((doc) => doc.status === status));
 
-  const allStatuses = [
-    "Pending",
-    "Ready to Edit",
-    "Ready to Publish",
-    "Scheduled",
-    "Published",
-    "Updated",
-  ] as TaskStatus[];
+  const allStatuses: TaskStatus[] = ["pending", "rte", "rtp", "scheduled", "published", "updated"];
 
   const groupedDocuments = computed(
     () =>
@@ -41,77 +37,61 @@ export const useDocumentsStore = defineStore("documents", () => {
   );
 
   const pendingCount = computed(
-    () => documents.value.filter((doc) => doc.status === "Pending").length
+    () => documents.value.filter((doc) => doc.status === "pending").length
   );
 
-  // -------------
-  // ACTIONS - Loading
-  // -------------
+  // ------------------------------
+  // ACTIONS — Core Mutators
+  // ------------------------------
+  function setDocuments(list: TaskDocument[]) {
+    documents.value = list.map((doc) => applyTaskRules(doc));
+    hasLoaded.value = true;
+  }
+
+  function insertDocument(doc: TaskDocument) {
+    documents.value.unshift(applyTaskRules(doc));
+  }
+
+  // ------------------------------
+  // ACTIONS — Loading with Test Fallback
+  // ------------------------------
   async function loadDocuments() {
     isLoading.value = true;
     error.value = null;
 
     try {
-      // Simulate API call with timeout
+      // Simulated API delay
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // Mock Data
-      const mock: TaskDocument[] = [
-        {
-          id: "1",
-          highPriority: true,
-          vehicle: {
-            make: "Toyota",
-            model: "Camry",
-            segment: "Sedan",
-            modelYear: 2025,
-          },
-          author: {
-            id: "a1",
-            firstName: "Alice",
-            lastName: "Writer",
-            initials: "AW",
-            team: "bg",
-            active: true,
-          },
-          deadline: "2025-12-01",
-          status: "Pending",
-          notes: "Working on updates.",
-          assets: [
-            {
-              url: "https://example.com/img1.jpg",
-              notes: "Front angle",
-            },
-          ],
-          embargoDate: "",
-          embargoNotes: "",
-          embargo: false,
-          published: false,
-          new: true,
-          publishedDate: "",
-        },
-      ];
+      // Placeholder for API response
+      const response: TaskDocument[] = [];
 
-      documents.value = mock;
-      hasLoaded.value = true;
+      if (!response || response.length === 0) {
+        setDocuments(structuredClone(testDocuments));
+      } else {
+        setDocuments(response);
+      }
     } catch (e) {
       error.value = "Failed to load documents.";
+      setDocuments(structuredClone(testDocuments)); // fallback
     } finally {
       isLoading.value = false;
     }
   }
 
-  // -------------
-  // ACTIONS - Updates
-  // -------------
+  // ------------------------------
+  // ACTIONS — Updates
+  // ------------------------------
   function updateDocument(id: string, payload: Partial<TaskDocument>) {
     const idx = documents.value.findIndex((doc) => doc.id === id);
     if (idx === -1) return;
 
-    documents.value[idx] = {
+    const merged = {
       ...documents.value[idx],
       ...payload,
     };
+
+    documents.value[idx] = applyTaskRules(merged);
   }
 
   function deleteDocument(id: string) {
@@ -122,18 +102,16 @@ export const useDocumentsStore = defineStore("documents", () => {
     const original = documents.value.find((doc) => doc.id === id);
     if (!original) return null;
 
-    const newId = crypto.randomUUID?.() ?? `dup-${Date.now()}`;
-
     const newDoc: TaskDocument = {
       ...structuredClone(original),
-      id: newId,
-      status: "Pending",
+      id: crypto.randomUUID?.() ?? `dup-${Date.now()}`,
+      status: "pending",
       new: true,
       published: false,
       publishedDate: "",
     };
 
-    documents.value.unshift(newDoc);
+    insertDocument(newDoc);
     return newDoc;
   }
 
@@ -141,9 +119,10 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ACTIONS — Asset Management
   // ------------------------------
   function addAssetToDocument(id: string, asset: TaskAsset) {
-    updateDocument(id, {
-      assets: [...getDocumentById(id).value!.assets, asset],
-    });
+    const doc = getDocumentById(id).value;
+    if (!doc) return;
+
+    updateDocument(id, { assets: [...doc.assets, asset] });
   }
 
   function deleteAssetFromDocument(id: string, index: number) {
@@ -154,7 +133,6 @@ export const useDocumentsStore = defineStore("documents", () => {
     if (index < 0 || index >= newAssets.length) return;
 
     newAssets.splice(index, 1);
-
     updateDocument(id, { assets: newAssets });
   }
 
@@ -182,11 +160,12 @@ export const useDocumentsStore = defineStore("documents", () => {
     const doc = getDocumentById(id).value;
     if (!doc) return;
 
-    updateDocument(id, {
-      highPriority: !doc.highPriority,
-    });
+    updateDocument(id, { highPriority: !doc.highPriority });
   }
 
+  // ------------------------------
+  // RETURN
+  // ------------------------------
   return {
     // state
     documents,
@@ -201,15 +180,23 @@ export const useDocumentsStore = defineStore("documents", () => {
     pendingCount,
     allStatuses,
 
-    // actions
+    // core mutators
+    setDocuments,
+    insertDocument,
+
+    // loading
     loadDocuments,
+
+    // updates
     updateDocument,
     deleteDocument,
     duplicateDocument,
 
+    // assets
     addAssetToDocument,
     deleteAssetFromDocument,
 
+    // specialized updates
     updateStatus,
     updateAuthor,
     updateVehicle,

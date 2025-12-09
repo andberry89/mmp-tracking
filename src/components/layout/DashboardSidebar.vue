@@ -31,10 +31,7 @@
         :key="'quickstat-' + statIdx"
       >
         <span
-          :class="[
-            'inline-block w-[6px] h-[6px] rounded-full mr-[5px]',
-            `bg-[var(--color-body-${stat.value})]`,
-          ]"
+          :class="['inline-block w-[6px] h-[6px] rounded-full mr-[5px]', statusBgMap[stat.value]]"
         ></span>
         <span class="font-bold">{{ stat.label }}: </span>
         <span>{{ stat.count }}</span>
@@ -73,9 +70,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useDocumentsStore } from "@/stores/documents";
 import { teams, statuses } from "@/constants/constants";
 
-//TODO: refactor to accept activeAuthorsByTeam prop and use that to filter authors list
+import { TaskStatus } from "@/types";
 
 // Type definitions
 interface Author {
@@ -83,38 +81,19 @@ interface Author {
   label: string;
 }
 
-interface Vehicle {
-  modelYear: string;
-}
-
-interface Document {
-  id: string;
-  status: string;
-  author?: Author;
-  vehicle: Vehicle;
-}
-
-interface Status {
-  label: string;
-  value: string;
-  count?: number;
-  countByYear?: [string, number][];
-}
-
 interface Props {
   authors: Record<string, Author[]>;
-  documents: {
-    pending: Document[];
-    rtp: Document[];
-    published: Document[];
-  };
   ranges: { id: string; label: string }[];
 }
 
 // Props
 const props = defineProps<Props>();
 
+// Store
+const documentsStore = useDocumentsStore();
+
 // Color Maps
+// Must match lowercase TaskStatus values
 const statusBgMap: Record<string, string> = {
   pending: "bg-[var(--color-body-pending)]",
   rte: "bg-[var(--color-body-rte)]",
@@ -124,54 +103,94 @@ const statusBgMap: Record<string, string> = {
   updated: "bg-[var(--color-body-updated)]",
 };
 
-// Static values
-const quickStatValues = ["pending", "rte", "rtp", "scheduled"];
-const publishUpdateValues = ["published", "updated"];
+// Quick Stats
+const quickStatKeys: TaskStatus[] = ["pending", "rte", "rtp", "scheduled"];
 
-// Computed: Quick Stats
 const quickStats = computed(() => {
-  const allRelevantDocs = [...props.documents.pending, ...props.documents.rtp];
-
   return statuses
-    .filter((status) => quickStatValues.includes(status.value))
-    .sort((a, b) => quickStatValues.indexOf(a.value) - quickStatValues.indexOf(b.value))
+    .filter((status) => quickStatKeys.includes(status.value as TaskStatus))
     .map((status) => {
-      const count = allRelevantDocs.filter((doc) => doc.status === status.label).length;
+      const count = documentsStore.documents.filter((doc) => doc.status === status.value).length;
+
       return { ...status, count };
     });
 });
 
-// Computed: Updated & Published
-const updatedAndPublished = computed(() => {
-  const allDocs = props.documents.published;
+// Published + Updated
+const publishKeys: TaskStatus[] = ["published", "updated"];
 
+const updatedAndPublished = computed(() => {
   return statuses
-    .filter((status) => publishUpdateValues.includes(status.value))
+    .filter((status) => publishKeys.includes(status.value as TaskStatus))
     .map((status) => {
-      const docs = allDocs.filter((doc) => doc.status === status.label);
+      const docs = documentsStore.documents.filter((doc) => doc.status === status.value);
 
       const countByYearMap: Record<string, number> = {};
+
       for (const doc of docs) {
-        const year = doc.vehicle.modelYear; // or use publishedDate if available
+        const year = String(doc.vechicle.modelYear);
         countByYearMap[year] = (countByYearMap[year] || 0) + 1;
       }
 
-      const countByYear: [string, number][] = Object.entries(countByYearMap).sort(
-        ([a], [b]) => Number(b) - Number(a)
-      );
+      const countByYear = Object.entries(countByYearMap).sort(([a], [b]) => Number(b) - Number(a));
 
       return {
-        ...status, // clone existing status
+        ...status,
         count: docs.length,
         countByYear,
       };
     });
 });
 
-// Method: Count assigned tasks for an author
-function assigned(author: Author): number {
-  return props.documents.pending.filter((doc) => doc.author?.id === author.id).length;
+// Tasks assigned per author
+function assigned(author: Author) {
+  return documentsStore
+    .getDocumentsByStatus("pending")
+    .value.filter((doc) => doc.author?.id === author.id).length;
 }
+
+// Available to template
+const { authors, ranges } = props;
+
+// Computed: Quick Stats
+// const quickStats = computed(() => {
+//   const allRelevantDocs = [...props.documents.pending, ...props.documents.rtp];
+
+//   return statuses
+//     .filter((status) => quickStatValues.includes(status.value))
+//     .sort((a, b) => quickStatValues.indexOf(a.value) - quickStatValues.indexOf(b.value))
+//     .map((status) => {
+//       const count = allRelevantDocs.filter((doc) => doc.status === status.label).length;
+//       return { ...status, count };
+//     });
+// });
+
+// Computed: Updated & Published
+// const updatedAndPublished = computed(() => {
+//   const allDocs = props.documents.published;
+
+//   return statuses
+//     .filter((status) => publishUpdateValues.includes(status.value))
+//     .map((status) => {
+//       const docs = allDocs.filter((doc) => doc.status === status.label);
+
+//       const countByYearMap: Record<string, number> = {};
+//       for (const doc of docs) {
+//         const year = doc.vehicle.modelYear; // or use publishedDate if available
+//         countByYearMap[year] = (countByYearMap[year] || 0) + 1;
+//       }
+
+//       const countByYear: [string, number][] = Object.entries(countByYearMap).sort(
+//         ([a], [b]) => Number(b) - Number(a)
+//       );
+
+//       return {
+//         ...status, // clone existing status
+//         count: docs.length,
+//         countByYear,
+//       };
+//     });
+// });
 
 // Available to template
 const { authors, ranges } = props;
