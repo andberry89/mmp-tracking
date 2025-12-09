@@ -7,23 +7,11 @@
     </header>
 
     <aside id="sidebar">
-      <DashboardSidebar
-        :documents="sortedDocuments"
-        :ranges="ranges"
-        :authors="getActiveAuthors(sortedAuthors)"
-      />
+      <DashboardSidebar :ranges="ranges" :authors="getActiveAuthors(sortedAuthors)" />
     </aside>
 
     <main id="content">
-      <MainContent
-        :documents="sortedDocuments"
-        :ranges="ranges"
-        :authors="sortedAuthors"
-        :activeLabel="activeLabel"
-        @updateTask="handleTaskUpdate"
-        @deleteTask="handleTaskDelete"
-        @duplicateTask="handleTaskDuplicate"
-      />
+      <MainContent :ranges="ranges" :authors="sortedAuthors" :activeLabel="activeLabel" />
     </main>
 
     <ModalsContainer />
@@ -31,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { ModalsContainer } from "vue-final-modal";
 
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
@@ -39,46 +27,51 @@ import MainContent from "@/components/layout/MainContent.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 
 import { sortDocuments, sortAuthors, getActiveAuthors } from "@/utils/sort-functions";
-import { applyTaskRules } from "@/utils/apply-task-rules";
 import { ranges as defaultRanges } from "@/constants";
-import { testDocuments, authors as testAuthors } from "@/test";
+import { authors as testAuthors } from "@/test";
 
-import type { DocumentsByStatus, AuthorGroups, TaskDocument } from "@/types";
+import { useDocumentsStore } from "@/stores/documents";
+
+// ─── Store ─────────────────────────────────────────────────────────────
+const documentsStore = useDocumentsStore();
+onMounted(() => {
+  if (!documentsStore.hasLoaded) {
+    documentsStore.loadDocuments();
+  }
+});
 
 // ─── Reactive State ──────────────────────────────────────────────────────────
 const activeLabel = ref("MMPs");
 const ranges = ref(defaultRanges);
-const documents = ref<TaskDocument[]>(structuredClone(testDocuments));
 
 // ─── Computed ──────────────────────────────────────────────
-const sortedDocuments = computed(() => sortDocuments(documents.value));
 const sortedAuthors = computed(() => sortAuthors(testAuthors));
 
 // ─── Methods ────────────────────────────────────────────────────────────────
-function handleTaskUpdate(updatedTask: TaskDocument) {
-  const normalized = applyTaskRules(updatedTask);
+// function handleTaskUpdate(updatedTask: TaskDocument) {
+//   const normalized = applyTaskRules(updatedTask);
 
-  // Check to see that the task exists and update it
-  const taskExists = documents.value.some((t) => t.id === normalized.id);
+//   // Check to see that the task exists and update it
+//   const taskExists = documents.value.some((t) => t.id === normalized.id);
 
-  // If task exists, map to documents.value a new array
-  // For each task check to see if its the updated task, if so return the updated task, else return t
-  // If task does not exist, spread documents.value and add the updated task to the end
-  documents.value = taskExists
-    ? documents.value.map((t) => (t.id === normalized.id ? normalized : t))
-    : [...documents.value, normalized];
-}
+//   // If task exists, map to documents.value a new array
+//   // For each task check to see if its the updated task, if so return the updated task, else return t
+//   // If task does not exist, spread documents.value and add the updated task to the end
+//   documents.value = taskExists
+//     ? documents.value.map((t) => (t.id === normalized.id ? normalized : t))
+//     : [...documents.value, normalized];
+// }
 
-function handleTaskDelete(id: string) {
-  documents.value = documents.value.filter((t) => t.id !== id);
-  console.log("🗑️ Task deleted with ID:", id);
-}
+// function handleTaskDelete(id: string) {
+//   documents.value = documents.value.filter((t) => t.id !== id);
+//   console.log("🗑️ Task deleted with ID:", id);
+// }
 
-function handleTaskDuplicate(task: TaskDocument) {
-  const newTask = { ...task, id: crypto.randomUUID() };
-  documents.value = [...documents.value, newTask];
-  console.log("📄 Task duplicated:", newTask);
-}
+// function handleTaskDuplicate(task: TaskDocument) {
+//   const newTask = { ...task, id: crypto.randomUUID() };
+//   documents.value = [...documents.value, newTask];
+//   console.log("📄 Task duplicated:", newTask);
+// }
 
 function onTabChange(label: string) {
   activeLabel.value = label;
