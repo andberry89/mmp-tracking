@@ -191,9 +191,6 @@ const { authors, ranges } = props;
 //       };
 //     });
 // });
-
-// Available to template
-const { authors, ranges } = props;
 </script>
 
 <style lang="scss" scoped>

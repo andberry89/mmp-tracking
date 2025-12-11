@@ -22,9 +22,6 @@
             :documents="filteredDocuments"
             :authors="authors"
             :activeAuthorsByTeam="activeAuthorsByTeam"
-            @updateTask="handleTaskUpdate"
-            @deleteTask="emit('deleteTask', $event)"
-            @duplicateTask="emit('duplicateTask', $event)"
           />
         </div>
       </div>
@@ -42,98 +39,81 @@
  */
 
 import { computed, ref, watch } from "vue";
+import { useDocumentsStore } from "@/stores/documents";
+
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
-import type { DocumentsByStatus, AuthorGroups, TaskDocument } from "@/types";
+
 import { getRangeDates } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
 import { isWithinInterval } from "date-fns";
 
-// Reactive State --------------------------------
-
-// UI state for loading spinner during transitions
-const isLoading = ref(false);
-const searchQuery = ref("");
-
-// Filter states
-const selectedAuthorId = ref<string | null>(null);
-const selectedRangeId = ref<string | null>(null);
-const selectedStatusId = ref<string | null>(null);
-const selectedMakeId = ref<string | null>(null);
+import type { AuthorGroups, TaskDocument } from "@/types";
 
 // Props ------------------------------------
 const props = defineProps<{
-  documents: DocumentsByStatus;
   authors: AuthorGroups;
   ranges: Array<{ id: string; label: string }>;
   activeLabel: string;
 }>();
 
-const emit = defineEmits<{
-  (e: "updateTask", updatedTask: TaskDocument): void;
-  (e: "deleteTask", id: string): void;
-  (e: "duplicateTask", task: TaskDocument): void;
-}>();
+// Store ------------------------------------
+const documentsStore = useDocumentsStore();
+
+// UI State --------------------------------
+const isLoading = ref(false);
+const searchQuery = ref("");
+
+const selectedAuthorId = ref<string | null>(null);
+const selectedRangeId = ref<string | null>(null);
+const selectedStatusId = ref<string | null>(null);
+const selectedMakeId = ref<string | null>(null);
 
 // Computed --------------------------------
 
 // Filter documents based on selected author
 const filteredDocuments = computed(() => {
-  // Start with base author filtering
-  let base = props.documents;
+  let docs: TaskDocument[] = documentsStore.documents;
 
-  // Apply date range filtering if a range is selected
-  const rangeDates = getRangeDates(selectedRangeId.value);
-  if (rangeDates) {
-    const { start, end } = rangeDates;
-    console.log(rangeDates);
-    base = {
-      pending: [],
-      rtp: [],
-      published: base.published.filter((doc) => {
-        if (!doc.publishedDate) return false;
-        return isWithinInterval(new Date(doc.publishedDate), { start, end });
-      }),
-    };
+  // 1. Range Filtering
+  const range = getRangeDates(selectedRangeId.value);
+  if (range) {
+    const { start, end } = range;
+    docs = docs.filter((doc) => {
+      if (!doc.publishedDate) return false;
+      return isWithinInterval(new Date(doc.publishedDate), { start, end });
+    });
   }
 
-  // If an author is selected, filter by author
+  // 2. Author Filtering
   if (selectedAuthorId.value) {
-    base = {
-      pending: base.pending.filter((doc) => doc.author?.id === selectedAuthorId.value),
-      rtp: base.rtp.filter((doc) => doc.author?.id === selectedAuthorId.value),
-      published: base.published.filter((doc) => doc.author?.id === selectedAuthorId.value),
-    };
+    docs = docs.filter((doc) => doc.author?.id === selectedAuthorId.value);
   }
 
-  // If MMPs is active, filter by make or segment
+  // 3. Search Filtering (MMPs only)
   if (props.activeLabel === "MMPs" && searchQuery.value.trim()) {
     const query = searchQuery.value.trim().toLowerCase();
+    docs = docs.filter((doc) => {
+      const makeMatch = doc.vehicle?.make?.toLowerCase() ?? "";
+      const segmentMatch = doc.vehicle?.segment?.toLowerCase() ?? "";
+      const modelMatch = doc.vehicle?.model?.toLowerCase() ?? "";
+      const yearMatch = doc.vehicle?.modelYear?.toString() ?? "";
+      return (
+        makeMatch.includes(query) ||
+        segmentMatch.includes(query) ||
+        modelMatch.includes(query) ||
+        yearMatch.includes(query)
+      );
+    });
 
-    const filterBySearch = (arr: TaskDocument[]) =>
-      arr.filter((doc) => {
-        const makeMatch = doc.vehicle?.make?.toLowerCase() ?? "";
-        const segmentMatch = doc.vehicle?.segment?.toLowerCase() ?? "";
-        const modelMatch = doc.vehicle?.model?.toLowerCase() ?? "";
-        const yearMatch = doc.vehicle?.modelYear?.toString() ?? "";
-        return (
-          makeMatch.includes(query) ||
-          segmentMatch.includes(query) ||
-          modelMatch.includes(query) ||
-          yearMatch.includes(query)
-        );
-      });
-
-    base = {
-      pending: filterBySearch(base.pending),
-      rtp: filterBySearch(base.rtp),
-      published: filterBySearch(base.published),
+    // 4. Return grouped structure for TaskPage compatibility
+    return {
+      pending: docs.filter((doc) => doc.status === "pending"),
+      rtp: docs.filter((doc) => doc.status === "rtp"),
+      published: docs.filter((doc) => doc.status === "published"),
     };
   }
-
-  return base;
 });
-
 /**
  * Compute PageHeader props based on the current activeLabel.
  * Delegates layout and dropdown setup to getHeaderConfig(),
@@ -150,7 +130,7 @@ const headerProps = computed(() =>
   })
 );
 
-// Determine which component to render based on the active label
+// Active Page Component
 const activeComponent = computed(() => {
   switch (props.activeLabel) {
     case "MMPs":
@@ -168,7 +148,7 @@ const activeComponent = computed(() => {
   }
 });
 
-// Compute active authors grouped by team
+// Active Authors By Team
 const activeAuthorsByTeam = computed(() => {
   const allAuthors = props.authors.all || [];
   const active = allAuthors.filter((a) => a.active);
@@ -195,9 +175,6 @@ const activeAuthorsByTeam = computed(() => {
 });
 
 // Methods --------------------------------
-function handleTaskUpdate(updatedTask: TaskDocument) {
-  emit("updateTask", updatedTask);
-}
 
 function onSearchUpdate(query: string) {
   searchQuery.value = query;
