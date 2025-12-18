@@ -24,7 +24,7 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
-        :activeAuthorsByTeam="activeAuthorsByTeam"
+        :activeAuthorsByTeam="computedActiveAuthorsByTeam"
         @assign-author="handleAssignAuthor"
         @edit="handleEdit"
         @duplicate="handleDuplicate"
@@ -69,6 +69,8 @@
         @delete-asset="handleDeleteAsset"
       />
     </section>
+
+    <!-- Modals -->
     <component
       :is="currentModal"
       v-if="modalType"
@@ -83,17 +85,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
-import { authors } from "@/test";
+
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
 import ModalEdit from "@/components/common/ModalEdit.vue";
 import ModalDelete from "@/components/common/ModalDelete.vue";
 import ModalDuplicate from "@/components/common/ModalDuplicate.vue";
+
 import type { DocumentsByStatus, TaskDocument } from "@/types";
 
-// Props & Emits ---------------------------
+// ----------------------------------
+// Props
+// ----------------------------------
 const props = defineProps<{
   documents: DocumentsByStatus;
   activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
@@ -105,13 +110,22 @@ const emit = defineEmits<{
   (e: "duplicateTask", task: TaskDocument): void;
 }>();
 
-// State ------------------------------------
+// ----------------------------------
+// Store
+// ----------------------------------
+const documentsStore = useDocumentsStore();
+
+// ----------------------------------
+// Modal and Task Handlers
+// ----------------------------------
+
+// Modal State
 const showModal = ref(false);
 const modalType = ref<"edit" | "duplicate" | "delete" | null>(null);
 const modalPayload = ref<any | null>(null);
 
-// Handlers --------------------------------
-function openModal(type: "edit" | "duplicate" | "delete", payload: any) {
+// Modal Helpers
+function openModal(type: "edit" | "duplicate" | "delete", payload: TaskDocument) {
   modalType.value = type;
   modalPayload.value = payload;
   showModal.value = true;
@@ -123,69 +137,70 @@ function closeModal() {
   modalPayload.value = null;
 }
 
-function saveTask(updatedTask, options = { closeModal: true }) {
-  emit("updateTask", updatedTask);
+// Save from Edit modal - full TaskDocument
+function saveTask(
+  updatedTask: TaskDocument,
+  options: { closeModal?: boolean } = { closeModal: true }
+) {
+  documentsStore.updateDocument(updatedTask.id, updatedTask);
   if (options.closeModal) closeModal();
 }
 
-function confirmDuplicate(task) {
-  emit("duplicateTask", task);
+function confirmDuplicate(task: TaskDocument) {
+  documentsStore.duplicateDocument(task.id);
   closeModal();
 }
 
 function confirmDelete() {
-  emit("deleteTask", modalPayload.value.id);
+  if (!modalPayload.value) return;
+  documentsStore.deleteDocument(modalPayload.value.id);
   closeModal();
 }
+// ----------------------------------
+// Task Item Handlers
+// ----------------------------------
 
-function handleAssignAuthor({ doc, author }) {
-  console.log(author);
-  doc.author = author;
-  saveTask(doc, { closeModal: false });
+// Assign author (no modal)
+function handleAssignAuthor({ doc, author }: { doc: TaskDocument; author: any }) {
+  documentsStore.updateAuthor(doc.id, author);
 }
 
-function handleEdit(task) {
+// Edit / Duplicate / Delete open modals
+function handleEdit(task: TaskDocument) {
   openModal("edit", task);
 }
 
-function handleDuplicate(task) {
+function handleDuplicate(task: TaskDocument) {
   openModal("duplicate", task);
 }
 
-function handleDelete(task) {
+function handleDelete(task: TaskDocument) {
   openModal("delete", task);
 }
 
-function handleDeleteAsset({ doc, idx }) {
-  doc.assets.splice(idx, 1);
-  saveTask(doc, { closeModal: false });
+// Assets handled via store
+function handleDeleteAsset({ doc, idx }: { doc: TaskDocument; idx: number }) {
+  documentsStore.deleteAssetFromDocument(doc.id, idx);
 }
 
-function handleAddAsset({ doc, asset }) {
-  doc.assets.push(asset);
-  saveTask(doc, { closeModal: false });
+function handleAddAsset({
+  doc,
+  asset,
+}: {
+  doc: TaskDocument;
+  asset: { url: string; notes: string };
+}) {
+  documentsStore.addAssetToDocument(doc.id, asset);
 }
 
-// Computed --------------------------------
-// filter active authors then sort by team
-const activeAuthorsByTeam = computed(() => {
-  const active = authors.filter((a) => a.active);
+// ----------------------------------
+// Computed
+// ----------------------------------
 
-  active.sort((a, b) => {
-    const teamCompare = a.team.label.localeCompare(b.team.label);
-    if (teamCompare !== 0) return teamCompare;
-    return a.lastName.localeCompare(b.lastName);
-  });
+// Active Authors By Team (from props)
+const computedActiveAuthorsByTeam = computed(() => props.activeAuthorsByTeam ?? []);
 
-  const groups: Record<string, typeof active> = {};
-  active.forEach((author) => {
-    if (!groups[author.team.label]) groups[author.team.label] = [];
-    groups[author.team.label].push(author);
-  });
-
-  return Object.entries(groups).map(([team, members]) => ({ team, members }));
-});
-
+// Modal component
 const modalComponents = {
   edit: ModalEdit,
   delete: ModalDelete,
@@ -207,6 +222,9 @@ const modalProps = computed(() => {
   }
 });
 
+// ----------------------------------
+// Static column headers
+// ----------------------------------
 const headers = [
   "",
   "Vehicle/Segment",

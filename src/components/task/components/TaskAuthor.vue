@@ -80,24 +80,38 @@
 import { ref } from "vue";
 import { AddCircleIcon } from "@/assets/icons";
 import { TEAM_COLOR_MAP } from "@/constants/task-style-maps";
+
 import type { Author } from "@/types";
 
+// ----------------------------------
+// Props
+// ----------------------------------
 defineProps<{
-  author?: { initials: string; team; string };
-  authorsByTeam?: Array<{ team: string; members: any[] }>;
+  author: Author | null;
+  authorsByTeam?: Array<{ team: string; members: Author[] }>;
 }>();
+
+// ----------------------------------
+// Emits
+// ----------------------------------
 
 const emit = defineEmits<{
   (e: "assign", author: Author | null): void;
 }>();
 
+// ----------------------------------
+// State
+// ----------------------------------
+
 const selectedAuthor = ref<string | null>(null);
 const headerText = ref("Assign Author");
 
-const getTeamColorClass = (team: string) => {
-  const normalized = TEAM_COLOR_MAP[team];
-  return normalized + " text-white";
-};
+// ----------------------------------
+// Methods
+// ----------------------------------
+function getTeamColorClass(team: string): string {
+  return `${TEAM_COLOR_MAP[team]} text-white`;
+}
 
 function handleAssign(author: Author | null, close?: () => void) {
   if (author) {
@@ -121,6 +135,4 @@ function handleAssign(author: Author | null, close?: () => void) {
     }, 1000);
   }
 }
-
-function handleUnassign() {}
 </script>

@@ -7,21 +7,15 @@ export type TaskStatus = "pending" | "rte" | "rtp" | "scheduled" | "published" |
 export interface TaskDocument {
   id: string;
   highPriority: boolean;
-
   vehicle: TaskVehicle;
-
   author: TaskAuthor | null;
-
   deadline: string;
   status: TaskStatus;
   notes: string;
-
   assets: TaskAsset[];
-
   embargoDate: string;
   embargoNotes: string;
   embargo: boolean;
-
   published: boolean;
   new: boolean;
   publishedDate: string;

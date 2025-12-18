@@ -1,8 +1,8 @@
 <template>
   <div v-if="!doc.published" class="text-[var(--color-body-text-tertiary)] text-[11px]">
-    <span>{{ docNotes }}</span>
+    <span>{{ truncatedNotes }}</span>
     <Popper placement="top" disableClickAway arrow>
-      <div class="inline" @click="notesExpanded = !notesExpanded">
+      <div class="inline" @click="toggleNotes">
         <span
           v-if="doc.notes.length > 50"
           class="text-[var(--color-body-text-see-more)] cursor-pointer font-bold"
@@ -21,21 +21,33 @@
 </template>
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import type { TaskDocument } from "@/types";
 
-// Props ------------------------------------
+// ----------------------------------
+// Props
+// ----------------------------------
 const props = defineProps<{
   doc: TaskDocument;
 }>();
 
-// Reactive state ----------------------------
+// ----------------------------------
+// State
+// ----------------------------------
 const notesExpanded = ref(false);
 
+// ----------------------------------
 // Computed
-const docNotes = computed(() => {
-  if (props.doc.notes.length <= 50) {
-    return props.doc.notes;
-  } else {
-    return props.doc.notes.slice(0, 30) + "...";
-  }
+// ----------------------------------
+const truncatedNotes = computed(() => {
+  const notes = props.doc.notes;
+  if (notes.length <= 50) return notes;
+  return notes.slice(0, 30) + "...";
 });
+
+// ----------------------------------
+// Methods
+// ----------------------------------
+function toggleNotes() {
+  notesExpanded.value = !notesExpanded.value;
+}
 </script>

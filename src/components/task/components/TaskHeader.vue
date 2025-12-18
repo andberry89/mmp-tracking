@@ -26,11 +26,13 @@
 </template>
 <script setup lang="ts">
 import { HighPriorityIcon } from "@/assets/icons";
-import type { TaskDocument } from "@/types";
 import { isHighPriority } from "@/utils/task-item-utils";
+import type { TaskDocument } from "@/types";
 
-// Props ------------------------------------
-const props = defineProps<{
+// ----------------------------------
+// Props
+// ----------------------------------
+defineProps<{
   doc: TaskDocument;
 }>();
 </script>
