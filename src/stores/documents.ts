@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
 import { applyTaskRules } from "@/utils/apply-task-rules";
+import { sortDocuments } from "@/utils/sort-functions";
 import { testDocuments } from "@/test";
 
 import type { TaskDocument, TaskStatus, TaskAsset, TaskAuthor, TaskVehicle } from "@/types";
@@ -40,6 +41,10 @@ export const useDocumentsStore = defineStore("documents", () => {
     () => documents.value.filter((doc) => doc.status === "pending").length
   );
 
+  const sortedBySection = computed (() => {
+    return sortDocuments(documents.value);
+  })
+
   // ------------------------------
   // ACTIONS — Core Mutators
   // ------------------------------
@@ -56,6 +61,7 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ACTIONS — Loading with Test Fallback
   // ------------------------------
   async function loadDocuments() {
+    console.log("loadDocuments called.");
     isLoading.value = true;
     error.value = null;
 
@@ -179,6 +185,7 @@ export const useDocumentsStore = defineStore("documents", () => {
     groupedDocuments,
     pendingCount,
     allStatuses,
+    sortedBySection,
 
     // core mutators
     setDocuments,

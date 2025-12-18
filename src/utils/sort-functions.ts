@@ -1,7 +1,7 @@
 import { compareDates, normalizeStatus } from "@/utils/helpers";
 import type { DocumentsByStatus, TaskDocument } from "@/types";
 
-export const sortDocuments = (docs) => {
+export const sortDocuments = (docs: TaskDocument[]) => {
   // Filter by normalized status
 
   // Sort published: most recent publishedDate first

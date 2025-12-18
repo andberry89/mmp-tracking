@@ -2,47 +2,48 @@ import type { TaskDocument } from "@/types";
 
 /**
  * Enforces domain-level rules whenever a task is updated.
- * Happens before saving to the database.
- * For example: if a task is marked "Published", ensure published is set to true.
+ * Pure function: does not mutate input.
  */
 export const applyTaskRules = (task: TaskDocument): TaskDocument => {
   const normalizedStatus = task.status?.toLowerCase().trim();
-  const updatedTask = { ...task };
 
-  console.log(normalizedStatus);
+  const now = new Date().toISOString();
 
-  // --- Normalize "Ready to Edit" flag ------------------
-  if (normalizedStatus === "rte") updatedTask.notes = "";
+  const updatedTask: TaskDocument = {
+    ...task,
 
-  // --- Normalize published/updated flag ------------------
+    // Ensure required fields are always defined
+    notes: task.notes ?? "",
+    assets: Array.isArray(task.assets) ? task.assets : [],
+    embargo: Boolean(task.embargo),
+    published: Boolean(task.published),
+    publishedDate: task.publishedDate ?? "",
+  };
+
+  // --- Normalize "Ready to Edit" ------------------
+  if (normalizedStatus === "rte") {
+    updatedTask.notes = "";
+  }
+
+  // --- Normalize Published / Updated ------------------
   if (normalizedStatus === "published" || normalizedStatus === "updated") {
     updatedTask.published = true;
 
-    // If it was scheduled, set publishedDate to embargoDate, else set it to now
-
-    updatedTask.publishedDate = task.embargoDate ? task.embargoDate : new Date().toISOString();
-
     if (task.embargoDate) {
       updatedTask.publishedDate = task.embargoDate;
-    }
-
-    // if there's no published date, set it to now
-    if (!updatedTask.publishedDate) {
-      updatedTask.publishedDate = new Date().toISOString();
+    } else if (!updatedTask.publishedDate) {
+      updatedTask.publishedDate = now;
     }
   } else {
     updatedTask.published = false;
     updatedTask.publishedDate = "";
   }
 
-  // --- Normalize scheduled status ------------------
+  // --- Normalize Scheduled ------------------
   if (normalizedStatus === "scheduled") {
-    // Change notes to boilerplate text and make sure embargo flag is set to true
     updatedTask.notes = "Scheduled for embargo time";
     updatedTask.embargo = true;
   }
-
-  updatedTask.updatedDate.push(new Date().toISOString());
 
   return updatedTask;
 };

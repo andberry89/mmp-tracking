@@ -20,7 +20,7 @@
         Pending
       </h3>
       <TaskItem
-        v-for="doc in documents.pending"
+        v-for="doc in sortedBySection.pending"
         :key="doc.id"
         :doc="doc"
         class="grid"
@@ -39,7 +39,7 @@
         Ready to Publish
       </h3>
       <TaskItem
-        v-for="doc in documents.rtp"
+        v-for="doc in sortedBySection.rtp"
         :key="doc.id"
         :doc="doc"
         class="grid"
@@ -57,7 +57,7 @@
         Published
       </h3>
       <TaskItem
-        v-for="doc in documents.published"
+        v-for="doc in sortedBySection.published"
         :key="doc.id"
         :doc="doc"
         class="grid"
@@ -87,6 +87,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
+import { storeToRefs } from "pinia";
 
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
@@ -100,7 +101,6 @@ import type { DocumentsByStatus, TaskDocument } from "@/types";
 // Props
 // ----------------------------------
 const props = defineProps<{
-  documents: DocumentsByStatus;
   activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
 }>();
 
@@ -197,6 +197,9 @@ function handleAddAsset({
 // Computed
 // ----------------------------------
 
+// Documents by status
+const { sortedBySection } = storeToRefs(documentsStore);
+
 // Active Authors By Team (from props)
 const computedActiveAuthorsByTeam = computed(() => props.activeAuthorsByTeam ?? []);
 
@@ -243,7 +246,6 @@ const headers = [
   justify-items: start;
   align-items: center;
   grid-template-columns: 20px 1fr 100px 120px 175px 1fr 50px 50px 8px;
-  // TODO: WORK ON SPACING FOR RESPONSIVE PURPOSES
   padding: 8px 20px 8px 4px;
 }
 

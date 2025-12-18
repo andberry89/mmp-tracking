@@ -73,7 +73,7 @@ import { computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
 import { teams, statuses } from "@/constants/constants";
 
-import { TaskStatus } from "@/types";
+import type { TaskStatus } from "@/types";
 
 // Type definitions
 interface Author {
@@ -127,10 +127,12 @@ const updatedAndPublished = computed(() => {
 
       const countByYearMap: Record<string, number> = {};
 
-      for (const doc of docs) {
-        const year = String(doc.vechicle.modelYear);
+      docs.forEach((doc) => {
+        if (!doc.vehicle || doc.vehicle.modelYear == null) return;
+
+        const year = String(doc.vehicle.modelYear);
         countByYearMap[year] = (countByYearMap[year] || 0) + 1;
-      }
+      });
 
       const countByYear = Object.entries(countByYearMap).sort(([a], [b]) => Number(b) - Number(a));
 
