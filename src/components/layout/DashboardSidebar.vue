@@ -69,6 +69,9 @@
 </template>
 
 <script setup lang="ts">
+
+// TODO: Assigned logic isn't working.
+// B/G Staff not showing up properly.
 import { computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
 import { teams, statuses } from "@/constants/constants";

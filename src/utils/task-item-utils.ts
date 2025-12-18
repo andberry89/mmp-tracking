@@ -45,6 +45,7 @@ export const getStatus = (status) => {
 };
 
 export const isHighPriority = (doc) => {
+  if (doc.published) return false;
   if (doc.highPriority) {
     return true;
   } else if (doc.deadline && doc.deadline !== "") {

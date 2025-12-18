@@ -1,6 +1,6 @@
 <template>
   <div class="task-author">
-    <Popper placement="top" arrow>
+    <Popper placement="left" arrow>
       <span
         v-if="author"
         :class="['team-badge cursor-pointer', getTeamColorClass(author.team.slug)]"
