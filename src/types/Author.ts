@@ -1,6 +1,7 @@
 import type { AuthorId } from "./ids";
 
 export type AuthorTeamSlug = "bg" | "cd" | "freelance"; // extend with more if needed
+export type AssignState = "unassigned" | "assigned" | "removed";
 
 export interface AuthorTeam {
   slug: AuthorTeamSlug;
@@ -16,6 +17,11 @@ export interface Author {
   initials: string;
   team: AuthorTeam;
   active: boolean;
+}
+
+export interface AuthorsByTeamGroup {
+  team: string;
+  members: Author[];
 }
 
 export type GroupedByTeam<T> = Record<AuthorTeamsSlug, T[]> & {

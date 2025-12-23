@@ -26,8 +26,15 @@
           >
             Unassign Author
           </button>
-
-          <div v-for="group in authorsByTeam" :key="group.team" class="mb-4">
+          <div v-if="authorsByTeam.length === 0" class="text-xs text-gray-500">
+            No active authors
+          </div>
+          <div
+            v-for="group in authorsByTeam"
+            :key="group.team"
+            class="mb-4"
+            v-if="authorsByTeam.length"
+          >
             <h3 class="text-xs font-bold text-gray-600 mb-1 border-b border-dotted border-gray-600">
               {{ group.team.toUpperCase() }}
             </h3>
@@ -42,13 +49,13 @@
                   :class="[
                     'team-badge flex items-center justify-center relative',
                     getTeamColorClass(authorItem.team.slug),
-                    selectedAuthor === authorItem.id && 'ring-2 ring-green-500 bg-white',
+                    selectedAuthorId === authorItem.id && 'ring-2 ring-green-500 bg-white',
                   ]"
                 >
                   <span
                     :class="[
                       'absolute transition-opacity duration-200',
-                      selectedAuthor === authorItem.id ? 'opacity-0' : 'opacity-100',
+                      selectedAuthorId === authorItem.id ? 'opacity-0' : 'opacity-100',
                     ]"
                   >
                     {{ authorItem.initials }}
@@ -56,7 +63,7 @@
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="w-4 h-4 text-green-600 absolute transition-opacity duration-200"
-                    :class="selectedAuthor === authorItem.id ? 'opacity-100' : 'opacity-0'"
+                    :class="selectedAuthorId === authorItem.id ? 'opacity-100' : 'opacity-0'"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -77,18 +84,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { AddCircleIcon } from "@/assets/icons";
 import { TEAM_COLOR_MAP } from "@/constants/task-style-maps";
 
-import type { Author } from "@/types";
+import type { Author, AuthorsByTeamGroup, AssignState } from "@/types";
+
+const FEEDBACK_DELAY_MS = 1000;
 
 // ----------------------------------
 // Props
 // ----------------------------------
-defineProps<{
+const { author } = defineProps<{
   author: Author | null;
-  authorsByTeam?: Array<{ team: string; members: Author[] }>;
+  authorsByTeam: AuthorsByTeamGroup[];
 }>();
 
 // ----------------------------------
@@ -103,36 +112,55 @@ const emit = defineEmits<{
 // State
 // ----------------------------------
 
-const selectedAuthor = ref<string | null>(null);
-const headerText = ref("Assign Author");
+const selectedAuthorId = ref<string | null>(null);
+const assignState = ref<AssignState>("unassigned");
+const pendingAuthor = ref<string | null>(null);
+
+// ----------------------------------
+// Computed
+// ----------------------------------
+const headerText = computed(() => {
+  if (assignState.value === "assigned" && pendingAuthor.value) {
+    return `Assigned to ${pendingAuthor.value}`;
+  }
+  if (assignState.value === "removed") {
+    return "Author removed";
+  }
+  return "Assign Author";
+});
 
 // ----------------------------------
 // Methods
 // ----------------------------------
-function getTeamColorClass(team: string): string {
-  return `${TEAM_COLOR_MAP[team]} text-white`;
+function getTeamColorClass(team: Author["team"]["slug"]): string {
+  return `${TEAM_COLOR_MAP[team] ?? ""} text-white`;
 }
 
-function handleAssign(author: Author | null, close?: () => void) {
+type CloseFn = () => void;
+
+function handleAssign(author: Author | null, close?: () => CloseFn) {
   if (author) {
     // assign the author
-    selectedAuthor.value = author.id;
-    headerText.value = `Assigned to ${author.firstName}`;
+    selectedAuthorId.value = author.id;
+    pendingAuthor.value = author.firstName;
+    assignState.value = "assigned";
 
     setTimeout(() => {
-      selectedAuthor.value = null;
-      headerText.value = "Assign Author";
       emit("assign", author);
+      selectedAuthorId.value = null;
+      pendingAuthor.value = null;
+      assignState.value = "idle";
       close?.();
-    }, 1000);
+    }, FEEDBACK_DELAY_MS);
   } else {
+    assignState.value = "removed";
+
     // unassign the author
-    emit("assign", null);
-    headerText.value = "Author removed";
     setTimeout(() => {
-      headerText.value = "Assign Author";
+      emit("assign", null);
+      assignState.value = "idle";
       close?.();
-    }, 1000);
+    }, FEEDBACK_DELAY_MS);
   }
 }
 </script>
