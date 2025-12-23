@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import { compareDates } from "@/utils/helpers";
-import type { DocumentsByStatus, TaskDocument } from "@/types";
+import type { DocumentsByStatus, TaskDocument, Author, GroupedAuthors } from "@/types";
 import { PENDING_STATUSES, RTP_STATUSES, PUBLISHED_STATUSES } from "@/types";
 import { getDocumentAuthor } from "@/utils";
 
@@ -60,7 +60,7 @@ export const sortDocuments = (docs: TaskDocument[]) => {
   return { published, rtp, pending };
 };
 
-export const sortAuthors = (authors) => {
+export const sortAuthors = (authors: Author[]): GroupedAuthors => {
   // Separate authors by team
   const bg = authors.filter((author) => author.team.slug === "bg");
   const cd = authors.filter((author) => author.team.slug === "cd");
@@ -80,7 +80,7 @@ export const sortAuthors = (authors) => {
   };
 };
 
-export const getActiveAuthors = (authors) => {
+export const getActiveAuthors = (authors: GroupedAuthors): GroupedAuthors => {
   let bg = authors.bg.filter((author) => author.active);
   let cd = authors.cd.filter((author) => author.active);
   let freelance = authors.freelance.filter((author) => author.active);

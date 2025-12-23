@@ -48,11 +48,11 @@ import { getRangeDates, getDocumentAuthor } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
 import { isWithinInterval } from "date-fns";
 
-import type { AuthorGroups, TaskDocument } from "@/types";
+import type { GroupedAuthors, TaskDocument } from "@/types";
 
 // Props ------------------------------------
 const props = defineProps<{
-  authors: AuthorGroups;
+  authors: GroupedAuthors;
   ranges: Array<{ id: string; label: string }>;
   activeLabel: string;
 }>();

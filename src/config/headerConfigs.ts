@@ -1,8 +1,8 @@
 import type { DropdownConfig } from "@/types";
-import type { AuthorGroups } from "@/types";
+import type { GroupedAuthors } from "@/types";
 
 export interface HeaderConfigFactoryParams {
-  authors: AuthorGroups;
+  authors: GroupedAuthors;
   ranges: Array<{ id: string; label: string }>;
   setAuthor: (id: string) => void;
   setRange: (id: string) => void;
