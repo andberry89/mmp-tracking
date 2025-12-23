@@ -1,4 +1,3 @@
-import type { TaskAuthor } from "./Author";
 import type { TaskAsset } from "./TaskAsset";
 import type { TaskVehicle } from "./TaskVehicle";
 
@@ -8,7 +7,7 @@ export interface TaskDocument {
   id: string;
   highPriority: boolean;
   vehicle: TaskVehicle;
-  author: TaskAuthor | null;
+  authorId: string | null;
   deadline: string;
   status: TaskStatus;
   notes: string;

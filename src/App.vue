@@ -31,8 +31,14 @@ import { ranges as defaultRanges } from "@/constants";
 import { authors as testAuthors } from "@/test";
 
 import { useDocumentsStore } from "@/stores/documents";
+import { useAuthorsStore } from "@/stores/authors";
 
-// ─── Store ─────────────────────────────────────────────────────────────
+// ----------------------------------
+// STORE
+// ----------------------------------
+const authorsStore = useAuthorsStore();
+authorsStore.initializeAuthors();
+
 const documentsStore = useDocumentsStore();
 onMounted(() => {
   if (!documentsStore.hasLoaded) {
@@ -40,38 +46,20 @@ onMounted(() => {
   }
 });
 
-// ─── Reactive State ──────────────────────────────────────────────────────────
+// ----------------------------------
+// STATE
+// ----------------------------------
 const activeLabel = ref("MMPs");
 const ranges = ref(defaultRanges);
 
-// ─── Computed ──────────────────────────────────────────────
+// ----------------------------------
+// COMPUTED
+// ----------------------------------
 const sortedAuthors = computed(() => sortAuthors(testAuthors));
 
-// ─── Methods ────────────────────────────────────────────────────────────────
-// function handleTaskUpdate(updatedTask: TaskDocument) {
-//   const normalized = applyTaskRules(updatedTask);
-
-//   // Check to see that the task exists and update it
-//   const taskExists = documents.value.some((t) => t.id === normalized.id);
-
-//   // If task exists, map to documents.value a new array
-//   // For each task check to see if its the updated task, if so return the updated task, else return t
-//   // If task does not exist, spread documents.value and add the updated task to the end
-//   documents.value = taskExists
-//     ? documents.value.map((t) => (t.id === normalized.id ? normalized : t))
-//     : [...documents.value, normalized];
-// }
-
-// function handleTaskDelete(id: string) {
-//   documents.value = documents.value.filter((t) => t.id !== id);
-//   console.log("🗑️ Task deleted with ID:", id);
-// }
-
-// function handleTaskDuplicate(task: TaskDocument) {
-//   const newTask = { ...task, id: crypto.randomUUID() };
-//   documents.value = [...documents.value, newTask];
-//   console.log("📄 Task duplicated:", newTask);
-// }
+// ----------------------------------
+// METHODS
+// ----------------------------------
 
 function onTabChange(label: string) {
   activeLabel.value = label;

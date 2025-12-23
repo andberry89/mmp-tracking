@@ -44,7 +44,7 @@ import { useDocumentsStore } from "@/stores/documents";
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 
-import { getRangeDates } from "@/utils/";
+import { getRangeDates, getDocumentAuthor } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
 import { isWithinInterval } from "date-fns";
 
@@ -87,7 +87,10 @@ const filteredDocuments = computed(() => {
 
   // 2. Author Filtering
   if (selectedAuthorId.value) {
-    docs = docs.filter((doc) => doc.author?.id === selectedAuthorId.value);
+    docs = docs.filter((doc) => {
+      const docAuthor = getDocumentAuthor(doc);
+      return docAuthor?.id === selectedAuthorId.value;
+    });
   }
 
   // 3. Search Filtering (MMPs only)

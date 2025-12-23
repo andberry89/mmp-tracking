@@ -5,7 +5,7 @@ import { applyTaskRules } from "@/utils/apply-task-rules";
 import { sortDocuments } from "@/utils/sort-functions";
 import { testDocuments } from "@/test";
 
-import type { TaskDocument, TaskStatus, TaskAsset, TaskAuthor, TaskVehicle } from "@/types";
+import type { TaskDocument, TaskStatus, TaskAsset, Author, TaskVehicle } from "@/types";
 
 export const useDocumentsStore = defineStore("documents", () => {
   // ------------------------------
@@ -137,8 +137,10 @@ export const useDocumentsStore = defineStore("documents", () => {
     updateDocument(id, { status });
   }
 
-  function updateAuthor(id: string, author: TaskAuthor | null) {
-    updateDocument(id, { author });
+  function updateAuthor(id: string, author: Author | null) {
+    updateDocument(id, {
+      authorId: author ? author.id : null,
+    });
   }
 
   function updateVehicle(id: string, vehicle: Partial<TaskVehicle>) {

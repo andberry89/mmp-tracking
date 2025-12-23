@@ -72,6 +72,7 @@
 import { computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
 import { teams, statuses } from "@/constants/constants";
+import { getDocumentAuthor } from "@/utils/";
 
 import type { TaskStatus } from "@/types";
 
@@ -146,53 +147,14 @@ const updatedAndPublished = computed(() => {
 
 // Tasks assigned per author
 function assigned(author: Author) {
-  return documentsStore
-    .getDocumentsByStatus("pending")
-    .value.filter((doc) => doc.author?.id === author.id).length;
+  return documentsStore.getDocumentsByStatus("pending").value.filter((doc) => {
+    const docAuthor = getDocumentAuthor(doc);
+    return docAuthor?.id === author.id;
+  }).length;
 }
 
 // Available to template
 const { authors, ranges } = props;
-
-// Computed: Quick Stats
-// const quickStats = computed(() => {
-//   const allRelevantDocs = [...props.documents.pending, ...props.documents.rtp];
-
-//   return statuses
-//     .filter((status) => quickStatValues.includes(status.value))
-//     .sort((a, b) => quickStatValues.indexOf(a.value) - quickStatValues.indexOf(b.value))
-//     .map((status) => {
-//       const count = allRelevantDocs.filter((doc) => doc.status === status.label).length;
-//       return { ...status, count };
-//     });
-// });
-
-// Computed: Updated & Published
-// const updatedAndPublished = computed(() => {
-//   const allDocs = props.documents.published;
-
-//   return statuses
-//     .filter((status) => publishUpdateValues.includes(status.value))
-//     .map((status) => {
-//       const docs = allDocs.filter((doc) => doc.status === status.label);
-
-//       const countByYearMap: Record<string, number> = {};
-//       for (const doc of docs) {
-//         const year = doc.vehicle.modelYear; // or use publishedDate if available
-//         countByYearMap[year] = (countByYearMap[year] || 0) + 1;
-//       }
-
-//       const countByYear: [string, number][] = Object.entries(countByYearMap).sort(
-//         ([a], [b]) => Number(b) - Number(a)
-//       );
-
-//       return {
-//         ...status, // clone existing status
-//         count: docs.length,
-//         countByYear,
-//       };
-//     });
-// });
 </script>
 
 <style lang="scss" scoped>

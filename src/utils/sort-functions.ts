@@ -1,6 +1,8 @@
+import { computed } from "vue";
 import { compareDates } from "@/utils/helpers";
 import type { DocumentsByStatus, TaskDocument } from "@/types";
 import { PENDING_STATUSES, RTP_STATUSES, PUBLISHED_STATUSES } from "@/types";
+import { getDocumentAuthor } from "@/utils";
 
 export const sortDocuments = (docs: TaskDocument[]) => {
   // Filter by normalized status
@@ -30,24 +32,29 @@ export const sortDocuments = (docs: TaskDocument[]) => {
   const teamOrder: Record<string, number> = { bg: 1, cd: 2, freelance: 3 };
 
   const assigned = pending
-    .filter((doc) => doc.author)
+    .filter((doc) => getDocumentAuthor(doc))
     .sort((a, b) => {
       // Pending before RTE
       if (a.status === "pending" && b.status !== "pending") return -1;
       if (a.status !== "pending" && b.status === "pending") return 1;
 
+      const authorA = getDocumentAuthor(a);
+      const authorB = getDocumentAuthor(b);
+
+      if (!authorA || !authorB) return 0;
+
       // same status, sort by team then lastName
-      const teamA = teamOrder[a.author.team.slug] ?? 99;
-      const teamB = teamOrder[b.author.team.slug] ?? 99;
+      const teamA = teamOrder[authorA.team.slug] ?? 99;
+      const teamB = teamOrder[authorB.team.slug] ?? 99;
 
       if (teamA === teamB) {
-        return a.author.lastName.localeCompare(b.author.lastName);
+        return authorA.lastName.localeCompare(authorB.lastName);
       }
 
       return teamA - teamB;
     });
 
-  const unassigned = pending.filter((doc) => !doc.author);
+  const unassigned = pending.filter((doc) => !getDocumentAuthor(doc));
   pending = [...unassigned, ...assigned];
 
   return { published, rtp, pending };

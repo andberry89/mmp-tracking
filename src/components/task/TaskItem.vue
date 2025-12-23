@@ -15,7 +15,7 @@
       @add-asset="(asset) => emit('add-asset', { doc, asset })"
     />
     <TaskAuthor
-      :author="doc.author"
+      :author="author"
       :authorsByTeam="activeAuthorsByTeam"
       @assign="(author) => emit('assign-author', { doc, author })"
     />
@@ -28,7 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import { getDateFormat, getDateText } from "@/utils/task-item-utils";
+import { computed } from "vue";
+import { getDateFormat, getDateText, getDocumentAuthor } from "@/utils";
 import { DATE_FORMAT_MAP } from "@/constants";
 
 import {
@@ -61,6 +62,11 @@ const emit = defineEmits<{
   (e: "delete-asset", payload: { doc: TaskDocument; idx: number }): void;
   (e: "add-asset", payload: { doc: TaskDocument; asset: { url: string; notes: string } }): void;
 }>();
+
+// ----------------------------------
+// Computed
+// ----------------------------------
+const author = computed(() => getDocumentAuthor(props.doc));
 
 // ----------------------------------
 // Methods
