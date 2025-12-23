@@ -51,4 +51,5 @@ createApp(App)
  * Add calendar view for deadlines
  * Add notifications for upcoming deadlines and status changes
  * Add store
+ * Type check
  */

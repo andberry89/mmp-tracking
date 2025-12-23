@@ -1,48 +1,42 @@
-import { compareDates, normalizeStatus } from "@/utils/helpers";
+import { compareDates } from "@/utils/helpers";
 import type { DocumentsByStatus, TaskDocument } from "@/types";
+import { PENDING_STATUSES, RTP_STATUSES, PUBLISHED_STATUSES } from "@/types";
 
 export const sortDocuments = (docs: TaskDocument[]) => {
   // Filter by normalized status
 
   // Sort published: most recent publishedDate first
   let published = docs
-    .filter((doc) => doc.published || normalizeStatus(doc.status) === "Published")
+    .filter((doc) => PUBLISHED_STATUSES.includes(doc.status))
     .sort((a, b) => compareDates(b.publishedDate, a.publishedDate));
 
   // Sort rtp: "Ready to Publish" and "Scheduled"
   let rtp = docs
-    .filter((doc) => {
-      const status = normalizeStatus(doc.status);
-      return (!doc.published && status === "Ready to Publish") || status === "Scheduled";
-    })
+    .filter((doc) => RTP_STATUSES.includes(doc.status))
     .sort((a, b) => {
       // Sort rtp: "Ready to Publish" before "Scheduled", then by embargoDate
-      const aStatus = normalizeStatus(a.status);
-      const bStatus = normalizeStatus(b.status);
-      if (aStatus === "Ready to Publish" && bStatus !== "Ready to Publish") return -1;
-      if (aStatus !== "Ready to Publish" && bStatus === "Ready to Publish") return 1;
+      if (a.status === "rtp" && b.status === "scheduled") return -1;
+      if (a.status === "scheduled" && b.status === "rtp") return 1;
       return compareDates(a.embargoDate, b.embargoDate);
     });
 
   let pending = docs
-    .filter((doc) => {
-      const status = normalizeStatus(doc.status);
-      return !doc.published && status !== "Ready to Publish" && status !== "Scheduled";
-    })
+    .filter((doc) => PENDING_STATUSES.includes(doc.status))
     .sort((a, b) => compareDates(a.deadline, b.deadline));
 
-  // Sort pending: assigned vs unassigned → then by status → then by team/name
+  // Sort pending: assigned vs unassigned
+  // → then by status
+  // → then by team/name
+  const teamOrder: Record<string, number> = { bg: 1, cd: 2, freelance: 3 };
+
   const assigned = pending
     .filter((doc) => doc.author)
     .sort((a, b) => {
-      const aStatus = normalizeStatus(a.status);
-      const bStatus = normalizeStatus(b.status);
-
-      if (aStatus === "Pending" && bStatus !== "Pending") return -1;
-      if (aStatus !== "Pending" && bStatus === "Pending") return 1;
+      // Pending before RTE
+      if (a.status === "pending" && b.status !== "pending") return -1;
+      if (a.status !== "pending" && b.status === "pending") return 1;
 
       // same status, sort by team then lastName
-      const teamOrder: Record<string, number> = { bg: 1, cd: 2, freelance: 3 };
       const teamA = teamOrder[a.author.team.slug] ?? 99;
       const teamB = teamOrder[b.author.team.slug] ?? 99;
 

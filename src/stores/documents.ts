@@ -25,25 +25,13 @@ export const useDocumentsStore = defineStore("documents", () => {
   const getDocumentsByStatus = (status: TaskStatus) =>
     computed(() => documents.value.filter((doc) => doc.status === status));
 
-  const allStatuses: TaskStatus[] = ["pending", "rte", "rtp", "scheduled", "published", "updated"];
-
-  const groupedDocuments = computed(
-    () =>
-      Object.fromEntries(
-        allStatuses.map((status) => [
-          status,
-          documents.value.filter((doc) => doc.status === status),
-        ])
-      ) as Record<TaskStatus, TaskDocument[]>
-  );
-
   const pendingCount = computed(
     () => documents.value.filter((doc) => doc.status === "pending").length
   );
 
-  const sortedBySection = computed (() => {
+  const sortedBySection = computed(() => {
     return sortDocuments(documents.value);
-  })
+  });
 
   // ------------------------------
   // ACTIONS — Core Mutators
@@ -182,9 +170,7 @@ export const useDocumentsStore = defineStore("documents", () => {
     // getters
     getDocumentById,
     getDocumentsByStatus,
-    groupedDocuments,
     pendingCount,
-    allStatuses,
     sortedBySection,
 
     // core mutators
