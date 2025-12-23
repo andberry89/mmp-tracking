@@ -1,5 +1,6 @@
 import type { TaskAsset } from "./TaskAsset";
 import type { TaskVehicle } from "./TaskVehicle";
+import type { AuthorId } from "./ids";
 
 export type TaskStatus = "pending" | "rte" | "rtp" | "scheduled" | "published" | "updated";
 
@@ -7,7 +8,7 @@ export interface TaskDocument {
   id: string;
   highPriority: boolean;
   vehicle: TaskVehicle;
-  authorId: string | null;
+  authorId: AuthorId | null;
   deadline: string;
   status: TaskStatus;
   notes: string;

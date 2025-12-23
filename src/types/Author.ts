@@ -1,10 +1,15 @@
+import type { AuthorId } from "./ids";
+
+export type AuthorTeamSlug = "bg" | "cd" | "freelance"; // extend with more if needed
+
 export interface AuthorTeam {
-  slug: "bg" | "cd" | "freelance"; // extend with more if needed
-  label: "Buyer's Guide" | "Car and Driver" | "Freelance";
+  slug: AuthorTeamSlug;
+  label: string;
+  sidebar: string;
 }
 
 export interface Author {
-  id: string;
+  id: AuthorId;
   firstName: string;
   lastName: string;
   label: string;
@@ -13,9 +18,8 @@ export interface Author {
   active: boolean;
 }
 
-export type AuthorGroups = {
-  bg: Author[];
-  cd: Author[];
-  freelance: Author[];
-  all: Author[];
+export type GroupedByTeam<T> = Record<AuthorTeamsSlug, T[]> & {
+  all: T[];
 };
+
+export type GroupedAuthors = GroupedByTeam<Author>;
