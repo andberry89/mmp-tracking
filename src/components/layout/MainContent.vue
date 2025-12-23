@@ -48,7 +48,7 @@ import { getRangeDates, getDocumentAuthor } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
 import { isWithinInterval } from "date-fns";
 
-import type { GroupedAuthors, TaskDocument } from "@/types";
+import type { GroupedAuthors, TaskDocument, AuthorsByTeamGroup } from "@/types";
 
 // Props ------------------------------------
 const props = defineProps<{
@@ -152,8 +152,10 @@ const activeComponent = computed(() => {
 });
 
 // Active Authors By Team
-const activeAuthorsByTeam = computed(() => {
-  const allAuthors = props.authors.all || [];
+const activeAuthorsByTeam = computed<AuthorsByTeamGroup[]>(() => {
+  if (!props.authors?.all?.length) return [];
+
+  const allAuthors = props.authors.all;
   const active = allAuthors.filter((a) => a.active);
 
   // sort alphabetically by team, then by last name
@@ -171,7 +173,6 @@ const activeAuthorsByTeam = computed(() => {
     groups[teamLabel].push(author);
   });
 
-  // return as array of { team, members }
   return Object.entries(groups)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([team, members]) => ({ team, members }));
