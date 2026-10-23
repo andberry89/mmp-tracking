@@ -87,7 +87,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
-import { storeToRefs } from "pinia";
 
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
@@ -95,19 +94,14 @@ import ModalEdit from "@/components/common/ModalEdit.vue";
 import ModalDelete from "@/components/common/ModalDelete.vue";
 import ModalDuplicate from "@/components/common/ModalDuplicate.vue";
 
-import type { DocumentsByStatus, TaskDocument } from "@/types";
+import type { Author, AuthorsByTeamGroup, DocumentsByStatus, TaskDocument } from "@/types";
 
 // ----------------------------------
 // Props
 // ----------------------------------
 const props = defineProps<{
-  activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
-}>();
-
-const emit = defineEmits<{
-  (e: "updateTask", updatedTask: TaskDocument): void;
-  (e: "deleteTask", id: string): void;
-  (e: "duplicateTask", task: TaskDocument): void;
+  documents?: DocumentsByStatus;
+  activeAuthorsByTeam?: AuthorsByTeamGroup[];
 }>();
 
 // ----------------------------------
@@ -122,7 +116,7 @@ const documentsStore = useDocumentsStore();
 // Modal State
 const showModal = ref(false);
 const modalType = ref<"edit" | "duplicate" | "delete" | null>(null);
-const modalPayload = ref<any | null>(null);
+const modalPayload = ref<TaskDocument | null>(null);
 
 // Modal Helpers
 function openModal(type: "edit" | "duplicate" | "delete", payload: TaskDocument) {
@@ -161,7 +155,7 @@ function confirmDelete() {
 // ----------------------------------
 
 // Assign author (no modal)
-function handleAssignAuthor({ doc, author }: { doc: TaskDocument; author: any }) {
+function handleAssignAuthor({ doc, author }: { doc: TaskDocument; author: Author | null }) {
   documentsStore.updateAuthor(doc.id, author);
 }
 
@@ -198,7 +192,7 @@ function handleAddAsset({
 // ----------------------------------
 
 // Documents by status
-const { sortedBySection } = storeToRefs(documentsStore);
+const sortedBySection = computed(() => props.documents ?? documentsStore.sortedBySection);
 
 // Active Authors By Team (from props)
 const computedActiveAuthorsByTeam = computed(() => props.activeAuthorsByTeam ?? []);

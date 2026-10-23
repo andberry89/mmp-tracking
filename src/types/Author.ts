@@ -24,7 +24,7 @@ export interface AuthorsByTeamGroup {
   members: Author[];
 }
 
-export type GroupedByTeam<T> = Record<AuthorTeamsSlug, T[]> & {
+export type GroupedByTeam<T> = Record<AuthorTeamSlug, T[]> & {
   all: T[];
 };
 

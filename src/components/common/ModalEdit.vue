@@ -102,7 +102,6 @@
 
 <script setup lang="ts">
 //todo: figure out how task data displays (editableTask)
-// TODO: get the select to default to the current status
 import { ref, watch, computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import type { TaskDocument } from "@/types";
@@ -157,7 +156,7 @@ watch(
 
     // If it's an ISO datetime
     const [datePart, timePart] = val.split("T");
-    embargoDatePart.value = datePart;
+    embargoDatePart.value = datePart ?? "";
     embargoTimePart.value = timePart ? timePart.slice(0, 5) : "";
   },
   { immediate: true }
@@ -166,7 +165,7 @@ watch(
 // Combine date and time when either part changes
 watch([embargoDatePart, embargoTimePart], ([date, time]) => {
   if (!date) {
-    editableTask.value.embargoDate = null;
+    editableTask.value.embargoDate = "";
     return;
   }
 
@@ -179,11 +178,6 @@ watch([embargoDatePart, embargoTimePart], ([date, time]) => {
 });
 
 // Methods --------------------------------
-function getStatusLabel(value: string): string {
-  const match = taskStatuses.find((status) => status.value === value);
-  return match ? match.label : value;
-}
-
 function handleSave() {
   emit("save", editableTask.value);
   emit("update:modelValue", false);

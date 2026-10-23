@@ -1,6 +1,5 @@
-import { computed } from "vue";
 import { compareDates } from "@/utils/helpers";
-import type { DocumentsByStatus, TaskDocument, Author, GroupedAuthors } from "@/types";
+import type { TaskDocument, Author, GroupedAuthors, TaskStatus } from "@/types";
 import { PENDING_STATUSES, RTP_STATUSES, PUBLISHED_STATUSES } from "@/types";
 import { getDocumentAuthor } from "@/utils";
 
@@ -9,12 +8,12 @@ export const sortDocuments = (docs: TaskDocument[]) => {
 
   // Sort published: most recent publishedDate first
   let published = docs
-    .filter((doc) => PUBLISHED_STATUSES.includes(doc.status))
+    .filter((doc) => (PUBLISHED_STATUSES as readonly TaskStatus[]).includes(doc.status))
     .sort((a, b) => compareDates(b.publishedDate, a.publishedDate));
 
   // Sort rtp: "Ready to Publish" and "Scheduled"
   let rtp = docs
-    .filter((doc) => RTP_STATUSES.includes(doc.status))
+    .filter((doc) => (RTP_STATUSES as readonly TaskStatus[]).includes(doc.status))
     .sort((a, b) => {
       // Sort rtp: "Ready to Publish" before "Scheduled", then by embargoDate
       if (a.status === "rtp" && b.status === "scheduled") return -1;
@@ -23,7 +22,7 @@ export const sortDocuments = (docs: TaskDocument[]) => {
     });
 
   let pending = docs
-    .filter((doc) => PENDING_STATUSES.includes(doc.status))
+    .filter((doc) => (PENDING_STATUSES as readonly TaskStatus[]).includes(doc.status))
     .sort((a, b) => compareDates(a.deadline, b.deadline));
 
   // Sort pending: assigned vs unassigned
@@ -81,8 +80,8 @@ export const sortAuthors = (authors: Author[]): GroupedAuthors => {
 };
 
 export const getActiveAuthors = (authors: GroupedAuthors): GroupedAuthors => {
-  let bg = authors.bg.filter((author) => author.active);
-  let cd = authors.cd.filter((author) => author.active);
-  let freelance = authors.freelance.filter((author) => author.active);
+  const bg = authors.bg.filter((author) => author.active);
+  const cd = authors.cd.filter((author) => author.active);
+  const freelance = authors.freelance.filter((author) => author.active);
   return { bg: bg, cd: cd, freelance: freelance, all: [...bg, ...cd, ...freelance] };
 };

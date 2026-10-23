@@ -16,7 +16,7 @@
     />
     <TaskAuthor
       :author="author"
-      :authorsByTeam="activeAuthorsByTeam"
+      :authorsByTeam="activeAuthorsByTeam ?? []"
       @assign="(author) => emit('assign-author', { doc, author })"
     />
     <TaskActions
@@ -41,21 +41,21 @@ import {
   TaskActions,
 } from "@/components/task/components";
 
-import type { TaskDocument } from "@/types";
+import type { Author, TaskDocument } from "@/types";
 
 // ----------------------------------
 // Props
 // ----------------------------------
 const props = defineProps<{
   doc: TaskDocument;
-  activeAuthorsByTeam?: Array<{ team: string; members: any[] }>;
+  activeAuthorsByTeam?: Array<{ team: string; members: Author[] }>;
 }>();
 
 // ----------------------------------
 // Emits
 // ----------------------------------
 const emit = defineEmits<{
-  (e: "assign-author", payload: { doc: TaskDocument; author: any }): void;
+  (e: "assign-author", payload: { doc: TaskDocument; author: Author | null }): void;
   (e: "edit", doc: TaskDocument): void;
   (e: "duplicate", doc: TaskDocument): void;
   (e: "delete", doc: TaskDocument): void;

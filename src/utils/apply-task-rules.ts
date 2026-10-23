@@ -20,11 +20,6 @@ export const applyTaskRules = (task: TaskDocument): TaskDocument => {
     publishedDate: task.publishedDate ?? "",
   };
 
-  // --- Normalize "Ready to Edit" ------------------
-  if (normalizedStatus === "rte") {
-    updatedTask.notes = "";
-  }
-
   // --- Normalize Published / Updated ------------------
   if (normalizedStatus === "published" || normalizedStatus === "updated") {
     updatedTask.published = true;
@@ -41,7 +36,9 @@ export const applyTaskRules = (task: TaskDocument): TaskDocument => {
 
   // --- Normalize Scheduled ------------------
   if (normalizedStatus === "scheduled") {
-    updatedTask.notes = "Scheduled for embargo time";
+    if (!updatedTask.notes) {
+      updatedTask.notes = "Scheduled for embargo time";
+    }
     updatedTask.embargo = true;
   }
 

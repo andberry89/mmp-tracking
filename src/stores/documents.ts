@@ -49,7 +49,6 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ACTIONS — Loading with Test Fallback
   // ------------------------------
   async function loadDocuments() {
-    console.log("loadDocuments called.");
     isLoading.value = true;
     error.value = null;
 
@@ -65,7 +64,7 @@ export const useDocumentsStore = defineStore("documents", () => {
       } else {
         setDocuments(response);
       }
-    } catch (e) {
+    } catch {
       error.value = "Failed to load documents.";
       setDocuments(structuredClone(testDocuments)); // fallback
     } finally {
@@ -80,8 +79,11 @@ export const useDocumentsStore = defineStore("documents", () => {
     const idx = documents.value.findIndex((doc) => doc.id === id);
     if (idx === -1) return;
 
-    const merged = {
-      ...documents.value[idx],
+    const current = documents.value[idx];
+    if (!current) return;
+
+    const merged: TaskDocument = {
+      ...current,
       ...payload,
     };
 

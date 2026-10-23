@@ -1,4 +1,4 @@
-import type { AuthorId } from "@/types";
+import type { AuthorId, TaskDocument } from "@/types";
 
 let today = new Date();
 let tomorrow = new Date(today);
@@ -10,7 +10,7 @@ let yyyy = tomorrow.getFullYear();
 
 let date = `${yyyy}-${mm < 10 ? "0" + mm : mm}-${dd < 10 ? "0" + dd : dd}`;
 
-export const testDocuments = [
+export const testDocuments: TaskDocument[] = [
   {
     id: "0002",
     highPriority: false,

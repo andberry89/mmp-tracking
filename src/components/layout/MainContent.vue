@@ -45,6 +45,7 @@ import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/compon
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 
 import { getRangeDates, getDocumentAuthor } from "@/utils/";
+import { sortDocuments } from "@/utils/sort-functions";
 import { getHeaderConfig } from "@/config/headerConfigs";
 import { isWithinInterval } from "date-fns";
 
@@ -109,13 +110,9 @@ const filteredDocuments = computed(() => {
       );
     });
 
-    // 4. Return grouped structure for TaskPage compatibility
-    return {
-      pending: docs.filter((doc) => doc.status === "pending"),
-      rtp: docs.filter((doc) => doc.status === "rtp"),
-      published: docs.filter((doc) => doc.status === "published"),
-    };
   }
+
+  return sortDocuments(docs);
 });
 /**
  * Compute PageHeader props based on the current activeLabel.
@@ -197,6 +194,4 @@ watch(
   }
 );
 
-// Destructure for template clarity
-const { documents, authors, ranges } = props;
 </script>

@@ -45,7 +45,17 @@ const emit = defineEmits<{
 }>();
 
 function handleAction(type: "edit" | "duplicate" | "delete", close: () => void) {
-  emit(type);
+  switch (type) {
+    case "edit":
+      emit("edit");
+      break;
+    case "duplicate":
+      emit("duplicate");
+      break;
+    case "delete":
+      emit("delete");
+      break;
+  }
   close();
 }
 </script>

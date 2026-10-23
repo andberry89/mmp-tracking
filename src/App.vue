@@ -26,7 +26,6 @@ import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
 import MainContent from "@/components/layout/MainContent.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 
-import { sortDocuments } from "@/utils/sort-functions";
 import { ranges as defaultRanges } from "@/constants";
 
 import { useDocumentsStore } from "@/stores/documents";

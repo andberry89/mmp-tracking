@@ -71,7 +71,7 @@ interface OptionItem {
   label: string;
 }
 
-const props = defineProps<{
+defineProps<{
   label?: string;
   options: OptionItem[];
 }>();

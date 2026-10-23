@@ -1,4 +1,4 @@
-import type { TaskStatus } from "./types";
+import type { TaskStatus } from "./TaskDocument";
 
 /**
  * Canonical status groupings used across the app.
@@ -24,7 +24,7 @@ export type PublishedStatus = (typeof PUBLISHED_STATUSES)[number];
  * If someone mistypes a status, TypeScript will error here.
  */
 
-const _assertStatusGroupsAreValid: readonly TaskStatus[] = [
+export const ALL_TASK_STATUSES: readonly TaskStatus[] = [
   ...PENDING_STATUSES,
   ...RTP_STATUSES,
   ...PUBLISHED_STATUSES,

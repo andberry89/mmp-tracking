@@ -6,6 +6,8 @@ export type TaskStatus = "pending" | "rte" | "rtp" | "scheduled" | "published" |
 
 export interface TaskDocument {
   id: string;
+  createdDate?: string;
+  updatedDate?: string[];
   highPriority: boolean;
   vehicle: TaskVehicle;
   authorId: AuthorId | null;

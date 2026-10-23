@@ -12,7 +12,7 @@ import SearchBar from "./components/common/SearchBar.vue";
 import FloatingVue from "floating-vue";
 import Popper from "vue3-popper";
 
-const vfm = createVfm({ componentPlugin: true });
+const vfm = createVfm();
 
 createApp(App)
   .use(FloatingVue, {

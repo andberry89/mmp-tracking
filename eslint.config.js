@@ -1,42 +1,55 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import js from "@eslint/js";
-import tseslint from "typescript-eslint";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 import pluginVue from "eslint-plugin-vue";
 
 export default defineConfig([
-  {
-    name: "app/files-to-lint",
-    files: ["**/*.{js,ts,jsx,tsx,vue}"], // ✅ add ts/tsx
-  },
-
   globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
-
+  js.configs.recommended,
+  ...pluginVue.configs["flat/recommended"],
   {
+    name: "app/global-environment",
+    files: ["**/*.{js,ts,jsx,tsx,vue}"],
     languageOptions: {
-      parser: tseslint.parser, // ✅ TypeScript parser
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: "module",
-        ecmaFeatures: { jsx: true },
-        extraFileExtensions: [".vue"], // ✅ handle .vue files
-        project: true, // enable if you use tsconfig.json
-      },
       globals: {
         ...globals.browser,
         ...globals.node,
       },
     },
-    plugins: {
-      vue: pluginVue,
-      "@typescript-eslint": tseslint.plugin,
-    },
-    rules: {
-      // ✅ Recommended TS & Vue rules
-      ...tseslint.configs.recommended.rules,
-      ...pluginVue.configs["flat/recommended"].rules,
-    },
   },
-
-  js.configs.recommended,
+  {
+    name: "app/typescript",
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: "module",
+        project: ["./tsconfig.json", "./tsconfig.node.json"],
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+    },
+    rules: tsPlugin.configs.recommended.rules,
+  },
+  {
+    name: "app/vue-typescript",
+    files: ["**/*.vue"],
+    languageOptions: {
+      parserOptions: {
+        parser: tsParser,
+        ecmaVersion: 2020,
+        sourceType: "module",
+        project: ["./tsconfig.json", "./tsconfig.node.json"],
+        extraFileExtensions: [".vue"],
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+    },
+    rules: tsPlugin.configs.recommended.rules,
+  },
 ]);

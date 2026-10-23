@@ -31,13 +31,6 @@ const statusInfo = computed(
     }
 );
 
-// Normalize status and then find corresponding status info
-const normalizedStatus = computed(() => {
-  return (
-    STATUS_VALUE_MAP[props.status as keyof typeof STATUS_VALUE_MAP] ?? props.status.toLowerCase()
-  );
-});
-
 // Reactive label and color
 const statusLabel = computed(() => statusInfo.value.label);
 const statusColor = computed(() => statusInfo.value.color);

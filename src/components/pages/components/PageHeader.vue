@@ -27,7 +27,6 @@
 //TODO: Cleanup Dropdown Menu
 import { ref, watch } from "vue";
 import { FilterIcon, SortIcon } from "@/assets/icons";
-import { Dropdown } from "floating-vue";
 import type { DropdownConfig } from "@/types";
 
 interface PageHeaderProps {
@@ -38,29 +37,19 @@ interface PageHeaderProps {
   showFilter?: boolean;
 }
 
-const props = withDefaults(defineProps<PageHeaderProps>(), {
+withDefaults(defineProps<PageHeaderProps>(), {
   searchPlaceholder: "Search...",
   showSort: true,
   showFilter: true,
 });
 
-const emit = defineEmits([
-  "update:author",
-  "update:range",
-  "update:search",
-  "sort-click",
-  "filter-click",
-]);
+const emit = defineEmits<{
+  (e: "update:search", value: string): void;
+  (e: "sort-click"): void;
+  (e: "filter-click"): void;
+}>();
 
 const localSearch = ref("");
 
-watch(localSearch, (val) => emit("update:search", val));
-
-function emitAuthor(authorId: string) {
-  emit("update:author", authorId);
-}
-
-function emitRange(rangeId: string) {
-  emit("update:range", rangeId);
-}
+watch(localSearch, (value) => emit("update:search", value));
 </script>

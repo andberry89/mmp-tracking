@@ -43,7 +43,7 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal !== localValue.value) {
-      localValue.value = newValue;
+      localValue.value = newVal;
     }
   }
 );

@@ -5,16 +5,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
-
-const message = ref("Hello from ModelPage!");
-
-onMounted(() => {
-  console.log("ModelPage mounted");
-});
-</script>
-
 <style scoped>
 /* No custom styles needed with Tailwind */
 </style>

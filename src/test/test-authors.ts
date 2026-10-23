@@ -1,6 +1,10 @@
-export const authors = [
+import type { Author, AuthorId } from "@/types";
+
+const authorId = (id: string): AuthorId => id as AuthorId;
+
+export const authors: Author[] = [
   {
-    id: "beth-nichols",
+    id: authorId("beth-nichols"),
     firstName: "Beth",
     lastName: "Nichols",
     label: "Beth Nichols",
@@ -13,7 +17,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "drew-dorian",
+    id: authorId("drew-dorian"),
     firstName: "Drew",
     lastName: "Dorian",
     label: "Drew Dorian",
@@ -26,7 +30,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "joey-capparella",
+    id: authorId("joey-capparella"),
     firstName: "Joey",
     lastName: "Capparella",
     label: "Joey Capparella",
@@ -39,7 +43,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "andy-wendler",
+    id: authorId("andy-wendler"),
     firstName: "Andy",
     lastName: "Wendler",
     label: "Andy Wendler",
@@ -52,7 +56,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "austin-parsons",
+    id: authorId("austin-parsons"),
     firstName: "Austin",
     lastName: "Parsons",
     label: "Austin Parsons",
@@ -65,7 +69,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "joe-lorio",
+    id: authorId("joe-lorio"),
     firstName: "Joe",
     lastName: "Lorio",
     label: "Joe Lorio",
@@ -78,7 +82,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "caleb-miller",
+    id: authorId("caleb-miller"),
     firstName: "Caleb",
     lastName: "Miller",
     label: "Caleb Miller",
@@ -91,7 +95,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "jack-fitzgerald",
+    id: authorId("jack-fitzgerald"),
     firstName: "Jack",
     lastName: "Fitzgerald",
     label: "Jack Fitzgerald",
@@ -104,7 +108,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "becca-hackett",
+    id: authorId("becca-hackett"),
     firstName: "Becca",
     lastName: "Hackett",
     label: "Becca Hackett",
@@ -117,7 +121,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "eric-stafford",
+    id: authorId("eric-stafford"),
     firstName: "Eric",
     lastName: "Stafford",
     label: "Eric Stafford",
@@ -130,7 +134,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "david-gluckman",
+    id: authorId("david-gluckman"),
     firstName: "David",
     lastName: "Gluckman",
     label: "David Gluckman",
@@ -143,7 +147,7 @@ export const authors = [
     active: true,
   },
   {
-    id: "frankie-cruz",
+    id: authorId("frankie-cruz"),
     firstName: "Frankie",
     lastName: "Cruz",
     label: "Frankie Cruz",
@@ -156,7 +160,7 @@ export const authors = [
     active: false,
   },
   {
-    id: "larry-printz",
+    id: authorId("larry-printz"),
     firstName: "Larry",
     lastName: "Printz",
     label: "Larry Printz",
