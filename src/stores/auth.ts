@@ -13,8 +13,11 @@ interface UserProfile {
 }
 
 export const useAuthStore = defineStore("auth", () => {
+  const initialAuthType = new URLSearchParams(window.location.hash.slice(1)).get("type")
+    ?? new URLSearchParams(window.location.search).get("type");
   const session = ref<Session | null>(null);
   const profile = ref<UserProfile | null>(null);
+  const needsPasswordSetup = ref(initialAuthType === "invite" || initialAuthType === "recovery");
   const isReady = ref(false);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -111,15 +114,62 @@ export const useAuthStore = defineStore("auth", () => {
     profile.value = null;
   }
 
+  async function setInitialPassword(password: string) {
+    if (!supabase) {
+      error.value = "Supabase is not configured.";
+      return false;
+    }
+
+    isLoading.value = true;
+    error.value = null;
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) throw updateError;
+      needsPasswordSetup.value = false;
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return true;
+    } catch (reason) {
+      error.value = reason instanceof Error ? reason.message : "Unable to set your password.";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function sendPasswordReset(email: string) {
+    if (!supabase) {
+      error.value = "Supabase is not configured.";
+      return false;
+    }
+
+    isLoading.value = true;
+    error.value = null;
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      });
+      if (resetError) throw resetError;
+      return true;
+    } catch (reason) {
+      error.value = reason instanceof Error ? reason.message : "Unable to request a password reset.";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     session,
     profile,
+    needsPasswordSetup,
     isReady,
     isLoading,
     error,
     isEditor,
     initializeAuth,
     signIn,
+    setInitialPassword,
+    sendPasswordReset,
     signOut,
   };
 });

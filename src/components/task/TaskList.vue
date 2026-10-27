@@ -220,7 +220,7 @@ function handleAddAsset({
 
 // Documents by status
 const sortedBySection = computed(() =>
-  props.documents ? sortDocuments(props.documents) : documentsStore.sortedBySection
+  sortDocuments(props.documents ?? documentsStore.documents)
 );
 
 // Active Authors By Team (from props)

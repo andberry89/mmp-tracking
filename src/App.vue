@@ -4,6 +4,11 @@
     <p>Connecting to your team account…</p>
   </main>
 
+  <PasswordSetupView
+    v-else-if="isSupabaseConfigured && authStore.session && authStore.needsPasswordSetup"
+    @completed="loadWorkspaceData"
+  />
+
   <LoginView v-else-if="isSupabaseConfigured && !authStore.session" @signed-in="loadWorkspaceData" />
 
   <main v-else-if="isSupabaseConfigured && !authStore.profile" class="auth-message">
@@ -50,6 +55,7 @@ import MainContent from "@/components/layout/MainContent.vue";
 import TopNav from "@/components/layout/TopNav.vue";
 import LoadingSpinner from "@/components/common/LoadingSpinner.vue";
 import LoginView from "@/components/auth/LoginView.vue";
+import PasswordSetupView from "@/components/auth/PasswordSetupView.vue";
 import { useAuthStore } from "@/stores/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 

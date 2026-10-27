@@ -73,9 +73,10 @@ Initial inventory from the prototype, project owner's description, and provided 
 
 - [x] Run an initial code audit, repair TypeScript/lint setup errors, and connect existing search/author/date filters to the MMP list. See [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md).
 - [ ] Decide whether to apply the remaining Vue formatting warnings in a dedicated style-only pass.
+- [ ] Do a dedicated visual-design pass to give the app a deliberate, distinctive character; streamline the new auth, task, and reference-data screens and align them with the user's preferred workbook styling.
 - [x] Draft shared relational data around vehicle/model years, production work, and Changeover; keep detailed Page Audit schema deferred.
 - [x] Select Supabase as the backend; add the SDK, local client scaffold, login gate, task/author reads, Realtime subscriptions, and persistence for existing task edits/resources.
-- [ ] Connect to the Supabase project and apply/review the migration before enabling shared data.
+- [x] Review and apply the initial schema migration to the new Supabase project.
 - [ ] Provision initial Editors and verify Auth, Realtime, and RLS in the project.
 - [ ] Establish and verify off-site exports before using the Free plan as the only production data store.
 - [ ] Review and resolve dependency advisories before production; `npm audit --omit=dev` currently reports 10 vulnerabilities (9 high, 1 critical).
@@ -89,6 +90,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [ ] Define visible conflict handling for two people editing the same record.
 - [ ] Add drag-and-drop behavior for agreed queue interactions.
 - [x] Add email/password sign-in and Editor/Viewer gating for Publication Tracking task controls; new accounts default to Viewer in the schema.
+- [x] Add invitation-link password setup for initial Auth accounts.
 - [x] Wire the visible “Add New Task” control to a create flow with Make/Model/Model Year selection, automatic Segment display, task details, and resources.
 - [ ] Add an Editor interface to manage Make, Model, Segment, and Model Year catalog data; demo mode currently derives options from sample tasks.
 - [ ] Define loading, empty, error, and save-feedback behavior for real data.

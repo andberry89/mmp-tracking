@@ -17,9 +17,21 @@
       />
 
       <p v-if="auth.error" class="login-error" role="alert">{{ auth.error }}</p>
+      <p v-if="resetSent" class="login-success" role="status">
+        If there is an account for that email, a password setup link will arrive shortly.
+      </p>
+      <p v-if="resetHint" class="login-hint" role="status">{{ resetHint }}</p>
 
       <button type="submit" :disabled="auth.isLoading">
         {{ auth.isLoading ? "Signing in…" : "Sign in" }}
+      </button>
+      <button
+        type="button"
+        class="reset-button"
+        :disabled="auth.isLoading"
+        @click="handlePasswordReset"
+      >
+        {{ auth.isLoading ? "Sending link…" : "Forgot or need to set your password?" }}
       </button>
       <small>Accounts are provisioned by an Editor. There is no public sign-up.</small>
     </form>
@@ -27,16 +39,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 
 const emit = defineEmits<{ (event: "signed-in"): void }>();
 const auth = useAuthStore();
 const email = ref("");
 const password = ref("");
+const resetSent = ref(false);
+const resetHint = ref("");
+
+watch(email, () => {
+  resetSent.value = false;
+  resetHint.value = "";
+});
 
 async function handleSignIn() {
   if (await auth.signIn(email.value, password.value)) emit("signed-in");
+}
+
+async function handlePasswordReset() {
+  resetHint.value = "";
+  if (!email.value) {
+    resetHint.value = "Enter the email address you were invited at first.";
+    return;
+  }
+  resetSent.value = await auth.sendPasswordReset(email.value);
 }
 </script>
 
@@ -98,11 +126,27 @@ async function handleSignIn() {
   cursor: wait;
 }
 
+.login-card .reset-button {
+  margin-top: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: #245a8d;
+  font-weight: 600;
+}
+
 .login-card small {
   color: #64748b;
 }
 
 .login-error {
   color: #b42318;
+}
+
+.login-success {
+  color: #166534;
+}
+
+.login-hint {
+  color: #475569;
 }
 </style>

@@ -46,7 +46,6 @@ import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/compon
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 
 import { getRangeDates, getDocumentAuthor } from "@/utils/";
-import { sortDocuments } from "@/utils/sort-functions";
 import { getHeaderConfig } from "@/config/headerConfigs";
 import { isWithinInterval } from "date-fns";
 
@@ -114,7 +113,7 @@ const filteredDocuments = computed(() => {
 
   }
 
-  return sortDocuments(docs);
+  return docs;
 });
 /**
  * Compute PageHeader props based on the current activeLabel.
