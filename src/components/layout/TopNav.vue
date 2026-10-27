@@ -1,16 +1,15 @@
 <template>
-  <nav class="flex flex-nowrap w-full pl-5">
-    <span
+  <nav class="top-nav" aria-label="Main navigation">
+    <button
       v-for="label in tabs"
       :key="label"
-      :class="[
-        'inline-block font-bold text-[32px] leading-[1.2] font-[Monda,sans-serif] text-[var(--color-header-text)] mr-10 cursor-pointer pb-[10px] hover:text-[var(--color-header-text-hover)]',
-        label === activeTab && 'border-b-[4px] border-[var(--color-header-text-underline)]',
-      ]"
+      :class="['top-nav__link', label === activeTab && 'top-nav__link--active']"
+      type="button"
+      :aria-current="label === activeTab ? 'page' : undefined"
       @click="handleClick(label)"
     >
       {{ label }}
-    </span>
+    </button>
   </nav>
 </template>
 
@@ -33,3 +32,49 @@ function handleClick(label: string) {
   emit("tab-change", label);
 }
 </script>
+
+<style scoped>
+.top-nav {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  gap: clamp(18px, 2.5vw, 38px);
+  min-width: 0;
+  padding: 0 clamp(18px, 2.2vw, 32px);
+}
+
+.top-nav__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 3px 0 0;
+  color: var(--color-header-text);
+  border: 0;
+  background: transparent;
+  font: 700 clamp(20px, 2.1vw, 28px)/1.15 "Monda", sans-serif;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.top-nav__link:hover,
+.top-nav__link--active {
+  color: var(--color-header-text-active);
+}
+
+.top-nav__link:focus-visible {
+  outline: 2px solid var(--green-2);
+  outline-offset: -5px;
+}
+
+.top-nav__link--active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--color-header-text-underline);
+}
+</style>

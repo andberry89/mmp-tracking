@@ -3,12 +3,12 @@
     <form @submit.prevent="handleSave" id="task-edit-form">
       <!-- form content -->
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Vehicle</label>
+        <label class="form-field">Vehicle</label>
         <input
           type="text"
           v-model="vehicleName"
           readonly
-          class="w-full border border-gray-300 rounded p-2 bg-gray-100"
+          class="form-control mt-1"
         />
       </div>
 
@@ -20,6 +20,7 @@
         <button
           type="button"
           id="highPriority"
+          :aria-pressed="editableTask.highPriority"
           @click="editableTask.highPriority = !editableTask.highPriority"
           :class="[
             'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
@@ -36,45 +37,47 @@
       </div>
 
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-        <select v-model="editableTask.status" class="w-full border border-gray-300 rounded p-2">
+        <label class="form-field">
+          Status
+          <select v-model="editableTask.status" class="form-control">
           <option v-for="status in taskStatuses" :key="status.value" :value="status.value">
             {{ status.label }}
           </option>
-        </select>
+          </select>
+        </label>
       </div>
 
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Deadline</label>
+        <label class="form-field">Deadline</label>
         <input
           type="date"
           v-model="editableTask.deadline"
-          class="w-full border border-gray-300 rounded p-2"
+          class="form-control mt-1"
         />
       </div>
 
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Embargo Date</label>
+        <label class="form-field">Embargo Date</label>
         <div class="flex gap-2">
           <input
             type="date"
             v-model="embargoDatePart"
-            class="w-1/2 border border-gray-300 rounded p-2"
+            class="form-control mt-1"
           />
           <input
             type="time"
             v-model="embargoTimePart"
-            class="w-1/2 border border-gray-300 rounded p-2"
+            class="form-control mt-1"
           />
         </div>
       </div>
 
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Notes</label>
+        <label class="form-field">Notes</label>
         <textarea
           v-model="editableTask.notes"
           rows="4"
-          class="w-full border border-gray-300 rounded p-2"
+          class="form-control mt-1"
         ></textarea>
       </div>
     </form>
@@ -84,14 +87,14 @@
         <button
           type="button"
           @click="$emit('close')"
-          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          class="app-button app-button--secondary"
         >
           Cancel
         </button>
         <button
           type="submit"
           form="task-edit-form"
-          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          class="app-button app-button--primary"
         >
           Save
         </button>

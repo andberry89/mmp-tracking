@@ -73,7 +73,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 
 - [x] Run an initial code audit, repair TypeScript/lint setup errors, and connect existing search/author/date filters to the MMP list. See [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md).
 - [ ] Decide whether to apply the remaining Vue formatting warnings in a dedicated style-only pass.
-- [ ] Do a dedicated visual-design pass to give the app a deliberate, distinctive character; streamline the new auth, task, and reference-data screens and align them with the user's preferred workbook styling.
+- [ ] Continue the visual-design pass across the current auth, task, and reference-data screens; review the tracking-page baseline with the user before extending it to Changeover and Page Audit.
 - [x] Draft shared relational data around vehicle/model years, production work, and Changeover; keep detailed Page Audit schema deferred.
 - [x] Select Supabase as the backend; add the SDK, local client scaffold, login gate, task/author reads, Realtime subscriptions, and persistence for existing task edits/resources.
 - [x] Review and apply the initial schema migration to the new Supabase project.

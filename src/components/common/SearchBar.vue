@@ -1,11 +1,9 @@
 <template>
-  <div
-    class="flex items-center w-[320px] h-[24px] bg-[var(--color-input-background)] border border-[var(--color-input-border)] px-[4px] rounded-[8px]"
-  >
-    <SearchIcon class="text-[var(--color-search-text-placeholder)]" />
+  <div class="search-field">
+    <SearchIcon class="search-field__icon text-[var(--color-search-text-placeholder)]" />
     <input
       type="search"
-      class="ml-[4px] flex-1 outline-none border-none bg-transparent text-[12px] font-[400] leading-[1] font-[Monda,sans-serif] text-[var(--color-search-text)] placeholder:text-[var(--color-search-text-placeholder)]"
+      class="search-field__input"
       :placeholder="placeholder"
       :value="modelValue"
       @input="onInput"
@@ -59,3 +57,49 @@ function onInput(event: Event) {
   }, props.delay);
 }
 </script>
+
+<style scoped>
+.search-field {
+  display: flex;
+  align-items: center;
+  width: clamp(220px, 26vw, 340px);
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--color-input-border);
+  border-radius: 6px;
+  background: var(--color-input-background);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.search-field:focus-within {
+  border-color: var(--color-focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus-ring) 24%, transparent);
+}
+
+.search-field__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.search-field__input {
+  width: 100%;
+  min-width: 0;
+  margin-left: 8px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-search-text);
+  font: 400 0.82rem/1.2 "Asap", sans-serif;
+}
+
+.search-field__input::placeholder {
+  color: var(--color-body-text-secondary);
+}
+
+@media (max-width: 620px) {
+  .search-field {
+    width: min(100%, 280px);
+  }
+}
+</style>

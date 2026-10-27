@@ -258,7 +258,7 @@ function handleSave() {
 .new-task-form label {
   display: grid;
   gap: 5px;
-  color: #334155;
+  color: var(--gray-dark-3);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -268,21 +268,29 @@ function handleSave() {
 .new-task-form textarea {
   width: 100%;
   min-height: 38px;
-  border: 1px solid #cbd5e1;
-  border-radius: 5px;
+  border: 1px solid var(--color-form-border);
+  border-radius: 6px;
   padding: 8px 10px;
-  background: white;
-  color: #0f172a;
+  background: var(--white);
+  color: var(--gray-dark-5);
   font-weight: 400;
 }
 
 .new-task-form input[readonly] {
-  background: #f1f5f9;
+  background: var(--white-soft);
+}
+
+.new-task-form input:focus-visible,
+.new-task-form select:focus-visible,
+.new-task-form textarea:focus-visible {
+  border-color: var(--color-focus-ring);
+  outline: 2px solid color-mix(in srgb, var(--color-focus-ring) 30%, transparent);
+  outline-offset: 1px;
 }
 
 .required,
 .form-error {
-  color: #b42318;
+  color: var(--red);
 }
 
 .update-option {
@@ -300,7 +308,7 @@ function handleSave() {
 .resource-section {
   display: grid;
   gap: 12px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
   padding-top: 14px;
 }
 
@@ -333,7 +341,7 @@ function handleSave() {
   gap: 8px;
   padding: 10px;
   border-radius: 6px;
-  background: #f8fafc;
+  background: var(--color-background);
 }
 
 .primary-button,
@@ -346,9 +354,13 @@ function handleSave() {
 }
 
 .primary-button {
-  border: 0;
-  background: #245a8d;
-  color: white;
+  border: 1px solid transparent;
+  background: var(--color-action-background);
+  color: var(--color-action-text);
+}
+
+.primary-button:hover:not(:disabled) {
+  background: var(--color-action-background-hover);
 }
 
 .primary-button:disabled {
@@ -357,20 +369,25 @@ function handleSave() {
 }
 
 .secondary-button {
-  border: 1px solid #cbd5e1;
-  background: white;
-  color: #334155;
+  border: 1px solid var(--color-form-border);
+  background: var(--white);
+  color: var(--gray-dark-3);
+}
+
+.secondary-button:hover {
+  border-color: var(--gray-light-4);
+  background: var(--white-soft);
 }
 
 .remove-button {
   border: 0;
   background: transparent;
-  color: #b42318;
+  color: var(--red);
 }
 
 .form-hint {
   margin: 0;
-  color: #64748b;
+  color: var(--gray-light-4);
   font-size: 0.8rem;
 }
 

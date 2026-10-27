@@ -1,10 +1,10 @@
 <template>
-  <div class="author-page p-8">
-    <h1 class="text-3xl font-bold mb-4">author Page</h1>
-    <p class="text-lg text-gray-700">Welcome to the author Page!</p>
-  </div>
+  <ReferenceDataPanel
+    title="Author"
+    description="Writers are grouped by Buyer’s Guide, Car and Driver, and Freelancers for assignment."
+  />
 </template>
 
-<style scoped>
-/* No custom styles needed with Tailwind */
-</style>
+<script setup lang="ts">
+import ReferenceDataPanel from "@/components/pages/components/ReferenceDataPanel.vue";
+</script>

@@ -12,8 +12,8 @@
   >
     <div>
       <!-- Header -->
-      <header v-if="title" class="mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">{{ title }}</h2>
+      <header v-if="title" class="app-modal__header">
+        <h2 class="app-modal__title">{{ title }}</h2>
       </header>
 
       <!-- Modal Content -->
@@ -22,7 +22,7 @@
       </div>
 
       <!-- Option Footer -->
-      <footer v-if="$slots.footer" class="mt-6">
+      <footer v-if="$slots.footer" class="app-modal__footer">
         <slot name="footer" />
       </footer>
     </div>
@@ -51,13 +51,12 @@ const localModel = computed({
 });
 
 const contentClasses = computed(() => {
-  const base =
-    "bg-white p-8 rounded-lg min-w-[400px] max-w-[600px] flex flex-col shadow-[0_20px_40px_rgba(0,0,0,0.2)]";
+  const base = "app-modal-panel";
   const sizeMap = {
-    sm: "w-[320px]",
-    md: "w-[480px]",
-    lg: "w-[640px]",
-    xl: "w-[800px]",
+    sm: "app-modal-panel--sm",
+    md: "app-modal-panel--md",
+    lg: "app-modal-panel--lg",
+    xl: "app-modal-panel--xl",
   };
   return `${base} ${sizeMap[props.size || "md"]}`;
 });

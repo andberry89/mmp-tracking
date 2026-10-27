@@ -3,12 +3,14 @@
     /* Gray color palette */
     --white: #ffffff;
     --white-muted: #f1f1f1;
-    --white-soft: #f2f2f2;
+    --white-soft: #f5f4f0;
     --gray-light-1: #e2e2e2;
     --gray-light-1-transparent: rgba(226, 226, 226, 0.4);
     --gray-light-2: #b6b6b6;
     --gray-light-3: #9a9a9a;
     --gray-light-4: #595959;
+    --gray-light-5: #c2c2bc;
+    --gray-light-6: #8a8a83;
     --gray: #535353;
     --gray-dark-2: #4c4c4c;
     --gray-dark-3: #404040;
@@ -29,6 +31,8 @@
     --indigo: #7250fd;
     --mint: #40cba0;
     --red: #e2574c;
+    --red-dark: #c9483f;
+    --green-dark: #347245;
     --light-green-transparent: rgba(148, 191, 105, 0.6);
     --red-transparent: rgba(226, 87, 76, 0.6);
 
@@ -42,15 +46,25 @@
 
     --color-border: var(--gray-light-1);
     --color-border-hover: var(--gray-dark-4);
+    --color-divider: rgba(83, 83, 83, 0.16);
+    --color-shell-shadow: 0 12px 36px rgba(39, 39, 39, 0.08);
+    --color-surface-shadow: 0 1px 2px rgba(39, 39, 39, 0.025);
+    --color-surface-shadow-hover: 0 4px 14px rgba(39, 39, 39, 0.08);
+    --color-green-soft: #f7faef;
+    --color-action-background: var(--green-2);
+    --color-action-background-hover: #86ad5c;
+    --color-action-text: var(--gray-dark-5);
+    --color-form-border: var(--gray-light-2);
+    --color-focus-ring: var(--green-2);
 
     --color-sidebar-text: var(--white);
-    --color-sidebar-text-header: var(--gray-light-3);
+    --color-sidebar-text-header: var(--gray-light-5);
     --color-sidebar-text-subtext: var(--gray-light-3);
     --color-sidebar-text-hover: var(--gray-dark-3);
     --color-sidebar-divider: var(--gray-light-1-transparent);
 
     /* Header colors */
-    --color-header-text: var(--gray-light-3);
+    --color-header-text: var(--gray-light-6);
     --color-header-text-active: var(--gray);
     --color-header-text-hover: var(--gray);
     --color-header-text-underline: var(--green-2);
@@ -59,7 +73,7 @@
     --color-add-new: var(--green-2);
     --color-add-new-item-text: var(--gray-light-4);
     --color-add-new-item-border: var(--light-green-transparent);
-    --color-add-new-item-border-hover: var(--red-transparent);
+    --color-add-new-item-border-hover: var(--green-2);
 
     /* Body colors */
     --color-body-header-text: var(--gray-dark-5);
@@ -96,7 +110,7 @@
     /* Input colors */
     --color-input-background: var(--white);
     --color-input-background-hover: var(--gray-dark-2);
-    --color-input-border: var(--white-muted);
+    --color-input-border: var(--gray-light-2);
     --color-input-hover: var(--gray-light-1);
     --color-search-text: var(--black);
     --color-search-text-placeholder: var(--black-transparent-1);

@@ -6,12 +6,12 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+        <button @click="$emit('close')" class="app-button app-button--secondary">
           Cancel
         </button>
         <button
           @click="$emit('delete')"
-          class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          class="app-button app-button--danger"
         >
           Delete
         </button>

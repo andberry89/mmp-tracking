@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-[var(--color-body-background)] border-2 border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-100 ease-in-out hover:border-black"
+    class="task-row bg-[var(--color-body-background)] border border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-150 ease-in-out"
   >
     <TaskHeader :doc="doc" />
     <TaskStatus

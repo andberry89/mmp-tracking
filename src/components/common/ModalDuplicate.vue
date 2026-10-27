@@ -7,12 +7,12 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+        <button @click="$emit('close')" class="app-button app-button--secondary">
           Cancel
         </button>
         <button
           @click="$emit('duplicate', task)"
-          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          class="app-button app-button--primary"
         >
           Duplicate
         </button>

@@ -1,9 +1,9 @@
 <template>
-  <section class="flex flex-nowrap items-start justify-between gap-[10px]">
+  <section class="page-toolbar">
     <div>
       <h1 class="page-header">{{ title }}</h1>
     </div>
-    <div class="flex items-start gap-[10px]">
+    <div class="page-toolbar__controls">
       <form @submit.prevent>
         <SearchBar v-model="localSearch" :placeholder="searchPlaceholder" />
       </form>
@@ -53,3 +53,23 @@ const localSearch = ref("");
 
 watch(localSearch, (value) => emit("update:search", value));
 </script>
+
+<style scoped>
+.page-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.page-toolbar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+</style>

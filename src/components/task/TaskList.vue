@@ -3,7 +3,7 @@
     <p v-if="documentsStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
       Could not load or save shared data: {{ documentsStore.error }}
     </p>
-    <section class="mt-5 grid">
+    <section class="task-column-header mt-5 grid">
       <div class="content-column-header" v-for="header in headers" :key="header">
         <span class="column-header-text">{{ header }}</span>
       </div>
@@ -12,7 +12,7 @@
     <section
       v-if="canEdit"
       @click="openNewTask"
-      class="flex items-center gap-[10px] px-[5px] py-[8px] text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border-2 border-dashed border-[var(--color-add-new-item-border)] cursor-pointer mb-[5px] hover:border-[var(--color-add-new-item-border-hover)] transition-colors duration-200 ease-in-out hover:bg-[var(--white)]"
+      class="add-task-row flex items-center gap-[10px] px-[10px] py-[10px] text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border border-dashed border-[var(--color-add-new-item-border)] cursor-pointer mb-[5px] transition-colors duration-200 ease-in-out"
     >
       <PlusIcon class="fill-[var(--color-add-new)] p-0 m-0 cursor-pointer" />
       <span>Add New Task</span>
@@ -20,7 +20,7 @@
 
     <section class="font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
       <h3
-        class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
+        class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
       >
         Pending
       </h3>
@@ -40,7 +40,7 @@
       />
 
       <h3
-        class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
+        class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
       >
         Ready to Publish
       </h3>
@@ -59,7 +59,7 @@
       />
 
       <h3
-        class="mt-[20px] mb-[5px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
+        class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]"
       >
         Published
       </h3>
@@ -285,5 +285,45 @@ const headers = [
 
 .grid {
   @include column-layout();
+}
+
+.task-row {
+  min-height: 50px;
+  box-shadow: var(--color-surface-shadow);
+}
+
+.task-row:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--color-surface-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.task-column-header {
+  margin-bottom: 6px;
+}
+
+.add-task-row {
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.add-task-row:hover {
+  border-color: var(--color-add-new-item-border-hover);
+  background: var(--white);
+}
+
+.task-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  letter-spacing: 0.01em;
+}
+
+.task-group-heading::before {
+  content: "";
+  width: 3px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--green-2);
 }
 </style>
