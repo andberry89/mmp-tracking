@@ -22,6 +22,7 @@
             :documents="filteredDocuments"
             :authors="authors"
             :activeAuthorsByTeam="activeAuthorsByTeam"
+            :can-edit="canEdit"
           />
         </div>
       </div>
@@ -56,6 +57,7 @@ const props = defineProps<{
   authors: GroupedAuthors;
   ranges: Array<{ id: string; label: string }>;
   activeLabel: string;
+  canEdit?: boolean;
 }>();
 
 // Store ------------------------------------

@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.1.13",
     "date-fns": "^4.1.0",
     "dateformat": "^5.0.3",
@@ -44,4 +45,3 @@
     "vue-tsc": "^3.0.7"
   }
 }
-

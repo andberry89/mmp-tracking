@@ -1,5 +1,8 @@
 <template>
   <div>
+    <p v-if="documentsStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
+      Could not load or save shared data: {{ documentsStore.error }}
+    </p>
     <section class="mt-5 grid">
       <div class="content-column-header" v-for="header in headers" :key="header">
         <span class="column-header-text">{{ header }}</span>
@@ -7,6 +10,8 @@
     </section>
 
     <section
+      v-if="canEdit"
+      @click="openNewTask"
       class="flex items-center gap-[10px] px-[5px] py-[8px] text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border-2 border-dashed border-[var(--color-add-new-item-border)] cursor-pointer mb-[5px] hover:border-[var(--color-add-new-item-border-hover)] transition-colors duration-200 ease-in-out hover:bg-[var(--white)]"
     >
       <PlusIcon class="fill-[var(--color-add-new)] p-0 m-0 cursor-pointer" />
@@ -24,6 +29,7 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
+        :can-edit="canEdit"
         :activeAuthorsByTeam="computedActiveAuthorsByTeam"
         @assign-author="handleAssignAuthor"
         @edit="handleEdit"
@@ -43,6 +49,7 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
+        :can-edit="canEdit"
         @assign-author="handleAssignAuthor"
         @edit="handleEdit"
         @duplicate="handleDuplicate"
@@ -61,6 +68,7 @@
         :key="doc.id"
         :doc="doc"
         class="grid"
+        :can-edit="canEdit"
         @assign-author="handleAssignAuthor"
         @edit="handleEdit"
         @duplicate="handleDuplicate"
@@ -76,7 +84,7 @@
       v-if="modalType"
       v-model="showModal"
       v-bind="modalProps"
-      @save="saveTask"
+      @save="handleModalSave"
       @close="closeModal"
       @delete="confirmDelete"
       @duplicate="confirmDuplicate"
@@ -87,27 +95,32 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
+import { sortDocuments } from "@/utils/sort-functions";
 
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
 import ModalEdit from "@/components/common/ModalEdit.vue";
 import ModalDelete from "@/components/common/ModalDelete.vue";
 import ModalDuplicate from "@/components/common/ModalDuplicate.vue";
+import ModalNewTask from "@/components/task/ModalNewTask.vue";
+import { useCatalogStore } from "@/stores/catalog";
 
-import type { Author, AuthorsByTeamGroup, DocumentsByStatus, TaskDocument } from "@/types";
+import type { Author, AuthorsByTeamGroup, NewTaskInput, TaskDocument } from "@/types";
 
 // ----------------------------------
 // Props
 // ----------------------------------
 const props = defineProps<{
-  documents?: DocumentsByStatus;
+  documents?: TaskDocument[];
   activeAuthorsByTeam?: AuthorsByTeamGroup[];
+  canEdit?: boolean;
 }>();
 
 // ----------------------------------
 // Store
 // ----------------------------------
 const documentsStore = useDocumentsStore();
+const catalogStore = useCatalogStore();
 
 // ----------------------------------
 // Modal and Task Handlers
@@ -115,13 +128,19 @@ const documentsStore = useDocumentsStore();
 
 // Modal State
 const showModal = ref(false);
-const modalType = ref<"edit" | "duplicate" | "delete" | null>(null);
+const modalType = ref<"new" | "edit" | "duplicate" | "delete" | null>(null);
 const modalPayload = ref<TaskDocument | null>(null);
 
 // Modal Helpers
 function openModal(type: "edit" | "duplicate" | "delete", payload: TaskDocument) {
   modalType.value = type;
   modalPayload.value = payload;
+  showModal.value = true;
+}
+
+function openNewTask() {
+  modalType.value = "new";
+  modalPayload.value = null;
   showModal.value = true;
 }
 
@@ -138,6 +157,14 @@ function saveTask(
 ) {
   documentsStore.updateDocument(updatedTask.id, updatedTask);
   if (options.closeModal) closeModal();
+}
+
+async function handleModalSave(payload: TaskDocument | NewTaskInput) {
+  if (modalType.value === "new") {
+    if (await documentsStore.createDocument(payload as NewTaskInput)) closeModal();
+    return;
+  }
+  saveTask(payload as TaskDocument);
 }
 
 function confirmDuplicate(task: TaskDocument) {
@@ -192,13 +219,17 @@ function handleAddAsset({
 // ----------------------------------
 
 // Documents by status
-const sortedBySection = computed(() => props.documents ?? documentsStore.sortedBySection);
+const sortedBySection = computed(() =>
+  props.documents ? sortDocuments(props.documents) : documentsStore.sortedBySection
+);
 
 // Active Authors By Team (from props)
 const computedActiveAuthorsByTeam = computed(() => props.activeAuthorsByTeam ?? []);
+const canEdit = computed(() => props.canEdit ?? true);
 
 // Modal component
 const modalComponents = {
+  new: ModalNewTask,
   edit: ModalEdit,
   delete: ModalDelete,
   duplicate: ModalDuplicate,
@@ -208,6 +239,15 @@ const currentModal = computed(() => (modalType.value ? modalComponents[modalType
 
 const modalProps = computed(() => {
   switch (modalType.value) {
+    case "new":
+      return {
+        makes: catalogStore.makes,
+        models: catalogStore.models,
+        modelYears: catalogStore.modelYears,
+        authorsByTeam: computedActiveAuthorsByTeam.value,
+        isSaving: documentsStore.isSaving,
+        error: documentsStore.error,
+      };
     case "edit":
       return { title: "Edit Task", task: modalPayload.value };
     case "delete":

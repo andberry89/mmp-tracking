@@ -11,15 +11,19 @@
     <TaskNotes :doc="doc" />
     <TaskAssets
       :assets="doc.assets"
+      :can-edit="canEdit"
       @delete-asset="(idx) => emit('delete-asset', { doc, idx })"
       @add-asset="(asset) => emit('add-asset', { doc, asset })"
     />
     <TaskAuthor
+      v-if="canEdit"
       :author="author"
       :authorsByTeam="activeAuthorsByTeam ?? []"
       @assign="(author) => emit('assign-author', { doc, author })"
     />
+    <div v-else class="text-center text-xs text-gray-700">{{ author?.initials || "—" }}</div>
     <TaskActions
+      v-if="canEdit"
       @edit="emit('edit', doc)"
       @duplicate="emit('duplicate', doc)"
       @delete="emit('delete', doc)"
@@ -49,6 +53,7 @@ import type { Author, TaskDocument } from "@/types";
 const props = defineProps<{
   doc: TaskDocument;
   activeAuthorsByTeam?: Array<{ team: string; members: Author[] }>;
+  canEdit?: boolean;
 }>();
 
 // ----------------------------------

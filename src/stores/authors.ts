@@ -5,12 +5,15 @@ import type { Author, GroupedAuthors, AuthorId } from "@/types";
 import { sortAuthors, getActiveAuthors } from "@/utils";
 
 import { authors as testAuthors } from "@/test/test-authors";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { fetchAuthors } from "@/lib/supabase-data";
 
 export const useAuthorsStore = defineStore("authors", () => {
   // ----------------------------------
   // STATE
   // ----------------------------------
   const authorsById = ref<Record<string, Author>>({});
+  const error = ref<string | null>(null);
 
   // ----------------------------------
   // GETTERS
@@ -47,9 +50,26 @@ export const useAuthorsStore = defineStore("authors", () => {
     upsertAuthors(testAuthors);
   }
 
+  async function loadAuthors() {
+    if (!isSupabaseConfigured) {
+      initializeAuthors();
+      return;
+    }
+
+    error.value = null;
+    try {
+      const authors = await fetchAuthors();
+      authorsById.value = Object.fromEntries(authors.map((author) => [author.id, author]));
+    } catch (reason) {
+      error.value = reason instanceof Error ? reason.message : "Unable to load authors.";
+      authorsById.value = {};
+    }
+  }
+
   return {
     // state
     authorsById,
+    error,
 
     // getters
     allAuthors,
@@ -63,5 +83,6 @@ export const useAuthorsStore = defineStore("authors", () => {
 
     // loading
     initializeAuthors,
+    loadAuthors,
   };
 });

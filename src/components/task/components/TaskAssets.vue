@@ -1,16 +1,12 @@
 <template>
   <div>
-    <Popper placement="top" disableClickAway arrow>
-      <div>
+    <Popper v-if="hasAssets" placement="top" disableClickAway arrow>
+      <div @click="toggleAssets">
         <FolderIcon
-          :class="['zoomable', hasAssets ? 'fill-[var(--color-body-active-assets)]' : '']"
-          v-if="!assetsVisible"
-          @click="toggleAssets"
+          :class="['zoomable fill-[var(--color-body-active-assets)]', assetsVisible && 'hidden']"
         />
         <FolderOpenIcon
-          class="zoomable fill-[var(--color-body-active-assets)]"
-          v-else
-          @click="toggleAssets"
+          :class="['zoomable fill-[var(--color-body-active-assets)]', !assetsVisible && 'hidden']"
         />
       </div>
       <template #content>
@@ -35,6 +31,7 @@
                 {{ asset.notes }}
               </a>
               <button
+                v-if="canEdit"
                 @click="removeAsset(idx)"
                 class="ml-2 text-red-500 hover:text-red-700 hover:cursor-pointer"
                 title="Delete Asset"
@@ -43,7 +40,7 @@
               </button>
             </li>
           </transition-group>
-          <div class="border-t pt-3">
+          <div v-if="canEdit" class="border-t pt-3">
             <h2 class="text-center text-sm mb-2">Add New Asset</h2>
             <div class="mb-2">
               <label class="block text-xs mb-1">Label</label>
@@ -79,6 +76,7 @@
         </div>
       </template>
     </Popper>
+    <FolderIcon v-else class="fill-gray-300 cursor-not-allowed" aria-label="No resources" />
   </div>
 </template>
 <script setup lang="ts">
@@ -88,6 +86,7 @@ import { FolderIcon, FolderOpenIcon } from "@/assets/icons";
 // Props & Emits ----------------------------
 const props = defineProps<{
   assets: { url: string; notes: string }[];
+  canEdit?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -103,6 +102,7 @@ const newUrl = ref("");
 
 // Computed -------------------------------
 const hasAssets = computed(() => props.assets.length > 0);
+const canEdit = computed(() => props.canEdit ?? true);
 
 // Methods --------------------------------
 function toggleAssets(evt: MouseEvent) {
