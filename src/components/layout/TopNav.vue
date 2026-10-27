@@ -1,8 +1,9 @@
 <template>
-  <nav class="top-nav" aria-label="Main navigation">
+  <nav ref="navElement" class="top-nav" aria-label="Main navigation">
     <button
       v-for="label in tabs"
       :key="label"
+      :ref="(element) => setTabElement(label, element)"
       :class="['top-nav__link', label === activeTab && 'top-nav__link--active']"
       type="button"
       :aria-current="label === activeTab ? 'page' : undefined"
@@ -10,17 +11,25 @@
     >
       {{ label }}
     </button>
+    <span
+      class="top-nav__indicator"
+      :style="{ left: `${indicator.left}px`, width: `${indicator.width}px` }"
+      aria-hidden="true"
+    />
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 // Tabs to render in the navigation
 const tabs = ["MMPs", "Makes", "Models", "Segments", "Authors"];
 
 // Local State
 const activeTab = ref("MMPs");
+const navElement = ref<HTMLElement | null>(null);
+const tabElements = new Map<string, HTMLButtonElement>();
+const indicator = reactive({ left: 0, width: 0 });
 
 // Define emit
 const emit = defineEmits<{
@@ -31,10 +40,47 @@ function handleClick(label: string) {
   activeTab.value = label;
   emit("tab-change", label);
 }
+
+function setTabElement(label: string, element: unknown) {
+  if (element instanceof HTMLButtonElement) tabElements.set(label, element);
+  else tabElements.delete(label);
+}
+
+function updateIndicator() {
+  const nav = navElement.value;
+  const activeElement = tabElements.get(activeTab.value);
+  if (!nav || !activeElement) return;
+
+  const navRect = nav.getBoundingClientRect();
+  const activeRect = activeElement.getBoundingClientRect();
+  indicator.left = activeRect.left - navRect.left + nav.scrollLeft;
+  indicator.width = activeRect.width;
+}
+
+function onResize() {
+  updateIndicator();
+}
+
+watch(activeTab, async () => {
+  await nextTick();
+  updateIndicator();
+});
+
+onMounted(async () => {
+  await nextTick();
+  updateIndicator();
+  window.addEventListener("resize", onResize);
+  void document.fonts?.ready.then(updateIndicator);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", onResize);
+});
 </script>
 
 <style scoped>
 .top-nav {
+  position: relative;
   display: flex;
   align-items: stretch;
   align-self: stretch;
@@ -67,14 +113,20 @@ function handleClick(label: string) {
   outline-offset: -5px;
 }
 
-.top-nav__link--active::after {
-  content: "";
+.top-nav__indicator {
   position: absolute;
-  right: 0;
   bottom: 0;
-  left: 0;
   height: 3px;
   border-radius: 3px 3px 0 0;
   background: var(--color-header-text-underline);
+  pointer-events: none;
+  transition: left 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-nav__indicator {
+    transition: none;
+  }
 }
 </style>
