@@ -50,10 +50,10 @@ interface DbTask {
   model_year_vehicles: {
     id: string;
     model_year: number;
+    segments: { name: string } | null;
     models: {
       name: string;
       makes: { name: string };
-      segments: { name: string } | null;
     };
   };
   task_resources: DbTaskResource[];
@@ -103,7 +103,7 @@ export async function fetchTasks(): Promise<TaskDocument[]> {
     "published_at",
     "created_at",
     "updated_at",
-    "model_year_vehicles!inner(id, model_year, models!inner(name, makes!inner(name), segments(name)))",
+    "model_year_vehicles!inner(id, model_year, segments(name), models!inner(name, makes!inner(name)))",
     "task_resources(id, kind, label, url, notes)",
   ].join(",");
 
@@ -133,7 +133,7 @@ export async function fetchTasks(): Promise<TaskDocument[]> {
       vehicle: {
         make: row.model_year_vehicles.models.makes.name,
         model: row.model_year_vehicles.models.name,
-        segment: row.model_year_vehicles.models.segments?.name ?? "",
+        segment: row.model_year_vehicles.segments?.name ?? "",
         modelYear: row.model_year_vehicles.model_year,
       },
       authorId: row.author_id as AuthorId | null,

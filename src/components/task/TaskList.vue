@@ -241,8 +241,9 @@ const modalProps = computed(() => {
   switch (modalType.value) {
     case "new":
       return {
-        makes: catalogStore.makes,
-        models: catalogStore.models,
+        makes: catalogStore.activeMakes,
+        models: catalogStore.activeModels,
+        modelYearVehicles: catalogStore.activeModelYearVehicles,
         modelYears: catalogStore.modelYears,
         authorsByTeam: computedActiveAuthorsByTeam.value,
         isSaving: documentsStore.isSaving,

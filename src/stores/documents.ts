@@ -61,7 +61,7 @@ export const useDocumentsStore = defineStore("documents", () => {
         const { data: vehicleRow, error: vehicleError } = await supabase
           .from("model_year_vehicles")
           .upsert(
-            { model_id: input.modelId, model_year: input.modelYear },
+            { model_id: input.modelId, model_year: input.modelYear, segment_id: input.segmentId },
             { onConflict: "model_id,model_year" }
           )
           .select("id")

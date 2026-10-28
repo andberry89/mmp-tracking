@@ -77,12 +77,21 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Draft shared relational data around vehicle/model years, production work, and Changeover; keep detailed Page Audit schema deferred.
 - [x] Select Supabase as the backend; add the SDK, local client scaffold, login gate, task/author reads, Realtime subscriptions, and persistence for existing task edits/resources.
 - [x] Review and apply the initial schema migration to the new Supabase project.
+- [x] Apply the follow-up catalog Realtime migration in `supabase/migrations/202610280001_catalog_realtime.sql` to the existing Supabase project.
+- [x] Apply the Segment-per-model-year migration in `supabase/migrations/202610280002_segment_per_model_year.sql` to the existing Supabase project.
 - [ ] Provision initial Editors and verify Auth, Realtime, and RLS in the project.
 - [ ] Establish and verify off-site exports before using the Free plan as the only production data store.
 - [ ] Review and resolve dependency advisories before production; `npm audit --omit=dev` currently reports 10 vulnerabilities (9 high, 1 critical).
 - [ ] Import and reconcile workbook history, including inconsistent spellings, repeated year tabs, embedded notes/URLs, and varied statuses.
-- [ ] Add editable Make, Model, Segment, and Author records; constrain Author teams to Buyer's Guide (BG), Car and Driver (C/D), and Freelancers (FL).
-- [ ] Auto-populate a model's segment when selecting make and model on a new task.
+- [x] For conflicting Make/Model/Year Segments, use the most recent dated Publication Tracking row; review the Author candidate map in [CATALOG_IMPORT_REVIEW.md](CATALOG_IMPORT_REVIEW.md).
+- [x] Confirm active Author identities and teams with the project owner; prepare the active roster seed in `supabase/seeds/authors.sql`.
+- [x] Run `supabase/seeds/authors.sql` in the Supabase SQL Editor to populate the confirmed active Author roster.
+- [x] Prepare a non-destructive catalog seed from Publication Tracking, Changeover, and Page Audit data using the agreed newest-dated Segment rule.
+- [x] Normalize `Chevy` to `Chevrolet` and run the catalog seed in Supabase; record remaining blank Segment/year exceptions in `docs/CATALOG_IMPORT_REVIEW.md`.
+- [x] Keep tracking aliases omitted from the supplied roster inactive and out of new task assignment.
+- [ ] Decide how to retain unmatched inactive-author names on historical imported tasks; keep them unassigned until identity/team mapping is known.
+- [x] Add editable Make, Model, Segment, and Author records; constrain Author teams to Buyer's Guide (BG), Car and Driver (C/D), and Freelancers (FL).
+- [x] Auto-populate a vehicle year's segment when selecting Make, Model, and Model Year on a new task.
 - [ ] Implement year-specific Changeover fields for assigned Author, status, notes/research, and the shared published URL. “Double-check info?” belongs in Page Audit; Make Tags are dropped.
 - [ ] Add a Page Audit checklist with typed answers and visibility for incomplete items.
 - [ ] Keep later updates linked to the existing published MMP without restarting the new-page lifecycle.
@@ -92,7 +101,9 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Add email/password sign-in and Editor/Viewer gating for Publication Tracking task controls; new accounts default to Viewer in the schema.
 - [x] Add invitation-link password setup for initial Auth accounts.
 - [x] Wire the visible “Add New Task” control to a create flow with Make/Model/Model Year selection, automatic Segment display, task details, and resources.
-- [ ] Add an Editor interface to manage Make, Model, Segment, and Model Year catalog data; demo mode currently derives options from sample tasks.
+- [x] Add an Editor interface to manage Make, Model, Segment, Author, and Model Year catalog data, including per-year Segment mapping; archived entries stay available for history but are omitted from new task selections.
+- [ ] In the Authors catalog, let users click an author's name to see the tasks assigned to them.
+- [ ] Import and reconcile the workbook's Make, Model, Segment, Author, and Model Year catalog values.
 - [ ] Define loading, empty, error, and save-feedback behavior for real data.
 - [ ] Define account invitation/provisioning, audit history, and deployment requirements.
 - [ ] Confirm the pilot's account provisioning approach; the current login scaffold assumes accounts are created/invited by an Editor and has no public sign-up.

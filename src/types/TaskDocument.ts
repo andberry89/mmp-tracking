@@ -33,6 +33,7 @@ export interface TaskResourceInput {
 
 export interface NewTaskInput {
   modelId: string;
+  segmentId: string | null;
   make: string;
   model: string;
   modelYear: number;

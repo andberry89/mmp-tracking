@@ -2,6 +2,10 @@
 
 This is a working roadmap based on the prototype and the team's workbook/process description as of 2026-10-23. It is not a committed delivery schedule. See [WORKFLOWS.md](WORKFLOWS.md) for the process model and questions to resolve.
 
+## Current checkpoint
+
+Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. The next work is to import and reconcile the workbook's master data, then validate Publication Tracking against real shared records before building Changeover and Page Audit.
+
 ## 1. Confirm the work
 
 - Confirm handoffs and exact status meanings, including updates and audit follow-up.
@@ -13,7 +17,7 @@ This is a working roadmap based on the prototype and the team's workbook/process
 
 - Build a continuously updated Publication Tracking view with search, filters, sorting, and pagination that stays quick on the full dataset.
 - Build year-specific Changeover and Page Audit views over agreed model-year vehicle/page records; decide whether these are separate views over one record or linked records.
-- Add editable Makes, Models, Segments, and Authors sources, including author teams (BG, C/D, FL) and make/model-to-segment mapping.
+- [x] Add editable Makes, Models, Segments, and Authors sources, including author teams (BG, C/D, FL) and make/model/year-to-segment mapping.
 - Support task creation from controlled make/model/author options and automatically fill the segment from the selected model.
 - Add drag-and-drop to reorder or move work where the agreed workflow benefits from it, with explicit status/permission rules.
 - Preserve updates as records associated with a published MMP, without sending them through the new-page workflow.
@@ -21,10 +25,10 @@ This is a working roadmap based on the prototype and the team's workbook/process
 
 ## 3. Establish reliable data and access
 
-- Choose between a Microsoft-backed solution and a standalone shared database after IT, identity, hosting, and integration constraints are known.
-- Replace sample-only loading with durable multi-user persistence and live updates.
-- Decide authentication, roles, conflict handling, and audit history.
-- Add user authentication with role-based view-only and edit access.
+- [x] Choose Supabase as the shared database.
+- [x] Add durable task/catalog persistence and live updates for shared records.
+- [x] Add Editor/Viewer authentication and role-based access.
+- Decide conflict handling and audit history.
 - Plan safe import, migration, reconciliation, and backup of existing records.
 
 ## 4. Prepare for daily use
@@ -43,4 +47,4 @@ This is a working roadmap based on the prototype and the team's workbook/process
 
 ## Current prototype boundary
 
-The repository currently implements a Vue 3 dashboard shell and a sample-data MMP task workflow. It does not yet establish a production backend, authentication, or a complete end-to-end process. The spreadsheet provides current operational detail and historical records. See [TECH_HANDOFF.md](TECH_HANDOFF.md) for details.
+The repository implements a Vue 3 dashboard, Supabase-backed task/catalog flows, and Editor/Viewer authentication. It is not yet a complete end-to-end process: workbook import, larger-scale Publication Tracking performance, Changeover, and Page Audit remain. See [TECH_HANDOFF.md](TECH_HANDOFF.md) for implementation details.

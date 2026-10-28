@@ -21,7 +21,7 @@
     <div id="logo" class="logo"></div>
 
     <header>
-      <TopNav @tab-change="onTabChange" />
+      <TopNav :active-tab="activeTopLevel" @tab-change="onTabChange" />
       <div v-if="isSupabaseConfigured" class="account-bar">
         <span>{{ authStore.profile?.display_name || authStore.session?.user.email }}</span>
         <span class="role-label">{{ authStore.profile?.role }}</span>
@@ -39,6 +39,7 @@
         :authors="sortedAuthors"
         :activeLabel="activeLabel"
         :can-edit="canEdit"
+        @catalog-tab-change="onCatalogTabChange"
       />
     </main>
 
@@ -94,10 +95,12 @@ async function loadWorkspaceData() {
     catalogStore.loadCatalog(),
   ]);
   documentsStore.subscribeToChanges();
+  catalogStore.subscribeToChanges();
 }
 
 async function handleSignOut() {
   documentsStore.stopRealtime();
+  catalogStore.stopRealtime();
   documentsStore.clearDocuments();
   await authStore.signOut();
 }
@@ -106,6 +109,7 @@ async function handleSignOut() {
 // STATE
 // ----------------------------------
 const activeLabel = ref("MMPs");
+const activeCatalogLabel = ref("Makes");
 const ranges = ref(defaultRanges);
 
 // ----------------------------------
@@ -113,12 +117,18 @@ const ranges = ref(defaultRanges);
 // ----------------------------------
 const sortedAuthors = computed(() => authorsStore.groupedAuthors);
 const activeAuthors = computed(() => authorsStore.activeGroupedAuthors);
+const activeTopLevel = computed(() => (activeLabel.value === "MMPs" ? "MMPs" : "Catalog"));
 
 // ----------------------------------
 // METHODS
 // ----------------------------------
 
 function onTabChange(label: string) {
+  activeLabel.value = label === "Catalog" ? activeCatalogLabel.value : "MMPs";
+}
+
+function onCatalogTabChange(label: string) {
+  activeCatalogLabel.value = label;
   activeLabel.value = label;
 }
 </script>

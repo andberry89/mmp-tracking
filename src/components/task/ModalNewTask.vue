@@ -3,8 +3,8 @@
     <form id="new-task-form" class="new-task-form" @submit.prevent="handleSave">
       <div class="form-grid">
         <label>
-          Make <span class="required">*</span>
-          <select v-model="makeId" required @change="modelId = ''">
+          <span class="field-label">Make <span class="required">*</span></span>
+          <select v-model="makeId" required @change="modelId = ''; modelYear = null">
             <option disabled value="">Select a make</option>
             <option v-for="make in makes" :key="make.id" :value="make.id">
               {{ make.name }}
@@ -13,8 +13,8 @@
         </label>
 
         <label>
-          Model <span class="required">*</span>
-          <select v-model="modelId" required :disabled="!makeId">
+          <span class="field-label">Model <span class="required">*</span></span>
+          <select v-model="modelId" required :disabled="!makeId" @change="modelYear = null">
             <option disabled value="">Select a model</option>
             <option v-for="model in modelsForSelectedMake" :key="model.id" :value="model.id">
               {{ model.name }}
@@ -23,7 +23,7 @@
         </label>
 
         <label>
-          Model Year <span class="required">*</span>
+          <span class="field-label">Model Year <span class="required">*</span></span>
           <select v-model.number="modelYear" required>
             <option disabled :value="null">Select a year</option>
             <option v-for="year in modelYears" :key="year" :value="year">{{ year }}</option>
@@ -32,7 +32,7 @@
 
         <label>
           Segment
-          <input :value="selectedModel?.segment || ''" readonly placeholder="Filled from model" />
+          <input :value="selectedModelYearVehicle?.segment || ''" readonly placeholder="Filled from model year" />
         </label>
 
         <label>
@@ -113,6 +113,9 @@
       </section>
 
       <p v-if="formError || error" class="form-error" role="alert">{{ formError || error }}</p>
+      <p v-if="selectedModel && modelYear !== null && !selectedModelYearVehicle" class="form-hint" role="status">
+        Add this Make, Model, and Model Year in Catalog → Models before creating the task.
+      </p>
       <p v-if="!makes.length || !modelYears.length" class="form-hint">
         Vehicle options are not loaded yet. An Editor needs to add the catalog data first.
       </p>
@@ -125,7 +128,7 @@
           type="submit"
           form="new-task-form"
           class="primary-button"
-          :disabled="isSaving || !makes.length || !modelYears.length"
+          :disabled="isSaving || !makes.length || !modelYears.length || !selectedModelYearVehicle"
         >
           {{ isSaving ? "Saving…" : "Add Task" }}
         </button>
@@ -139,12 +142,13 @@ import { computed, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import { statuses as taskStatuses } from "@/constants";
 import type { AuthorId, AuthorsByTeamGroup, NewTaskInput, TaskStatus, TaskResourceInput } from "@/types";
-import type { MakeOption, ModelOption } from "@/stores/catalog";
+import type { MakeOption, ModelOption, ModelYearVehicleOption } from "@/stores/catalog";
 
 const props = defineProps<{
   modelValue: boolean;
   makes: MakeOption[];
   models: ModelOption[];
+  modelYearVehicles: ModelYearVehicleOption[];
   modelYears: number[];
   authorsByTeam: AuthorsByTeamGroup[];
   isSaving?: boolean;
@@ -178,6 +182,9 @@ const formError = ref("");
 const modelsForSelectedMake = computed(() => props.models.filter((model) => model.makeId === makeId.value));
 const selectedMake = computed(() => props.makes.find((make) => make.id === makeId.value));
 const selectedModel = computed(() => props.models.find((model) => model.id === modelId.value));
+const selectedModelYearVehicle = computed(() => props.modelYearVehicles.find(
+  (item) => item.modelId === modelId.value && item.modelYear === modelYear.value
+));
 
 watch(
   () => props.modelValue,
@@ -209,8 +216,9 @@ function removeMaterial(index: number) {
 function handleSave() {
   formError.value = "";
   const selected = selectedModel.value;
-  if (!selectedMake.value || !selected || modelYear.value === null) {
-    formError.value = "Choose a make, model, and model year.";
+  const selectedYearRecord = selectedModelYearVehicle.value;
+  if (!selectedMake.value || !selected || modelYear.value === null || !selectedYearRecord) {
+    formError.value = "Choose a cataloged make, model, and model year.";
     return;
   }
 
@@ -223,10 +231,11 @@ function handleSave() {
   const submittedStatus = isUpdate.value && status.value === "published" ? "updated" : status.value;
   emit("save", {
     modelId: selected.id,
+    segmentId: selectedYearRecord.segmentId,
     make: selectedMake.value.name,
     model: selected.name,
     modelYear: modelYear.value,
-    segment: selected.segment,
+    segment: selectedYearRecord.segment,
     authorId: authorId.value || null,
     deadline: deadline.value,
     status: submittedStatus,
@@ -261,6 +270,12 @@ function handleSave() {
   color: var(--gray-dark-3);
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.field-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
 }
 
 .new-task-form input,

@@ -13,12 +13,13 @@ This is the working visual baseline for the MMP tracking page. It captures its r
 ## Page layout and hierarchy
 
 - **Application shell:** a charcoal MMP monogram and sidebar occupy the left column; the header and current page occupy the right. The refined desktop grid uses a 220px sidebar and an 82px header row inside a softly framed shell (`src/App.vue`).
-- **Top navigation:** prominent Monda tabs identify MMPs and the reference-data sections. The active tab uses darker text and a short green underline.
+- **Top navigation:** prominent Monda tabs identify the primary MMPs and Catalog views. The active tab uses darker text and a sliding green underline.
+- **Catalog navigation:** Makes, Models, Segments, and Authors remain distinct sections under Catalog, shown in a compact secondary navigation row.
 - **Sidebar:** groups author counts, quick status totals, and Published & Updates counts. Uppercase headings and compact rows make it an at-a-glance summary rail.
 - **Page header:** the page title sits opposite search, filters, sort, and other page-level controls. A fine divider separates this toolbar from the working list.
 - **Tracking list:** column labels sit above a dashed “Add New Task” row, followed by status-group headings and task rows. Task fields are aligned in a dense grid so vehicles, deadlines, status, dates, notes, assets, and authors can be compared across rows.
 - **Reference-data tabs:** use the shared title and toolbar, followed by a restrained white catalog panel. Current screens are visual placeholders that explain each catalog’s role; the editing interface is still to be built.
-- **Sign-in and dialogs:** use the same paper-texture canvas, white surface, charcoal typography, green primary action, and neutral outline as the main app.
+- **Sign-in and dialogs:** use a solid warm-light canvas, white surface, charcoal typography, green primary action, and neutral outline. Keep the repeating texture on the main tracking canvas.
 - Preserve a clear distinction between page-level controls, the list’s column labels, task rows, and status-group headings when extending this layout.
 
 ## Typography

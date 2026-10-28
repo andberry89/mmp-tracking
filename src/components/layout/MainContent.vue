@@ -1,5 +1,10 @@
 <template>
   <div>
+    <CatalogNav
+      v-if="activeLabel !== 'MMPs'"
+      :active-label="activeLabel"
+      @select="emit('catalog-tab-change', $event)"
+    />
     <Transition
       mode="out-in"
       enter-active-class="transition duration-300 ease-out"
@@ -8,23 +13,16 @@
       leave-active-class="transition duration-200 ease-in"
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-4"
-      @before-leave="isLoading = true"
-      @after-enter="isLoading = false"
     >
       <div :key="activeLabel">
-        <div v-if="isLoading" class="flex justify-center py-10">
-          <LoadingSpinner />
-        </div>
-        <div v-else>
-          <PageHeader v-bind="headerProps" @update:search="onSearchUpdate" />
-          <component
-            :is="activeComponent"
-            :documents="filteredDocuments"
-            :authors="authors"
-            :activeAuthorsByTeam="activeAuthorsByTeam"
-            :can-edit="canEdit"
-          />
-        </div>
+        <PageHeader v-if="activeLabel === 'MMPs'" v-bind="headerProps" @update:search="onSearchUpdate" />
+        <component
+          :is="activeComponent"
+          :documents="filteredDocuments"
+          :authors="authors"
+          :activeAuthorsByTeam="activeAuthorsByTeam"
+          :can-edit="canEdit"
+        />
       </div>
     </Transition>
   </div>
@@ -44,6 +42,7 @@ import { useDocumentsStore } from "@/stores/documents";
 
 import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
+import CatalogNav from "@/components/pages/components/CatalogNav.vue";
 
 import { getRangeDates, getDocumentAuthor } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
@@ -59,11 +58,14 @@ const props = defineProps<{
   canEdit?: boolean;
 }>();
 
+const emit = defineEmits<{
+  (event: "catalog-tab-change", label: string): void;
+}>();
+
 // Store ------------------------------------
 const documentsStore = useDocumentsStore();
 
 // UI State --------------------------------
-const isLoading = ref(false);
 const searchQuery = ref("");
 
 const selectedAuthorId = ref<string | null>(null);

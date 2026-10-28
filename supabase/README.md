@@ -4,6 +4,12 @@ The initial schema is in `migrations/202610260001_initial_schema.sql`. It has
 been applied to the new Supabase project for this app. Keep future schema
 changes in versioned migrations.
 
+For an existing project, run any newer migration files in `migrations/` in
+filename order. The catalog Realtime migration adds Makes, Models, Segments,
+Authors, and Model Years to the `supabase_realtime` publication. The next
+migration stores Segment on each Make/Model/Year record and preserves any
+existing model-level Segment values on current vehicle-year rows.
+
 ## Configure a project
 
 1. Create a project in the existing Supabase account and keep its database

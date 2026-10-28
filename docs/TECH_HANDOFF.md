@@ -9,16 +9,16 @@
 - UI libraries include Floating Vue, Vue Final Modal, and Vue3 Popper.
 - Main entry: `src/main.ts`; app shell: `src/App.vue`.
 - Core task data types: `src/types/TaskDocument.ts`, `TaskVehicle.ts`, and `TaskAsset.ts`.
-- Sample records live under `src/test/` and currently back the document store.
+- Sample records under `src/test/` are used in demo mode; when configured, Supabase is the source of truth for task and catalog data.
 
 ## Current behavior and limitations
 
-- The dashboard has tabs for MMPs, Makes, Models, Segments, and Authors.
+- The dashboard has top-level MMPs and Catalog navigation; Catalog contains Makes, Models, Segments, and Authors views.
 - The MMP view has task cards with edit, duplicate, delete, author assignment, and asset management interactions.
-- Makes, Models, Segments, and Authors currently render placeholder pages.
-- The document loader simulates a short delay and loads cloned sample data. No API or durable persistence is configured in the inspected source.
+- Editors can manage Makes, Models, Segments, Authors, and Model Years in the Catalog. Models reference a Make; each Model Year vehicle record carries its own Segment. Task creation uses active catalog entries and fills Segment from the selected Make/Model/Year. Catalog table changes are broadcast through Supabase Realtime.
+- Supabase Auth gates the app and exposes Editor/Viewer roles. The app loads and persists task, author, and catalog data through Supabase; demo mode uses sample records when local Supabase settings are absent.
 - The task model includes author, vehicle, deadline, status, notes, assets, embargo, and publication fields.
-- Some filter/search controls and actions are only partially connected; inspect current behavior before extending them.
+- The Publication Tracking view still needs server-side search/filtering and pagination for larger history volumes. Changeover and Page Audit views are not implemented yet.
 - No repository-level `AGENTS.md` or project-specific handoff instructions were found at the time of inspection.
 
 ## User-provided workflow and workbook

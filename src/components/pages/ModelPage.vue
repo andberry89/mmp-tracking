@@ -1,10 +1,13 @@
 <template>
   <ReferenceDataPanel
-    title="Model"
-    description="Models are connected to a make and segment so task details stay consistent."
+    title="Models"
+    kind="model"
+    description="Models belong to a make; each model year carries its own Segment."
+    :can-edit="canEdit"
   />
 </template>
 
 <script setup lang="ts">
 import ReferenceDataPanel from "@/components/pages/components/ReferenceDataPanel.vue";
+defineProps<{ canEdit?: boolean }>();
 </script>

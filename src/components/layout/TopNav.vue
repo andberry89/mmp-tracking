@@ -20,13 +20,13 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 // Tabs to render in the navigation
-const tabs = ["MMPs", "Makes", "Models", "Segments", "Authors"];
+const tabs = ["MMPs", "Catalog"];
 
-// Local State
-const activeTab = ref("MMPs");
+const props = defineProps<{ activeTab: string }>();
+const activeTab = computed(() => props.activeTab);
 const navElement = ref<HTMLElement | null>(null);
 const tabElements = new Map<string, HTMLButtonElement>();
 const indicator = reactive({ left: 0, width: 0 });
@@ -37,7 +37,6 @@ const emit = defineEmits<{
 }>();
 
 function handleClick(label: string) {
-  activeTab.value = label;
   emit("tab-change", label);
 }
 
