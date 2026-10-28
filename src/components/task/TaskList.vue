@@ -105,7 +105,12 @@ import ModalDuplicate from "@/components/common/ModalDuplicate.vue";
 import ModalNewTask from "@/components/task/ModalNewTask.vue";
 import { useCatalogStore } from "@/stores/catalog";
 
-import type { Author, AuthorsByTeamGroup, NewTaskInput, TaskDocument } from "@/types";
+import type { Author, AuthorsByTeamGroup, NewTaskInput, TaskDocument, TaskResourceInput } from "@/types";
+
+interface EditTaskSubmission {
+  task: TaskDocument;
+  resources: TaskResourceInput[];
+}
 
 // ----------------------------------
 // Props
@@ -159,9 +164,19 @@ function saveTask(
   if (options.closeModal) closeModal();
 }
 
-async function handleModalSave(payload: TaskDocument | NewTaskInput) {
+async function handleModalSave(payload: TaskDocument | NewTaskInput | EditTaskSubmission) {
   if (modalType.value === "new") {
     if (await documentsStore.createDocument(payload as NewTaskInput)) closeModal();
+    return;
+  }
+  if ("task" in payload && "resources" in payload) {
+    await documentsStore.updateDocument(payload.task.id, payload.task);
+    if (documentsStore.error) return;
+    for (const resource of payload.resources) {
+      const saved = await documentsStore.addAssetToDocument(payload.task.id, resource);
+      if (!saved) return;
+    }
+    closeModal();
     return;
   }
   saveTask(payload as TaskDocument);
@@ -209,7 +224,7 @@ function handleAddAsset({
   asset,
 }: {
   doc: TaskDocument;
-  asset: { url: string; notes: string };
+  asset: TaskResourceInput;
 }) {
   documentsStore.addAssetToDocument(doc.id, asset);
 }
@@ -250,7 +265,7 @@ const modalProps = computed(() => {
         error: documentsStore.error,
       };
     case "edit":
-      return { title: "Edit Task", task: modalPayload.value };
+      return { title: "Edit Task", task: modalPayload.value, error: documentsStore.error };
     case "delete":
       return { title: "Delete Task", message: "Are you sure you want to delete this task?" };
     case "duplicate":
@@ -280,7 +295,7 @@ const headers = [
   display: grid;
   justify-items: start;
   align-items: center;
-  grid-template-columns: 20px 1fr 100px 120px 175px 1fr 50px 50px 8px;
+  grid-template-columns: 20px 1fr 100px 120px 175px 1fr 50px 50px 32px;
   padding: 8px 20px 8px 4px;
 }
 
@@ -296,7 +311,6 @@ const headers = [
 .task-row:hover {
   border-color: var(--color-border-hover);
   box-shadow: var(--color-surface-shadow-hover);
-  transform: translateY(-1px);
 }
 
 .task-column-header {

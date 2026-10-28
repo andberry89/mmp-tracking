@@ -7,7 +7,7 @@ import { testDocuments } from "@/test";
 import { fetchTasks } from "@/lib/supabase-data";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
-import type { NewTaskInput, TaskDocument, TaskStatus, TaskAsset, Author, TaskVehicle } from "@/types";
+import type { NewTaskInput, TaskDocument, TaskStatus, TaskAsset, TaskResourceInput, Author, TaskVehicle } from "@/types";
 
 export const useDocumentsStore = defineStore("documents", () => {
   // ------------------------------
@@ -52,6 +52,12 @@ export const useDocumentsStore = defineStore("documents", () => {
   async function createDocument(input: NewTaskInput): Promise<boolean> {
     isSaving.value = true;
     error.value = null;
+
+    if ((!isSupabaseConfigured || !supabase) && input.materials.some((material) => material.password)) {
+      error.value = "Password storage requires the Supabase connection to be configured.";
+      isSaving.value = false;
+      return false;
+    }
 
     const databaseStatus = input.status === "rte" ? "pending_edits" : input.status;
 
@@ -243,6 +249,7 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ACTIONS — Updates
   // ------------------------------
   async function updateDocument(id: string, payload: Partial<TaskDocument>) {
+    error.value = null;
     const idx = documents.value.findIndex((doc) => doc.id === id);
     if (idx === -1) return;
 
@@ -363,33 +370,55 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ------------------------------
   // ACTIONS — Asset Management
   // ------------------------------
-  async function addAssetToDocument(id: string, asset: TaskAsset) {
+  async function addAssetToDocument(id: string, asset: TaskResourceInput): Promise<boolean> {
     const doc = getDocumentById(id).value;
-    if (!doc) return;
+    if (!doc) return false;
+    if (asset.password && (!isSupabaseConfigured || !supabase)) {
+      error.value = "Password storage requires the Supabase connection to be configured.";
+      return false;
+    }
+
+    const kind = /imeet/i.test(asset.label) ? "imeet" : "material";
+    const safeAsset: TaskAsset = {
+      kind,
+      label: asset.label.trim(),
+      url: asset.url.trim(),
+      notes: asset.notes.trim(),
+    };
 
     if (isSupabaseConfigured && supabase) {
-      const kind = asset.kind ?? (/imeet/i.test(asset.label ?? asset.notes) ? "imeet" : "material");
       const { data, error: insertError } = await supabase
         .from("task_resources")
         .insert({
           task_id: id,
           kind,
-          label: asset.label || asset.notes,
-          url: asset.url,
+          label: safeAsset.label,
+          url: safeAsset.url,
           notes: asset.notes,
         })
         .select("id, kind, label, url, notes")
         .single();
       if (insertError || !data) {
         error.value = insertError?.message ?? "Could not add this resource.";
-        return;
+        return false;
+      }
+
+      if (asset.password) {
+        const { error: secretError } = await supabase
+          .from("task_resource_secrets")
+          .insert({ resource_id: data.id, password: asset.password });
+        if (secretError) {
+          await supabase.from("task_resources").delete().eq("id", data.id);
+          error.value = secretError.message;
+          return false;
+        }
       }
       await updateDocument(id, { assets: [...doc.assets, data as TaskAsset] });
-      error.value = null;
-      return;
+      return !error.value;
     }
 
-    await updateDocument(id, { assets: [...doc.assets, asset] });
+    await updateDocument(id, { assets: [...doc.assets, safeAsset] });
+    return !error.value;
   }
 
   async function deleteAssetFromDocument(id: string, index: number) {

@@ -101,28 +101,32 @@ export const useCatalogStore = defineStore("catalog", () => {
     }
 
     try {
-      const [makeResult, modelResult, segmentResult, yearResult, vehicleYearResult] = await Promise.all([
+      const [makeResult, segmentResult, yearResult, modelRows, vehicleYearRows] = await Promise.all([
         supabase.from("makes").select("id, name, active").order("name"),
-        supabase
-          .from("models")
-          .select("id, make_id, name, active, makes!inner(name)")
-          .order("name"),
         supabase.from("segments").select("id, name, active").order("name"),
         supabase.from("model_years").select("year, state, is_default").order("year", { ascending: false }),
-        supabase
+        fetchAllPages((from, to) => supabase
+          .from("models")
+          .select("id, make_id, name, active, makes!inner(name)")
+          .order("name")
+          .order("make_id")
+          .order("id")
+          .range(from, to)),
+        fetchAllPages((from, to) => supabase
           .from("model_year_vehicles")
           .select("id, model_id, model_year, segment_id, models!inner(name, make_id, active, makes!inner(name, active)), segments(name)")
-          .order("model_year", { ascending: false }),
+          .order("model_year", { ascending: false })
+          .order("model_id")
+          .order("id")
+          .range(from, to)),
       ]);
       if (makeResult.error) throw makeResult.error;
-      if (modelResult.error) throw modelResult.error;
       if (segmentResult.error) throw segmentResult.error;
       if (yearResult.error) throw yearResult.error;
-      if (vehicleYearResult.error) throw vehicleYearResult.error;
 
       makes.value = ((makeResult.data ?? []) as CatalogRow[]).map((row) => ({ ...row }));
       segments.value = ((segmentResult.data ?? []) as CatalogRow[]).map((row) => ({ ...row }));
-      models.value = ((modelResult.data ?? []) as unknown as ModelRow[]).map((model) => {
+      models.value = (modelRows as unknown as ModelRow[]).map((model) => {
         const make = Array.isArray(model.makes) ? model.makes[0] : model.makes;
         return {
           id: model.id,
@@ -138,7 +142,7 @@ export const useCatalogStore = defineStore("catalog", () => {
         isDefault: row.is_default,
       }));
       modelYears.value = modelYearRecords.value.map((row) => row.year);
-      modelYearVehicles.value = ((vehicleYearResult.data ?? []) as unknown as ModelYearVehicleRow[]).map((row) => {
+      modelYearVehicles.value = (vehicleYearRows as unknown as ModelYearVehicleRow[]).map((row) => {
         const model = Array.isArray(row.models) ? row.models[0] : row.models;
         const make = model ? (Array.isArray(model.makes) ? model.makes[0] : model.makes) : null;
         const segment = Array.isArray(row.segments) ? row.segments[0] : row.segments;
@@ -193,6 +197,15 @@ export const useCatalogStore = defineStore("catalog", () => {
   async function saveModel(input: { id?: string; name: string; makeId: string; active?: boolean }) {
     const name = input.name.trim();
     if (!name || !input.makeId) throw new Error("Choose a make and enter a model name.");
+    const duplicate = models.value.find((model) =>
+      model.id !== input.id &&
+      model.makeId === input.makeId &&
+      model.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase()
+    );
+    if (duplicate) {
+      const makeName = makes.value.find((make) => make.id === input.makeId)?.name ?? "This make";
+      throw new Error(`${makeName} ${duplicate.name} is already in the catalog. Search for the existing model instead of adding it again.`);
+    }
     if (!supabase || !isSupabaseConfigured) {
       const make = makes.value.find((item) => item.id === input.makeId);
       if (!make) throw new Error("Choose a valid make.");
@@ -207,6 +220,10 @@ export const useCatalogStore = defineStore("catalog", () => {
     const result = input.id
       ? await query.update(payload).eq("id", input.id)
       : await query.insert(payload);
+    if (result.error?.code === "23505") {
+      const makeName = makes.value.find((make) => make.id === input.makeId)?.name ?? "This make";
+      throw new Error(`${makeName} ${name} is already in the catalog. Search for the existing model instead of adding it again.`);
+    }
     if (result.error) throw result.error;
     await loadCatalog();
   }
@@ -340,4 +357,19 @@ function localId(kind: string) {
 
 function messageFor(reason: unknown, fallback: string) {
   return reason instanceof Error ? reason.message : fallback;
+}
+
+async function fetchAllPages<T>(
+  fetchPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+): Promise<T[]> {
+  const rows: T[] = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await fetchPage(from, from + pageSize - 1);
+    if (error) throw error;
+    const page = data ?? [];
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
 }

@@ -4,14 +4,14 @@
       Authors
     </h3>
     <div class="pl-[5px] font-[Asap,sans-serif] mb-7">
-      <div class="mb-4" v-for="(team, idx) in teams" :key="idx">
+      <div class="mb-4" v-for="team in visibleTeams" :key="team.slug">
         <h4 class="text-sm font-bold uppercase color-[var(--color-sidebar-text)]">
           {{ team.sidebarLabel }}
         </h4>
         <div
           class="text-[13.3px] leading-none text-[var(--color-sidebar-text)] py-2 flex flex-col border-b border-[var(--color-sidebar-divider) last:border-b-0]"
-          v-for="(author, authorIdx) in authors[team.slug]"
-          :key="'author-' + authorIdx"
+          v-for="author in authorsForSidebar(team)"
+          :key="author.id"
         >
           <span>{{ author.label }}</span>
           <span class="text-[var(--color-sidebar-text-subtext)]" v-if="assigned(author) > 0">
@@ -106,6 +106,22 @@ const statusBgMap: Record<string, string> = {
 
 // Quick Stats
 const quickStatKeys: TaskStatus[] = ["pending", "rte", "rtp", "scheduled"];
+const activeWorkStatuses = new Set<TaskStatus>(["pending", "rte", "rtp", "scheduled"]);
+
+const assignedCounts = computed(() => {
+  const counts: Record<string, number> = {};
+  documentsStore.documents.forEach((doc) => {
+    if (!activeWorkStatuses.has(doc.status)) return;
+    const author = getDocumentAuthor(doc);
+    if (author) counts[author.id] = (counts[author.id] ?? 0) + 1;
+  });
+  return counts;
+});
+
+const visibleTeams = computed(() => teams.filter((team) => {
+  const members = props.authors[team.slug] ?? [];
+  return team.slug === "bg" || members.some((author) => assigned(author) > 0);
+}));
 
 const quickStats = computed(() => {
   return statuses
@@ -147,10 +163,12 @@ const updatedAndPublished = computed(() => {
 
 // Tasks assigned per author
 function assigned(author: Author) {
-  return documentsStore.getDocumentsByStatus("pending").value.filter((doc) => {
-    const docAuthor = getDocumentAuthor(doc);
-    return docAuthor?.id === author.id;
-  }).length;
+  return assignedCounts.value[author.id] ?? 0;
+}
+
+function authorsForSidebar(team: (typeof teams)[number]) {
+  const members = props.authors[team.slug] ?? [];
+  return team.slug === "bg" ? members : members.filter((author) => assigned(author) > 0);
 }
 
 // Available to template

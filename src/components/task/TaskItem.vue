@@ -21,7 +21,17 @@
       :authorsByTeam="activeAuthorsByTeam ?? []"
       @assign="(author) => emit('assign-author', { doc, author })"
     />
-    <div v-else class="text-center text-xs text-gray-700">{{ author?.initials || "—" }}</div>
+    <div v-else class="task-author-static">
+      <span
+        v-if="author"
+        :class="['team-badge', TEAM_COLOR_MAP[author.team.slug], 'text-white']"
+        :title="author.label"
+        :aria-label="author.label"
+      >
+        {{ author.initials }}
+      </span>
+      <span v-else class="task-author-static__empty" aria-label="No author assigned">—</span>
+    </div>
     <TaskActions
       v-if="canEdit"
       @edit="emit('edit', doc)"
@@ -35,6 +45,7 @@
 import { computed } from "vue";
 import { getDateFormat, getDateText, getDocumentAuthor } from "@/utils";
 import { DATE_FORMAT_MAP } from "@/constants";
+import { TEAM_COLOR_MAP } from "@/constants/task-style-maps";
 
 import {
   TaskHeader,
@@ -45,7 +56,7 @@ import {
   TaskActions,
 } from "@/components/task/components";
 
-import type { Author, TaskDocument } from "@/types";
+import type { Author, TaskDocument, TaskResourceInput } from "@/types";
 
 // ----------------------------------
 // Props
@@ -65,7 +76,7 @@ const emit = defineEmits<{
   (e: "duplicate", doc: TaskDocument): void;
   (e: "delete", doc: TaskDocument): void;
   (e: "delete-asset", payload: { doc: TaskDocument; idx: number }): void;
-  (e: "add-asset", payload: { doc: TaskDocument; asset: { url: string; notes: string } }): void;
+  (e: "add-asset", payload: { doc: TaskDocument; asset: TaskResourceInput }): void;
 }>();
 
 // ----------------------------------
@@ -81,9 +92,8 @@ function getDateFormatClass(doc: TaskDocument): string {
   return DATE_FORMAT_MAP[format] || "";
 }
 </script>
-<style lang="scss" scoped>
-:deep(.popper) {
-  width: auto;
-  max-width: 25%;
-}
+<style scoped>
+.task-author-static { display: flex; align-items: center; justify-content: center; min-width: 30px; }
+.task-author-static .team-badge { width: 30px; height: 30px; border: 2px solid var(--white); box-shadow: 0 1px 3px rgb(0 0 0 / 18%); font-size: 0.66rem; }
+.task-author-static__empty { color: var(--gray-light-3); font-size: 0.88rem; }
 </style>
