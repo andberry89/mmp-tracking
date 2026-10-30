@@ -24,7 +24,7 @@ Record the publication date/time, defaulting to the relevant go-live time, and a
 
 Use Eastern Time (ET) as the default time zone for embargo and publication timestamps.
 
-Capture the public live-page URL once on the shared published-page/vehicle record. Publication Tracking, Changeover, and Page Audit should display or link to that same URL rather than maintaining separate copies. Keep the iMeet work-folder URL as a separate link because it points to source files, not the public page.
+Capture the public live-page URL once on the shared published-page/vehicle record, and only when the page is published. Publication Tracking, Changeover, and Page Audit may display or link to that same URL rather than maintaining separate copies. Unpublished Changeover rows may have a separate resource link, labeled “Open resource”; it must never populate the shared published-page URL or appear in Page Audit. Page Audit shows only the published URL read-only and does not accept resource links. Keep the iMeet work-folder URL as a separate task link because it points to source files, not the public page.
 
 An update to an already-published MMP is recorded under the published area rather than sent through the new-page path. In the app, represent it as a distinct update event connected to the existing MMP/page so update history is retained and it does not inflate the new-page queue. Confirm whether a substantial rewrite should be treated differently.
 
@@ -77,11 +77,11 @@ Every new task starts as **Pending**, whether or not an Author is assigned. Auth
 
 ## 2. Model-Year Changeover
 
-Each model year has a master inventory of vehicles that may need an MMP. The 2027 workbook sheet includes Make, Model, Status, Author, URL, “Double-check info?”, and Make Tags. In the app, keep the existing Changeover statuses and add **Embargoed**: **Awaiting Info, Info Available, Skipped, Dead, Vaporware, Published, and Embargoed**. Normalize capitalization in imported values. **Embargoed** is a separate manual Changeover status; it is not derived from a Publication Tracking task's Scheduled status or embargo time. Free-text cells contain research notes and links; some records are not expected to receive a page. Drop Make Tags from the app. Move “Double-check info?” to Page Audit: it flags an MMP published before official information is available, based on the “What’s New” section, so the team can verify later in the year whether changes were made. Defer detailed audit workflow for now.
+Each model year has a master inventory of vehicles that may need an MMP. The 2027 workbook sheet includes Make, Model, Status, Author, URL, “Double-check info?”, and Make Tags. In the app, keep the existing Changeover statuses and add **Embargoed**: **Awaiting Info, Info Available, Skipped, Dead, Vaporware, Published, and Embargoed**. Normalize capitalization in imported values. **Embargoed** is a separate manual Changeover status; it is not derived from a Publication Tracking task's Scheduled status or embargo time. Free-text cells contain research notes and links; some records are not expected to receive a page. Drop Make Tags from the app. “Double-check info?” lives in Page Audit: it flags an MMP published before official information is available, based on the “What’s New” section, so the team can verify later in the year whether changes were made.
 
 Editors may manually add vehicles to an existing model-year Changeover list at any time, outside the annual preparation flow. Select from the shared Make/Model/Model Year catalog; if the vehicle is new, add it to the catalog first.
 
-When a Publication Tracking task is published or updated, sync the matching model-year Changeover row to **Published** and update the matching Page Audit record to reflect the publication/update. Sync the public URL to the shared vehicle/model-year record so Publication Tracking, Changeover, and Page Audit use the same value. This status sync is one-way: an Editor may manually change the Changeover status, and that change does not change the Publication Tracking task. Detailed Page Audit workflow and fields are deferred for now.
+When a Publication Tracking task is published or updated, sync the matching model-year Changeover row to **Published**. Page Audit uses the live URL from the shared model-year vehicle record. This status sync is one-way: an Editor may manually change the Changeover status, and that change does not change the Publication Tracking task. A date-stamped publication/update history could be added later if the team wants that context in Page Audit.
 
 ### Annual list roll-forward
 
@@ -104,9 +104,13 @@ Set the Changeover deadline as an editable setting for each model year. The sour
 
 ## 3. Page Audit
 
-The annual audit sheet starts with Make, Model, Live Link, and Status, followed by checks for page content and presentation. The 2027 sheet includes checks for pricing, the photos button, gallery model year/count, rating, editorial badges, specs, video, competitor module, pricing module, recommended trim, key features, acceleration, photos, research module, range tests, EPA estimates, HFE, and interior content. It also has author and auditor fields. Answers include values such as Yes, No, N/A, estimates/actuals, and explanatory notes.
+Page Audit is a separate, year-specific checklist view connected to the shared Make/Model/Model Year record. It may show the published page's URL read-only from the shared vehicle-year record; unpublished pages have no URL, and the audit is not used for resources. It does not repeat the Publication Tracking task's Published/Updated status; a date-stamped history may be useful later if the team wants publication events in the audit view.
 
-Audit is a separate job with a checklist-shaped UI, even if it shares a vehicle/model-year record with Changeover. Some questions may be conditional on page type or available content; requiredness, evidence, comments, and repeat-audit behavior remain to be agreed.
+The first app checklist follows the 2026–2029 workbook tabs. The 10 Best and Editors' Choice fields are kept separately in one Awards column and do not affect checklist scoring; show the supplied award icon only when its value is Yes. A check passes on the agreed expected answer: Yes for the Yes checks, Dual galleries, Actual pricing, the current model year in Gallery Model Year, or a numeric C/D rating from 0 through 10. Any N/A and any non-current Gallery Model Year are yellow exceptions; other answers that miss the expected value are red. The table shows the workbook's free-form answers, page status, author names, auditor initials, audit date, and shared live URL. The Editor can set **Double-check info** for pages published before official information is available, then revisit them later in the year. Additional findings go in Audit Notes.
+
+The app imports the 2026–2029 audit rows as a starting point. Existing imported rows are never overwritten by rerunning the seed. Editors can add another shared-catalog vehicle to a year and edit its audit. The audit form does not accept or edit a URL; it only displays the shared URL when a published page has one.
+
+The checklist summary reports pass, review, and needs-work counts separately; it does not reduce them to a single done state. Evidence uploads, repeat-audit history, and audit change history remain future decisions.
 
 ## Suggested app relationship
 

@@ -76,7 +76,7 @@
                   <td><span class="status-pill" :class="`status-pill--${entry.status}`">{{ statusLabel(entry.status) }}</span></td>
                   <td><span v-if="entry.author" class="author-name">{{ entry.author }}</span><span v-else-if="entry.isOpen" class="open-author">OPEN</span><span v-else class="muted">—</span></td>
                   <td class="notes-cell"><span :class="['notes-preview', { 'notes-preview--expandable': entry.notes.length > NOTE_PREVIEW_LIMIT } ]">{{ notePreview(entry.notes) }}</span><button v-if="entry.notes.length > NOTE_PREVIEW_LIMIT" class="notes-more" type="button" @click="showNotes(entry)">See more</button></td>
-                  <td><a v-if="entry.publicUrl" class="public-link" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer">{{ entry.status === 'published' ? entry.publicUrl : 'Open resource' }}<span aria-hidden="true"> ↗</span></a><span v-else class="muted">—</span></td>
+                  <td><a v-if="entry.status === 'published' && entry.publicUrl" class="public-link" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer">{{ entry.publicUrl }}<span aria-hidden="true"> ↗</span></a><a v-else-if="entry.resourceUrl" class="public-link" :href="entry.resourceUrl" target="_blank" rel="noopener noreferrer">Open resource<span aria-hidden="true"> ↗</span></a><span v-else class="muted">—</span></td>
                   <td v-if="canEdit" class="action-cell"><button class="edit-button" type="button" :aria-label="`Edit ${entry.make} ${entry.model}`" @click="openEdit(entry)">Edit</button></td>
                 </tr>
               </template>
@@ -198,7 +198,7 @@ const filteredEntries = computed(() => {
     else if (sortKey.value === "vehicle") comparison = a.make.localeCompare(b.make) || a.model.localeCompare(b.model);
     else if (sortKey.value === "author") comparison = (a.author || "OPEN").localeCompare(b.author || "OPEN");
     else if (sortKey.value === "notes") comparison = a.notes.localeCompare(b.notes);
-    else comparison = a.publicUrl.localeCompare(b.publicUrl);
+    else comparison = (a.status === "published" ? a.publicUrl : a.resourceUrl).localeCompare(b.status === "published" ? b.publicUrl : b.resourceUrl);
     if (comparison === 0) comparison = a.make.localeCompare(b.make) || a.model.localeCompare(b.model);
     return sortDirection.value === "asc" ? comparison : -comparison;
   });
@@ -275,7 +275,7 @@ async function saveDeadline() {
   try { await store.updateDeadline(store.selectedYear, deadlineDraft.value); deadlineSaved.value = true; window.setTimeout(() => { deadlineSaved.value = false; }, 1600); }
   catch { /* The store presents its error inline. */ }
 }
-async function saveEntry(input: { vehicle: import("@/stores/catalog").ModelYearVehicleOption; status: ChangeoverStatus; assignedAuthorId: AuthorId | null; notes: string; publicUrl: string }) {
+async function saveEntry(input: { vehicle: import("@/stores/catalog").ModelYearVehicleOption; status: ChangeoverStatus; assignedAuthorId: AuthorId | null; notes: string; publicUrl: string; resourceUrl: string }) {
   try {
     if (modalMode.value === "add") await store.addEntry(input.vehicle, input);
     else if (editingEntry.value) await store.updateEntry(editingEntry.value, input);

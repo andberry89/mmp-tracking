@@ -10,6 +10,29 @@ Authors, and Model Years to the `supabase_realtime` publication. The next
 migration stores Segment on each Make/Model/Year record and preserves any
 existing model-level Segment values on current vehicle-year rows.
 
+Page Audit uses `migrations/202610290001_page_audit.sql`. The follow-up
+`migrations/202610300001_remove_derived_audit_state.sql` removes the app-invented
+progress field and removes award values from checklist scoring. Then run
+`migrations/202610300002_add_page_audit_awards.sql` to store the two awards separately
+and restore the workbook's existing Yes values by model year. The follow-up
+`migrations/202610300004_backfill_year_specific_awards.sql` safely fills any
+year-specific awards missing after an earlier version of migration 300002. After
+the Page Audit migrations, run
+`seeds/page_audit.sql` to import the workbook's 2026–2029 audit rows. The
+seed skips audit entries that already exist and only fills shared public URLs
+that are blank. Only published-page URLs belong in that shared field; resource
+and editor links are omitted from Page Audit. The query result reports source rows,
+catalog matches, inserted audit rows, and shared URLs filled.
+
+Run `migrations/202610300005_seed_double_check_info.sql` to populate **Needs Review**
+from the 2026 and 2027 Changeover sheets. The Page Audit seed also carries these
+flags forward for future imports; no seed rerun is needed for existing records.
+
+Run `migrations/202610300003_separate_changeover_resource_urls.sql` to move links
+from unpublished Changeover rows out of the shared published-page URL field and
+into Changeover-only resource fields. This removes the Buick Envista resource
+link from Page Audit while keeping it available as “Open resource” in Changeover.
+
 ## Configure a project
 
 1. Create a project in the existing Supabase account and keep its database

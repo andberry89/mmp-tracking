@@ -32,6 +32,7 @@ export interface ChangeoverEntry {
   model: string;
   segment: string;
   publicUrl: string;
+  resourceUrl: string;
   status: ChangeoverStatus;
   assignedAuthorId: AuthorId | null;
   author: string;
@@ -64,6 +65,7 @@ type DbChangeoverRow = {
   assigned_author_id: string | null;
   notes: string;
   source_provenance: ChangeoverProvenance[] | null;
+  resource_url: string | null;
   model_year_vehicles: {
     id: string;
     model_id: string;
@@ -156,7 +158,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
 
       const rows = await fetchAllPages((from, to) => supabase
         .from("changeover_entries")
-        .select("id, model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, authors(label), model_year_vehicles!inner(id, model_id, model_year, public_url, models!inner(id, name, make_id, makes!inner(name)), segments(name))")
+        .select("id, model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, resource_url, authors(label), model_year_vehicles!inner(id, model_id, model_year, public_url, models!inner(id, name, make_id, makes!inner(name)), segments(name))")
         .eq("model_year_vehicles.model_year", selectedYear.value)
         .order("id")
         .range(from, to));
@@ -174,6 +176,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
     assignedAuthorId: AuthorId | null;
     notes: string;
     publicUrl: string;
+    resourceUrl: string;
   }) {
     error.value = null;
     if (entries.value.some((entry) => entry.modelYearVehicleId === vehicle.id)) {
@@ -187,13 +190,14 @@ export const useChangeoverStore = defineStore("changeover", () => {
           status: input.status,
           assigned_author_id: input.assignedAuthorId,
           notes: input.notes.trim(),
+          resource_url: input.status === "published" ? null : input.resourceUrl.trim() || null,
         });
         if (insertError?.code === "23505") {
           throw new Error(`${vehicle.make} ${vehicle.model} is already on this Changeover list.`);
         }
         if (insertError) throw insertError;
         const { error: urlError } = await supabase.from("model_year_vehicles")
-          .update({ public_url: input.publicUrl.trim() || null })
+          .update({ public_url: input.status === "published" ? input.publicUrl.trim() || null : null })
           .eq("id", vehicle.id);
         if (urlError) throw urlError;
         await load(selectedYear.value ?? undefined);
@@ -214,7 +218,8 @@ export const useChangeoverStore = defineStore("changeover", () => {
         author: authorsStore.getAuthorById(input.assignedAuthorId).value?.label ?? "",
         isOpen: !input.assignedAuthorId,
         notes: input.notes.trim(),
-        publicUrl: input.publicUrl.trim(),
+        publicUrl: input.status === "published" ? input.publicUrl.trim() : "",
+        resourceUrl: input.status === "published" ? "" : input.resourceUrl.trim(),
         sourceProvenance: [],
       });
       await load(selectedYear.value ?? undefined);
@@ -228,6 +233,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
     assignedAuthorId: AuthorId | null;
     notes: string;
     publicUrl: string;
+    resourceUrl: string;
   }) {
     error.value = null;
     isSaving.value = true;
@@ -251,6 +257,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
             status: input.status,
             assigned_author_id: input.assignedAuthorId,
             notes: input.notes.trim(),
+            resource_url: input.status === "published" ? null : input.resourceUrl.trim() || null,
             source_provenance: sourceProvenance,
           })
           .eq("id", entry.id);
@@ -258,7 +265,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
 
         const { error: urlError } = await supabase
           .from("model_year_vehicles")
-          .update({ public_url: input.publicUrl.trim() || null })
+          .update({ public_url: input.status === "published" ? input.publicUrl.trim() || null : null })
           .eq("id", entry.modelYearVehicleId);
         if (urlError) throw urlError;
         await load(selectedYear.value ?? undefined);
@@ -274,7 +281,8 @@ export const useChangeoverStore = defineStore("changeover", () => {
           author: authorsStore.getAuthorById(input.assignedAuthorId).value?.label ?? "",
           isOpen: !input.assignedAuthorId,
           notes: input.notes.trim(),
-          publicUrl: input.publicUrl.trim(),
+          publicUrl: input.status === "published" ? input.publicUrl.trim() : "",
+          resourceUrl: input.status === "published" ? "" : input.resourceUrl.trim(),
           sourceProvenance,
         };
       }
@@ -362,6 +370,7 @@ function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
     model: model?.name ?? "",
     segment: segment?.name ?? "",
     publicUrl: vehicle?.public_url ?? "",
+    resourceUrl: row.resource_url ?? "",
     status: row.status,
     assignedAuthorId: row.assigned_author_id as AuthorId | null,
     author: author?.label ?? (rawAuthor.toLowerCase() === "open" ? "" : rawAuthor),

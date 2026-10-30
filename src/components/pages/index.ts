@@ -4,3 +4,4 @@ export { default as ModelPage } from "./ModelPage.vue";
 export { default as SegmentPage } from "./SegmentPage.vue";
 export { default as AuthorPage } from "./AuthorPage.vue";
 export { default as ChangeoverPage } from "./ChangeoverPage.vue";
+export { default as PageAuditPage } from "./PageAuditPage.vue";

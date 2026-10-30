@@ -47,7 +47,7 @@ Tracking values absent from the active roster are treated as inactive for assign
 
 ## Import boundaries
 
-- Do not import multi-author Page Audit bylines as separate assigned Authors automatically; those cells can represent coauthors and the Page Audit workflow is still deferred.
+- Do not import multi-author Page Audit bylines as separate assigned Authors automatically; those cells can represent coauthors. The Page Audit import keeps the source byline as text.
 - Do not import uncertain Model Year labels as numeric years without confirmation.
 - Seed the active Author roster with `supabase/seeds/authors.sql`; the insert is safe to run again and skips existing records.
 - After reviewing the exceptions above, seed the vehicle catalog with `supabase/seeds/catalog.sql`; it inserts missing records without overwriting existing catalog rows.

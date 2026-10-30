@@ -6,7 +6,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 
 - [x] Capture the three requested workflows: publication tracking, model-year changeover, and page audit.
 - [ ] Walk through handoffs, approvals, exceptions, and current pain points.
-- [ ] Decide how a Changeover row enters Publication Tracking and how audit work is started and closed.
+- [ ] Decide how a Changeover row enters Publication Tracking; confirm the Page Audit start/close flow after reviewing the first implementation.
 - [x] Capture the current manual early-year Changeover compilation inputs: current Changeover excluding Dead, current Page Audit completeness check, and already-published vehicles from next-year Page Audit.
 - [x] Add a preferred Editor-triggered **Prepare Next Model Year** draft action using the annual source sheets.
 - [x] Prepare one next-year list at a time; defer simultaneous multi-year future planning.
@@ -21,7 +21,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Define Changeover summary counts and deadline pacing from the workbook; count all rows rather than reproducing the source sheet's Skipped off-by-one range.
 - [x] Make the Changeover deadline editable per model year.
 - [x] Preserve the Changeover statuses Awaiting Info, Info Available, Skipped, Dead, Vaporware, Published, and Embargoed.
-- [x] Sync Published status/public URL to Changeover and reflect publication/update plus the shared URL on Page Audit when an MMP task is published or updated. Keep Changeover status manually editable; defer detailed Page Audit workflow.
+- [x] Sync Published status/public URL to Changeover and reflect publication/update plus the shared URL on Page Audit when an MMP task is published or updated. Keep Changeover status manually editable.
 - [x] Define duplicate reconciliation and Editor promotion for generated Changeover drafts.
 - [ ] Decide whether an update is a new version/event under an existing MMP and what history must be retained.
 - [x] Confirm that Publication Tracking tasks can be created independently of Changeover, using database-backed Make, Model, and Model Year selections.
@@ -74,7 +74,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Run an initial code audit, repair TypeScript/lint setup errors, and connect existing search/author/date filters to the MMP list. See [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md).
 - [ ] Decide whether to apply the remaining Vue formatting warnings in a dedicated style-only pass.
 - [ ] Continue the visual-design pass across the current auth, task, and reference-data screens; review the tracking-page baseline with the user before extending it to Changeover and Page Audit.
-- [x] Draft shared relational data around vehicle/model years, production work, and Changeover; keep detailed Page Audit schema deferred.
+- [x] Draft shared relational data around vehicle/model years, production work, Changeover, and Page Audit checklist records.
 - [x] Select Supabase as the backend; add the SDK, local client scaffold, login gate, task/author reads, Realtime subscriptions, and persistence for existing task edits/resources.
 - [x] Review and apply the initial schema migration to the new Supabase project.
 - [x] Apply the follow-up catalog Realtime migration in `supabase/migrations/202610280001_catalog_realtime.sql` to the existing Supabase project.
@@ -96,7 +96,13 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [ ] Add the Editor-triggered Prepare Next Model Year draft, source reconciliation/conflict review, and explicit promotion workflow after Page Audit data is available.
 - [x] Prepare a repeat-safe Changeover import from the workbook's 2024–2027 lists, carrying deadlines and shared URLs while retaining source values that need review.
 - [x] Run `supabase/seeds/changeover.sql` in Supabase. All 1,988 source rows matched the Catalog and were inserted; 169 rows retain internal source-review metadata, including 128 rows with unresolved source-author values. No Review badge or control is shown in Changeover.
-- [ ] Add a Page Audit checklist with typed answers and visibility for incomplete items.
+- [x] Add a year-specific Page Audit checklist with preserved free-form answers, shared live URL, source-status metadata, and Double-check info follow-up.
+- [x] Seed Double-check info? Yes flags from the 2026 and 2027 Changeover sheets into matching Page Audit years.
+- [x] Prepare an idempotent import of workbook Page Audit rows for 2026–2029.
+- [x] Define field-specific Page Audit expected answers and green/yellow/red formatting; keep 10 Best and Editors' Choice as separate award values outside checklist scoring.
+- [x] Use the team-supplied 10 Best and Editors' Choice icons in the Page Audit Awards column.
+- [ ] Review whether any checklist fields should be conditional, required, or use dedicated answer controls instead of free text.
+- [ ] Decide whether Page Audit needs evidence attachments, repeat-audit history, and an audit change log.
 - [ ] Keep later updates linked to the existing published MMP without restarting the new-page lifecycle.
 - [ ] Add fast server-side search/filtering and pagination for the continuously updated publication view.
 - [ ] Define visible conflict handling for two people editing the same record.
@@ -110,6 +116,9 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [ ] Define loading, empty, error, and save-feedback behavior for real data.
 - [ ] Define account invitation/provisioning, audit history, and deployment requirements.
 - [ ] Confirm the pilot's account provisioning approach; the current login scaffold assumes accounts are created/invited by an Editor and has no public sign-up.
+- [ ] Add an Admin panel to manage allowed user email addresses and assign Editor or Viewer roles.
+- [ ] Email users when they are assigned a task.
+- [ ] Add a user settings/control panel, starting with password reset.
 - [ ] Define responsive and accessibility requirements.
 - [ ] Add automated checks for the agreed critical workflows.
 

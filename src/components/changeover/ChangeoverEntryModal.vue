@@ -44,8 +44,11 @@
         </label>
       </div>
 
-      <label class="entry-label">Public page URL
+      <label v-if="status === 'published'" class="entry-label">Published page URL
         <input v-model.trim="publicUrl" type="url" placeholder="https://…" />
+      </label>
+      <label v-else class="entry-label">Resource URL
+        <input v-model.trim="resourceUrl" type="url" placeholder="https://…" />
       </label>
       <label class="entry-label">Notes
         <textarea v-model.trim="notes" rows="4" placeholder="Research notes, changes, or follow-up context" />
@@ -91,6 +94,7 @@ interface ChangeoverEntryInput {
   assignedAuthorId: AuthorId | null;
   notes: string;
   publicUrl: string;
+  resourceUrl: string;
 }
 
 const emit = defineEmits<{
@@ -116,6 +120,7 @@ const status = ref<ChangeoverStatus>("awaiting_info");
 const authorId = ref<AuthorId | "">("");
 const notes = ref("");
 const publicUrl = ref("");
+const resourceUrl = ref("");
 const formError = ref("");
 
 const modelsForMake = computed(() => props.models.filter((model) => model.makeId === makeId.value && model.active));
@@ -141,12 +146,14 @@ watch(() => [props.modelValue, props.entry, props.initialStatus] as const, ([isO
   authorId.value = entry?.assignedAuthorId ?? "";
   notes.value = entry?.notes ?? "";
   publicUrl.value = entry?.publicUrl ?? "";
+  resourceUrl.value = entry?.resourceUrl ?? "";
   formError.value = "";
 });
 watch([modelId, () => props.publishedVehicleIds], () => {
   if (props.mode !== "add" || !selectedVehicle.value) return;
   status.value = props.publishedVehicleIds?.includes(selectedVehicle.value.id) ? "published" : props.initialStatus ?? "awaiting_info";
-  publicUrl.value = selectedVehicle.value.publicUrl ?? "";
+  publicUrl.value = status.value === "published" ? selectedVehicle.value.publicUrl ?? "" : "";
+  resourceUrl.value = "";
 });
 
 function save() {
@@ -162,7 +169,8 @@ function save() {
     status: status.value,
     assignedAuthorId: authorId.value || null,
     notes: notes.value,
-    publicUrl: publicUrl.value,
+    publicUrl: status.value === "published" ? publicUrl.value : "",
+    resourceUrl: status.value === "published" ? "" : resourceUrl.value,
   });
 }
 </script>

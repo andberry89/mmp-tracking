@@ -1,5 +1,5 @@
 -- One-time, non-destructive import of existing Changeover rows.
--- Run after the Catalog seed. Existing Changeover rows and nonblank public URLs are preserved.
+-- Run after the Catalog seed. Published URLs go on the shared vehicle-year; other links stay on Changeover.
 -- Unknown source Authors and ambiguous source values are kept in provenance and flagged for review.
 with import_source(source_sheet, source_row, model_year, source_make, model, raw_status, status, raw_author, author_label, public_url, notes, needs_review) as (
 values
@@ -2005,12 +2005,13 @@ values
   where y.year = d.year and y.changeover_deadline is null returning y.year
 ), url_updates as (
   update public.model_year_vehicles v set public_url = m.public_url
-  from matched m where v.id = m.vehicle_id and m.public_url is not null and (v.public_url is null or btrim(v.public_url) = '')
+  from matched m where v.id = m.vehicle_id and m.status = 'published' and m.public_url is not null and (v.public_url is null or btrim(v.public_url) = '')
   returning v.id
 ), entry_import as (
-  insert into public.changeover_entries (model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, needs_review)
+  insert into public.changeover_entries (model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, needs_review, resource_url)
   select m.vehicle_id, m.status::public.changeover_status, m.author_id, coalesce(m.notes, ''),
-    jsonb_build_array(jsonb_build_object('source_sheet', m.source_sheet, 'source_row', m.source_row, 'raw_status', nullif(m.raw_status, ''), 'raw_author', nullif(m.raw_author, ''), 'review_flag', m.review_flag)), m.review_flag
+    jsonb_build_array(jsonb_build_object('source_sheet', m.source_sheet, 'source_row', m.source_row, 'raw_status', nullif(m.raw_status, ''), 'raw_author', nullif(m.raw_author, ''), 'review_flag', m.review_flag)), m.review_flag,
+    case when m.status <> 'published' then m.public_url end
   from matched m where m.vehicle_id is not null
   on conflict (model_year_vehicle_id) do nothing returning id
 )
