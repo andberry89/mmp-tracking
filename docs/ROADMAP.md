@@ -4,7 +4,7 @@ This is a working roadmap based on the prototype and the team's workbook/process
 
 ## Current checkpoint
 
-Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. Publication Tracking, Changeover, and Page Audit use shared vehicle-year records. Annual Changeover preparation is implemented; apply the new Supabase migration before using it.
+Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. Publication Tracking, Changeover, and Page Audit use shared vehicle-year records. Annual Changeover preparation and draft management are implemented. The Editor user-access panel, Account Settings, optional Author links, and server-side invitation function are built; migrations and function deployment are pending.
 
 ## 1. Confirm the work
 
@@ -30,6 +30,7 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 - [x] Choose Supabase as the shared database.
 - [x] Add durable task/catalog persistence and live updates for shared records.
 - [x] Add Editor/Viewer authentication and role-based access.
+- [x] Build Editor-managed email allowlisting and role assignment; apply the user-access migration before using the panel.
 - Decide conflict handling and audit history.
 - Plan safe import, migration, reconciliation, and backup of existing records.
 
@@ -49,4 +50,4 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 
 ## Current prototype boundary
 
-The repository implements a Vue 3 dashboard, Supabase-backed task/catalog flows, Editor/Viewer authentication, Changeover, and Page Audit. The 2026–2029 Page Audit workbook import succeeded; annual Changeover preparation is implemented and awaits its database migration. Field-specific audit completion rules remain. See [TECH_HANDOFF.md](TECH_HANDOFF.md) for implementation details.
+The repository implements a Vue 3 dashboard, Supabase-backed task/catalog flows, Editor/Viewer authentication, Changeover, and Page Audit. The 2026–2029 Page Audit workbook import succeeded, and annual Changeover preparation is available. Field-specific audit completion rules remain. See [TECH_HANDOFF.md](TECH_HANDOFF.md) for implementation details.

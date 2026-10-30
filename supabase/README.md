@@ -46,6 +46,31 @@ migration also adds an Editor-only discard action; it removes Changeover entries
 and resets the draft for re-preparation while preserving shared vehicle, Page
 Audit, and task records.
 
+Run `migrations/202610300007_user_access_management.sql` to enable the Editor
+user-access panel. It backfills current Auth users and roles into an allowlist,
+requires new invited emails to be allowlisted before Auth creates the account,
+and applies the allowlist to app-data RLS policies. Editors approve an address
+and select its role in the app, then use **Send invite** in that user's row.
+The invitation is sent by `functions/send-user-invitation`; deploy that Edge
+Function before using in-app invitations. It checks the sender's active Editor
+role and the recipient's active allowlist record. The service-role key is used
+only in the Edge Function environment and never in the browser.
+
+Run `migrations/202610300008_fix_save_allowed_user.sql` after migration 007 to
+correct the user-role synchronization function before approving or editing users.
+
+Run `migrations/202610300009_user_identity.sql` after migration 008 to add
+optional Author links and editable display names to app users. The Manage Users
+panel suggests a display name for addresses matching `first.last@hearst.com`.
+
+The invitation Edge Function uses the Supabase project's injected
+`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` environment
+variables. The repository's `config.toml` keeps JWT verification enabled; the
+function also checks the caller's active Editor role in the database. To deploy
+from a machine with the Supabase CLI installed and linked, run
+`supabase functions deploy send-user-invitation`. Supabase sends the configured
+Auth invitation email and returns the recipient to the project's Site URL.
+
 ## Configure a project
 
 1. Create a project in the existing Supabase account and keep its database

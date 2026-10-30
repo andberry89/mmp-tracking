@@ -36,7 +36,7 @@ import { VueFinalModal } from "vue-final-modal";
 const props = defineProps<{
   modelValue: boolean;
   title?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "wide";
   clickToClose?: boolean;
   escToClose?: boolean;
   footerDivider?: boolean;
@@ -58,6 +58,7 @@ const contentClasses = computed(() => {
     md: "app-modal-panel--md",
     lg: "app-modal-panel--lg",
     xl: "app-modal-panel--xl",
+    wide: "app-modal-panel--wide",
   };
   return `${base} ${sizeMap[props.size || "md"]}`;
 });

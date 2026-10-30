@@ -97,7 +97,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Implement the Editor-triggered Prepare Next Model Year draft, source merge, and explicit promotion workflow.
 - [x] Keep current-year Changeover notes out of the next-year draft.
 - [x] Add an Editor-only discard action for an unpromoted prepared draft; remove Changeover entries while preserving shared vehicle, audit, and task records.
-- [ ] Run the updated `supabase/migrations/202610300006_prepare_next_changeover_year.sql` in Supabase to enable draft discard, exclude current-year Dead vehicles, clear carried-over authors/review flags/notes, and repair the existing 2028 draft.
+- [x] Run the updated `supabase/migrations/202610300006_prepare_next_changeover_year.sql` in Supabase to enable draft discard, exclude current-year Dead vehicles, clear carried-over authors/review flags/notes, and repair the existing 2028 draft.
 - [x] Prepare a repeat-safe Changeover import from the workbook's 2024–2027 lists, carrying deadlines and shared URLs while retaining source values that need review.
 - [x] Run `supabase/seeds/changeover.sql` in Supabase. All 1,988 source rows matched the Catalog and were inserted; 169 rows retain internal source-review metadata, including 128 rows with unresolved source-author values. No Review badge or control is shown in Changeover.
 - [x] Add a year-specific Page Audit checklist with preserved free-form answers, shared live URL, source-status metadata, and Double-check info follow-up.
@@ -119,11 +119,18 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [ ] In the Authors catalog, let users click an author's name to see the tasks assigned to them.
 - [ ] Import and reconcile the workbook's Make, Model, Segment, Author, and Model Year catalog values.
 - [ ] Define loading, empty, error, and save-feedback behavior for real data.
-- [ ] Define account invitation/provisioning, audit history, and deployment requirements.
-- [ ] Confirm the pilot's account provisioning approach; the current login scaffold assumes accounts are created/invited by an Editor and has no public sign-up.
-- [ ] Add an Admin panel to manage allowed user email addresses and assign Editor or Viewer roles.
+- [ ] Define audit history and deployment requirements.
+- [x] Build an Editor-only Admin panel to approve user email addresses and assign Editor or Viewer roles.
+- [ ] Run `supabase/migrations/202610300008_fix_save_allowed_user.sql` in Supabase to fix role synchronization in the user-access panel.
+- [ ] Run `supabase/migrations/202610300009_user_identity.sql` in Supabase to add optional Author links and managed display names.
 - [ ] Email users when they are assigned a task.
-- [ ] Add a user settings/control panel, starting with password reset.
+- [x] Build in-app account invitations through an Editor-verified Supabase Edge Function, keeping the service-role key on the server.
+- [ ] Deploy the invitation Edge Function and verify its Supabase Auth email and redirect configuration.
+- [x] Add Account Settings for editable display names and password-reset emails.
+- [x] Show names and email addresses in Manage Users; suggest a name from `first.last@hearst.com` addresses and allow manual edits.
+- [x] Let Editors optionally link an app user to an Author record; users without an Author profile remain valid.
+- [ ] Evaluate an option to keep users signed in for around 30 days, subject to Supabase session and security settings.
+- [ ] Polish the Supabase Auth emails, including invitation and password-reset templates.
 - [ ] Define responsive and accessibility requirements.
 - [ ] Add automated checks for the agreed critical workflows.
 

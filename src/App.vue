@@ -12,8 +12,8 @@
   <LoginView v-else-if="isSupabaseConfigured && !authStore.session" @signed-in="loadWorkspaceData" />
 
   <main v-else-if="isSupabaseConfigured && !authStore.profile" class="auth-message">
-    <h1>Account access isn’t set up</h1>
-    <p>{{ authStore.error || "An Editor needs to assign your app role." }}</p>
+    <h1>Account access isn’t available</h1>
+    <p>{{ authStore.error || "Ask an Editor to approve this email address for MMP Tracking." }}</p>
     <button @click="handleSignOut">Sign out</button>
   </main>
 
@@ -25,6 +25,8 @@
       <div v-if="isSupabaseConfigured" class="account-bar">
         <span>{{ authStore.profile?.display_name || authStore.session?.user.email }}</span>
         <span class="role-label">{{ authStore.profile?.role }}</span>
+        <button @click="userSettingsOpen = true">Account settings</button>
+        <button v-if="authStore.isEditor" @click="userAccessOpen = true">Manage users</button>
         <button @click="handleSignOut">Sign out</button>
       </div>
     </header>
@@ -44,6 +46,8 @@
     </main>
 
     <ModalsContainer />
+    <UserAccessModal v-model="userAccessOpen" @close="userAccessOpen = false" />
+    <UserSettingsModal v-model="userSettingsOpen" @close="userSettingsOpen = false" />
   </div>
 </template>
 
@@ -57,6 +61,8 @@ import TopNav from "@/components/layout/TopNav.vue";
 import LoadingSpinner from "@/components/common/LoadingSpinner.vue";
 import LoginView from "@/components/auth/LoginView.vue";
 import PasswordSetupView from "@/components/auth/PasswordSetupView.vue";
+import UserAccessModal from "@/components/admin/UserAccessModal.vue";
+import UserSettingsModal from "@/components/admin/UserSettingsModal.vue";
 import { useAuthStore } from "@/stores/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -77,6 +83,8 @@ const catalogStore = useCatalogStore();
 const changeoverStore = useChangeoverStore();
 
 const canEdit = computed(() => !isSupabaseConfigured || authStore.isEditor);
+const userAccessOpen = ref(false);
+const userSettingsOpen = ref(false);
 
 onMounted(async () => {
   if (!isSupabaseConfigured) {

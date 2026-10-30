@@ -158,6 +158,31 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function updateDisplayName(displayName: string) {
+    if (!supabase || !profile.value) {
+      error.value = "Unable to update your account settings.";
+      return false;
+    }
+
+    isLoading.value = true;
+    error.value = null;
+    const normalizedName = displayName.trim() || null;
+    try {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ display_name: normalizedName })
+        .eq("id", profile.value.id);
+      if (updateError) throw updateError;
+      profile.value = { ...profile.value, display_name: normalizedName };
+      return true;
+    } catch (reason) {
+      error.value = reason instanceof Error ? reason.message : "Unable to update your display name.";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     session,
     profile,
@@ -170,6 +195,7 @@ export const useAuthStore = defineStore("auth", () => {
     signIn,
     setInitialPassword,
     sendPasswordReset,
+    updateDisplayName,
     signOut,
   };
 });
