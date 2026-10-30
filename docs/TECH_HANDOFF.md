@@ -13,12 +13,14 @@
 
 ## Current behavior and limitations
 
-- The dashboard has top-level MMPs and Catalog navigation; Catalog contains Makes, Models, Segments, and Authors views.
+- The dashboard has top-level MMPs, Changeover, and Catalog navigation; Catalog contains Makes, Models, Segments, and Authors views.
 - The MMP view has task cards with edit, duplicate, delete, author assignment, and asset management interactions.
 - Editors can manage Makes, Models, Segments, Authors, and Model Years in the Catalog. Models reference a Make; each Model Year vehicle record carries its own Segment. Task creation uses active catalog entries and fills Segment from the selected Make/Model/Year. Catalog table changes are broadcast through Supabase Realtime.
 - Supabase Auth gates the app and exposes Editor/Viewer roles. The app loads and persists task, author, and catalog data through Supabase; demo mode uses sample records when local Supabase settings are absent.
 - The task model includes author, vehicle, deadline, status, notes, assets, embargo, and publication fields.
-- The Publication Tracking view still needs server-side search/filtering and pagination for larger history volumes. Changeover and Page Audit views are not implemented yet.
+- Changeover has a year selector, vehicle/status/author filters, status summaries, an editable per-year deadline with pacing, and Editor add/edit over shared model-year vehicle records. New entries use the Catalog's Make/Model/year options; public URLs remain stored once on the shared vehicle-year record. Changeover no longer displays the imported Review flag; source metadata is retained for the later Page Audit/reconciliation workflow. Page Audit and Prepare Next Model Year/reconciliation are not implemented yet.
+- `supabase/seeds/changeover.sql` imports the workbook's 2024–2027 Changeover lists and deadlines. It inserted all 1,988 source rows with no unmatched Catalog vehicles; 169 entries are flagged for review, including 128 with unresolved source-author values. It filled 1,766 shared public URLs and set four deadlines. Existing Changeover rows and nonblank URLs are preserved on reruns.
+- The Publication Tracking view still needs server-side search/filtering and pagination for larger history volumes.
 - No repository-level `AGENTS.md` or project-specific handoff instructions were found at the time of inspection.
 
 ## User-provided workflow and workbook

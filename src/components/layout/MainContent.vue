@@ -1,7 +1,7 @@
 <template>
   <div>
     <CatalogNav
-      v-if="activeLabel !== 'MMPs'"
+      v-if="['Makes', 'Models', 'Segments', 'Authors'].includes(activeLabel)"
       :active-label="activeLabel"
       @select="emit('catalog-tab-change', $event)"
     />
@@ -40,7 +40,7 @@
 import { computed, ref, watch } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
 
-import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage } from "@/components/pages";
+import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage, ChangeoverPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 import CatalogNav from "@/components/pages/components/CatalogNav.vue";
 
@@ -146,6 +146,8 @@ const activeComponent = computed(() => {
       return SegmentPage;
     case "Authors":
       return AuthorPage;
+    case "Changeover":
+      return ChangeoverPage;
     default:
       return TaskPage;
   }

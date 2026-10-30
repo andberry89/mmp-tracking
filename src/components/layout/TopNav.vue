@@ -23,7 +23,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 
 // Tabs to render in the navigation
-const tabs = ["MMPs", "Catalog"];
+const tabs = ["MMPs", "Changeover", "Catalog"];
 
 const props = defineProps<{ activeTab: string }>();
 const activeTab = computed(() => props.activeTab);

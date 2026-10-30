@@ -4,7 +4,7 @@ This is a working roadmap based on the prototype and the team's workbook/process
 
 ## Current checkpoint
 
-Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. The next work is to import and reconcile the workbook's master data, then validate Publication Tracking against real shared records before building Changeover and Page Audit.
+Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. Publication Tracking is connected to shared records. The initial Changeover view is in place over those same vehicle-year records; Page Audit and the annual Changeover preparation/reconciliation flow remain future work.
 
 ## 1. Confirm the work
 
@@ -16,7 +16,8 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 ## 2. Define the first usable workflow
 
 - Build a continuously updated Publication Tracking view with search, filters, sorting, and pagination that stays quick on the full dataset.
-- Build year-specific Changeover and Page Audit views over agreed model-year vehicle/page records; decide whether these are separate views over one record or linked records.
+- [x] Build a year-specific Changeover list over shared model-year vehicle records, with status, author, notes, URL, filtering, counts, and editable deadlines.
+- Build Page Audit and the annual Changeover preparation/reconciliation flow over shared model-year vehicle/page records.
 - [x] Add editable Makes, Models, Segments, and Authors sources, including author teams (BG, C/D, FL) and make/model/year-to-segment mapping.
 - Support task creation from controlled make/model/author options and automatically fill the segment from the selected model.
 - Add drag-and-drop to reorder or move work where the agreed workflow benefits from it, with explicit status/permission rules.
@@ -47,4 +48,4 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 
 ## Current prototype boundary
 
-The repository implements a Vue 3 dashboard, Supabase-backed task/catalog flows, and Editor/Viewer authentication. It is not yet a complete end-to-end process: workbook import, larger-scale Publication Tracking performance, Changeover, and Page Audit remain. See [TECH_HANDOFF.md](TECH_HANDOFF.md) for implementation details.
+The repository implements a Vue 3 dashboard, Supabase-backed task/catalog flows, Editor/Viewer authentication, and an initial Changeover view. It is not yet a complete end-to-end process: workbook reconciliation, larger-scale Publication Tracking performance, annual Changeover preparation, and Page Audit remain. See [TECH_HANDOFF.md](TECH_HANDOFF.md) for implementation details.

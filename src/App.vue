@@ -65,6 +65,7 @@ import { ranges as defaultRanges } from "@/constants";
 import { useDocumentsStore } from "@/stores/documents";
 import { useAuthorsStore } from "@/stores/authors";
 import { useCatalogStore } from "@/stores/catalog";
+import { useChangeoverStore } from "@/stores/changeover";
 
 // ----------------------------------
 // STORE
@@ -73,6 +74,7 @@ const authorsStore = useAuthorsStore();
 const documentsStore = useDocumentsStore();
 const authStore = useAuthStore();
 const catalogStore = useCatalogStore();
+const changeoverStore = useChangeoverStore();
 
 const canEdit = computed(() => !isSupabaseConfigured || authStore.isEditor);
 
@@ -80,6 +82,7 @@ onMounted(async () => {
   if (!isSupabaseConfigured) {
     authorsStore.initializeAuthors();
     await Promise.all([documentsStore.loadDocuments(), catalogStore.loadCatalog()]);
+    await changeoverStore.load();
     return;
   }
 
@@ -94,13 +97,16 @@ async function loadWorkspaceData() {
     documentsStore.loadDocuments(),
     catalogStore.loadCatalog(),
   ]);
+  await changeoverStore.load();
   documentsStore.subscribeToChanges();
   catalogStore.subscribeToChanges();
+  changeoverStore.subscribeToChanges();
 }
 
 async function handleSignOut() {
   documentsStore.stopRealtime();
   catalogStore.stopRealtime();
+  changeoverStore.stopRealtime();
   documentsStore.clearDocuments();
   await authStore.signOut();
 }
@@ -117,14 +123,17 @@ const ranges = ref(defaultRanges);
 // ----------------------------------
 const sortedAuthors = computed(() => authorsStore.groupedAuthors);
 const activeAuthors = computed(() => authorsStore.activeGroupedAuthors);
-const activeTopLevel = computed(() => (activeLabel.value === "MMPs" ? "MMPs" : "Catalog"));
+const activeTopLevel = computed(() => {
+  if (activeLabel.value === "MMPs" || activeLabel.value === "Changeover") return activeLabel.value;
+  return "Catalog";
+});
 
 // ----------------------------------
 // METHODS
 // ----------------------------------
 
 function onTabChange(label: string) {
-  activeLabel.value = label === "Catalog" ? activeCatalogLabel.value : "MMPs";
+  activeLabel.value = label === "Catalog" ? activeCatalogLabel.value : label;
 }
 
 function onCatalogTabChange(label: string) {

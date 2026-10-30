@@ -34,6 +34,7 @@ export interface ModelYearVehicleOption {
   modelYear: number;
   segmentId: string | null;
   segment: string;
+  publicUrl?: string;
 }
 
 export interface ModelYearOption {
@@ -55,6 +56,7 @@ type ModelYearVehicleRow = {
   model_id: string;
   model_year: number;
   segment_id: string | null;
+  public_url: string | null;
   models: {
     name: string;
     make_id: string;
@@ -114,7 +116,7 @@ export const useCatalogStore = defineStore("catalog", () => {
           .range(from, to)),
         fetchAllPages((from, to) => supabase
           .from("model_year_vehicles")
-          .select("id, model_id, model_year, segment_id, models!inner(name, make_id, active, makes!inner(name, active)), segments(name)")
+          .select("id, model_id, model_year, segment_id, public_url, models!inner(name, make_id, active, makes!inner(name, active)), segments(name)")
           .order("model_year", { ascending: false })
           .order("model_id")
           .order("id")
@@ -155,6 +157,7 @@ export const useCatalogStore = defineStore("catalog", () => {
           modelYear: row.model_year,
           segmentId: row.segment_id,
           segment: segment?.name ?? "",
+          publicUrl: row.public_url ?? "",
         };
       });
     } catch (reason) {

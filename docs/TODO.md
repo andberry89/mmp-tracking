@@ -92,7 +92,10 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [ ] Decide how to retain unmatched inactive-author names on historical imported tasks; keep them unassigned until identity/team mapping is known.
 - [x] Add editable Make, Model, Segment, and Author records; constrain Author teams to Buyer's Guide (BG), Car and Driver (C/D), and Freelancers (FL).
 - [x] Auto-populate a vehicle year's segment when selecting Make, Model, and Model Year on a new task.
-- [ ] Implement year-specific Changeover fields for assigned Author, status, notes/research, and the shared published URL. “Double-check info?” belongs in Page Audit; Make Tags are dropped.
+- [x] Implement a year-specific Changeover view with vehicle search, status/author filters, a status-sorted sortable list, shared URL, author, notes, per-year editable deadlines, status counts, and deadline pacing. “Double-check info?” belongs in Page Audit; Make Tags are dropped.
+- [ ] Add the Editor-triggered Prepare Next Model Year draft, source reconciliation/conflict review, and explicit promotion workflow after Page Audit data is available.
+- [x] Prepare a repeat-safe Changeover import from the workbook's 2024–2027 lists, carrying deadlines and shared URLs while retaining source values that need review.
+- [x] Run `supabase/seeds/changeover.sql` in Supabase. All 1,988 source rows matched the Catalog and were inserted; 169 rows retain internal source-review metadata, including 128 rows with unresolved source-author values. No Review badge or control is shown in Changeover.
 - [ ] Add a Page Audit checklist with typed answers and visibility for incomplete items.
 - [ ] Keep later updates linked to the existing published MMP without restarting the new-page lifecycle.
 - [ ] Add fast server-side search/filtering and pagination for the continuously updated publication view.

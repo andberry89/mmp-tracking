@@ -22,7 +22,7 @@
       </div>
 
       <!-- Option Footer -->
-      <footer v-if="$slots.footer" class="app-modal__footer">
+      <footer v-if="$slots.footer" class="app-modal__footer" :class="{ 'app-modal__footer--no-divider': !footerDivider }">
         <slot name="footer" />
       </footer>
     </div>
@@ -39,6 +39,7 @@ const props = defineProps<{
   size?: "sm" | "md" | "lg" | "xl";
   clickToClose?: boolean;
   escToClose?: boolean;
+  footerDivider?: boolean;
 }>();
 
 const emit = defineEmits(["update:modelValue", "close"]);
