@@ -9,7 +9,17 @@ export const sortDocuments = (docs: TaskDocument[]) => {
   // Sort published: most recent publishedDate first
   let published = docs
     .filter((doc) => (PUBLISHED_STATUSES as readonly TaskStatus[]).includes(doc.status))
-    .sort((a, b) => compareDates(b.publishedDate, a.publishedDate));
+    .sort((a, b) => {
+      const timeA = a.publishedDate ? new Date(a.publishedDate).getTime() : Number.NaN;
+      const timeB = b.publishedDate ? new Date(b.publishedDate).getTime() : Number.NaN;
+      const hasDateA = Number.isFinite(timeA);
+      const hasDateB = Number.isFinite(timeB);
+
+      if (!hasDateA && hasDateB) return 1;
+      if (hasDateA && !hasDateB) return -1;
+      if (!hasDateA || !hasDateB) return 0;
+      return timeB - timeA;
+    });
 
   // Sort rtp: "Ready to Publish" and "Scheduled"
   let rtp = docs

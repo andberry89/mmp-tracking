@@ -7,8 +7,6 @@ import type { TaskDocument } from "@/types";
 export const applyTaskRules = (task: TaskDocument): TaskDocument => {
   const normalizedStatus = task.status?.toLowerCase().trim();
 
-  const now = new Date().toISOString();
-
   const updatedTask: TaskDocument = {
     ...task,
 
@@ -23,12 +21,6 @@ export const applyTaskRules = (task: TaskDocument): TaskDocument => {
   // --- Normalize Published / Updated ------------------
   if (normalizedStatus === "published" || normalizedStatus === "updated") {
     updatedTask.published = true;
-
-    if (task.embargoDate) {
-      updatedTask.publishedDate = task.embargoDate;
-    } else if (!updatedTask.publishedDate) {
-      updatedTask.publishedDate = now;
-    }
   } else {
     updatedTask.published = false;
     updatedTask.publishedDate = "";

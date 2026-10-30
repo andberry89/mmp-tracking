@@ -48,6 +48,17 @@
         </label>
       </div>
 
+      <div v-if="isPublishedStatus" class="mb-4">
+        <label class="form-field" for="publishedDateInput">Published / Updated date and time</label>
+        <input
+          id="publishedDateInput"
+          v-model="publishedDateInput"
+          type="datetime-local"
+          class="form-control mt-1"
+        />
+        <p class="edit-field-hint">Leave blank to use the embargo time, or the current time if no embargo is set.</p>
+      </div>
+
       <div class="mb-4">
         <label class="form-field">Deadline</label>
         <input
@@ -166,6 +177,7 @@ const editableTask = ref({ ...props.task });
 const newResources = ref<TaskResourceInput[]>([]);
 const embargoDatePart = ref("");
 const embargoTimePart = ref("");
+const publishedDateInput = ref(toLocalDateTimeInput(props.task.publishedDate));
 
 // Computed --------------------------------
 const localModel = computed({
@@ -178,18 +190,26 @@ const vehicleName = computed(() =>
     ? `${props.task.vehicle.modelYear} ${props.task.vehicle.make} ${props.task.vehicle.model}`
     : ""
 );
+const isPublishedStatus = computed(
+  () => editableTask.value.status === "published" || editableTask.value.status === "updated"
+);
 
 // Watchers --------------------------------
 watch(
   () => props.task,
   (t) => {
     editableTask.value = { ...t };
+    publishedDateInput.value = toLocalDateTimeInput(t.publishedDate);
     newResources.value = [];
   }
 );
 
 watch(() => props.modelValue, (isOpen) => {
-  if (isOpen) newResources.value = [];
+  if (isOpen) {
+    editableTask.value = { ...props.task };
+    publishedDateInput.value = toLocalDateTimeInput(props.task.publishedDate);
+    newResources.value = [];
+  }
 });
 
 // Update embargoDatePart and embargoTimePart when task.embargoDate changes
@@ -234,7 +254,27 @@ watch([embargoDatePart, embargoTimePart], ([date, time]) => {
 
 // Methods --------------------------------
 function handleSave() {
-  emit("save", { task: editableTask.value, resources: newResources.value });
+  const originalDateInput = toLocalDateTimeInput(editableTask.value.publishedDate);
+  const publishedDate = publishedDateInput.value === originalDateInput
+    ? editableTask.value.publishedDate
+    : toIsoTimestamp(publishedDateInput.value);
+  emit("save", {
+    task: { ...editableTask.value, publishedDate },
+    resources: newResources.value,
+  });
+}
+
+function toLocalDateTimeInput(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+function toIsoTimestamp(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
 function addResource() {
@@ -267,5 +307,6 @@ function resourceLabel(asset: TaskAsset) {
 .edit-resources__remove { padding: 7px 5px; border: 0; background: transparent; color: var(--red-dark); cursor: pointer; font: 600 0.8rem "Asap", sans-serif; }
 .edit-resources__remove:hover { text-decoration: underline; }
 .edit-error { margin: 0 0 12px; color: var(--red-dark); font-size: 0.85rem; }
+.edit-field-hint { margin: 5px 0 0; color: var(--gray-light-4); font-size: 0.78rem; }
 @media (max-width: 700px) { .edit-resources__draft { grid-template-columns: 1fr; } .edit-resources__heading { align-items: flex-start; flex-direction: column; } }
 </style>

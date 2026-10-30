@@ -8,7 +8,7 @@ export const STATUS_CLASS_MAP = {
   rte: "bg-purple-600 text-purple-50",
   rtp: "bg-orange-600 text-orange-50",
   scheduled: "bg-amber-600 text-amber-50",
-  updated: "bg-teal-600 text-teal-50",
+  updated: "bg-cyan-800 text-cyan-50",
   published: "bg-green-600 text-green-50",
 } as const;
 

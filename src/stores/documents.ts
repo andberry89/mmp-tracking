@@ -171,7 +171,10 @@ export const useDocumentsStore = defineStore("documents", () => {
       embargo: Boolean(input.embargoDate),
       published: input.status === "published" || input.status === "updated",
       new: !input.isUpdate,
-      publishedDate: "",
+      publishedDate:
+        input.status === "published" || input.status === "updated"
+          ? input.embargoDate || new Date().toISOString()
+          : "",
     };
 
     insertDocument(demoTask);
@@ -264,33 +267,47 @@ export const useDocumentsStore = defineStore("documents", () => {
     if (isSupabaseConfigured && supabase) {
       const databasePayload: Record<string, unknown> = {};
       if ("authorId" in payload) databasePayload.author_id = payload.authorId;
+      const clearsPublicationDate =
+        payload.status !== undefined &&
+        payload.status !== "published" &&
+        payload.status !== "updated" &&
+        (current.status === "published" || current.status === "updated");
       if ("status" in payload) {
         databasePayload.status = payload.status === "rte" ? "pending_edits" : payload.status;
-        const nextIsPublished = payload.status === "published" || payload.status === "updated";
-        const wasPublished = current.status === "published" || current.status === "updated";
-        if (payload.status && !nextIsPublished && wasPublished) {
-          databasePayload.published_at = null;
-        }
+        if (clearsPublicationDate) databasePayload.published_at = null;
       }
       if ("highPriority" in payload) databasePayload.high_priority = payload.highPriority;
       if ("deadline" in payload) databasePayload.deadline = payload.deadline || null;
       if ("notes" in payload) databasePayload.notes = payload.notes ?? "";
       if ("embargoNotes" in payload) databasePayload.embargo_notes = payload.embargoNotes ?? "";
       if ("embargoDate" in payload) databasePayload.embargo_at = toTimestamp(payload.embargoDate);
-      if ("publishedDate" in payload) databasePayload.published_at = toTimestamp(payload.publishedDate);
+      if ("publishedDate" in payload && !clearsPublicationDate) {
+        databasePayload.published_at = toTimestamp(payload.publishedDate);
+      }
       if ("new" in payload) databasePayload.task_kind = payload.new ? "new_mmp" : "update";
 
       if (Object.keys(databasePayload).length) {
-        const { error: updateError } = await supabase
+        const { data: updatedTaskRow, error: updateError } = await supabase
           .from("mmp_tasks")
           .update(databasePayload)
-          .eq("id", id);
+          .eq("id", id)
+          .select("published_at")
+          .maybeSingle();
         if (updateError) {
           error.value = updateError.message;
           return;
         }
+        if (updatedTaskRow) merged.publishedDate = updatedTaskRow.published_at ?? "";
       }
       error.value = null;
+    } else if (
+      payload.status &&
+      (payload.status === "published" || payload.status === "updated") &&
+      current.status !== "published" &&
+      current.status !== "updated" &&
+      !("publishedDate" in payload)
+    ) {
+      merged.publishedDate = merged.embargoDate || new Date().toISOString();
     }
 
     documents.value[idx] = applyTaskRules(merged);

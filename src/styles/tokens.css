@@ -98,7 +98,7 @@
     --color-body-rte: var(--purple); /* Ready to Edit */
     --color-body-rtp: var(--orange); /* Ready to Publish */
     --color-body-scheduled: var(--yellow);
-    --color-body-updated: var(--teal);
+    --color-body-updated: #2f7180;
     --color-body-text-status: var(--white);
 
     /* Team Button colors */
