@@ -10,9 +10,9 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Capture the current manual early-year Changeover compilation inputs: current Changeover excluding Dead, current Page Audit completeness check, and already-published vehicles from next-year Page Audit.
 - [x] Add a preferred Editor-triggered **Prepare Next Model Year** draft action using the annual source sheets.
 - [x] Prepare one next-year list at a time; defer simultaneous multi-year future planning.
-- [x] On generation, default status to **Published** when the page already exists; otherwise **Awaiting Info**. Do not carry over source statuses.
-- [x] Merge duplicate vehicles by Make/Model/Model Year and flag conflicting details for review.
-- [x] Require an explicit Editor action to promote the reviewed next-year Changeover draft to the active working list.
+- [x] On generation, default status to **Published** when a public URL exists, **Vaporware** when the current-year row is Vaporware, and **Awaiting Info** otherwise. Leave Author unassigned and do not carry current-year notes or other statuses forward.
+- [x] Merge duplicate vehicles by Make/Model/Model Year; do not carry Author assignments or require author-conflict review.
+- [x] Require an explicit Editor action to promote the next-year Changeover draft to the active working list.
 - [x] Promotion switches the default Changeover year; keep prior years accessible and editable.
 - [x] Allow Editors to manually add shared-catalog vehicles to existing model-year Changeover lists outside annual preparation; create new catalog vehicles first.
 - [x] Drop Make Tags from Changeover; move “Double-check info?” to the deferred Page Audit as a later-in-year verification flag for MMPs published before official information is available.
@@ -74,6 +74,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Run an initial code audit, repair TypeScript/lint setup errors, and connect existing search/author/date filters to the MMP list. See [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md).
 - [ ] Decide whether to apply the remaining Vue formatting warnings in a dedicated style-only pass.
 - [ ] Continue the visual-design pass across the current auth, task, and reference-data screens; review the tracking-page baseline with the user before extending it to Changeover and Page Audit.
+- [ ] Replace the browser page title “Vite App” with the app name and create a matching logo/favicon for browser tabs.
 - [x] Draft shared relational data around vehicle/model years, production work, Changeover, and Page Audit checklist records.
 - [x] Select Supabase as the backend; add the SDK, local client scaffold, login gate, task/author reads, Realtime subscriptions, and persistence for existing task edits/resources.
 - [x] Review and apply the initial schema migration to the new Supabase project.
@@ -93,12 +94,16 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Add editable Make, Model, Segment, and Author records; constrain Author teams to Buyer's Guide (BG), Car and Driver (C/D), and Freelancers (FL).
 - [x] Auto-populate a vehicle year's segment when selecting Make, Model, and Model Year on a new task.
 - [x] Implement a year-specific Changeover view with vehicle search, status/author filters, a status-sorted sortable list, shared URL, author, notes, per-year editable deadlines, status counts, and deadline pacing. “Double-check info?” belongs in Page Audit; Make Tags are dropped.
-- [ ] Add the Editor-triggered Prepare Next Model Year draft, source reconciliation/conflict review, and explicit promotion workflow after Page Audit data is available.
+- [x] Implement the Editor-triggered Prepare Next Model Year draft, source merge, and explicit promotion workflow.
+- [x] Keep current-year Changeover notes out of the next-year draft.
+- [x] Add an Editor-only discard action for an unpromoted prepared draft; remove Changeover entries while preserving shared vehicle, audit, and task records.
+- [ ] Run the updated `supabase/migrations/202610300006_prepare_next_changeover_year.sql` in Supabase to enable draft discard, exclude current-year Dead vehicles, clear carried-over authors/review flags/notes, and repair the existing 2028 draft.
 - [x] Prepare a repeat-safe Changeover import from the workbook's 2024–2027 lists, carrying deadlines and shared URLs while retaining source values that need review.
 - [x] Run `supabase/seeds/changeover.sql` in Supabase. All 1,988 source rows matched the Catalog and were inserted; 169 rows retain internal source-review metadata, including 128 rows with unresolved source-author values. No Review badge or control is shown in Changeover.
 - [x] Add a year-specific Page Audit checklist with preserved free-form answers, shared live URL, source-status metadata, and Double-check info follow-up.
 - [x] Seed Double-check info? Yes flags from the 2026 and 2027 Changeover sheets into matching Page Audit years.
 - [x] Prepare an idempotent import of workbook Page Audit rows for 2026–2029.
+- [x] Apply the year-specific award backfill and seed 2026/2027 Double-check info? Yes values into Page Audit.
 - [x] Define field-specific Page Audit expected answers and green/yellow/red formatting; keep 10 Best and Editors' Choice as separate award values outside checklist scoring.
 - [x] Use the team-supplied 10 Best and Editors' Choice icons in the Page Audit Awards column.
 - [ ] Review whether any checklist fields should be conditional, required, or use dedicated answer controls instead of free text.

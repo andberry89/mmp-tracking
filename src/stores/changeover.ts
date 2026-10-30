@@ -20,6 +20,7 @@ export interface ChangeoverYearOption {
   state: "draft" | "active" | "prior";
   isDefault: boolean;
   deadline: string;
+  preparedFromYear: number | null;
 }
 
 export interface ChangeoverEntry {
@@ -49,6 +50,7 @@ type ChangeoverProvenance = {
   review_flag?: boolean;
   raw_author?: string | null;
   author_reviewed?: boolean;
+  annual_roll_forward?: boolean;
 };
 
 type DbChangeoverYear = {
@@ -56,6 +58,7 @@ type DbChangeoverYear = {
   state: ChangeoverYearOption["state"];
   is_default: boolean;
   changeover_deadline: string | null;
+  prepared_from_year: number | null;
 };
 
 type DbChangeoverRow = {
@@ -123,6 +126,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
   async function load(year = selectedYear.value ?? undefined) {
     isLoading.value = true;
     error.value = null;
+    entries.value = [];
     try {
       if (!supabase || !isSupabaseConfigured) {
         years.value = catalogStore.modelYearRecords.map((item) => ({
@@ -130,6 +134,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
           state: item.state,
           isDefault: item.isDefault,
           deadline: localDeadlines.value[item.year] ?? "",
+          preparedFromYear: null,
         }));
         selectedYear.value = year ?? defaultYear.value;
         entries.value = selectedYear.value === null
@@ -140,7 +145,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
 
       const yearResult = await supabase
         .from("model_years")
-        .select("year, state, is_default, changeover_deadline")
+        .select("year, state, is_default, changeover_deadline, prepared_from_year")
         .order("year", { ascending: false });
       if (yearResult.error) throw yearResult.error;
 
@@ -149,6 +154,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
         state: row.state,
         isDefault: row.is_default,
         deadline: row.changeover_deadline ?? "",
+        preparedFromYear: row.prepared_from_year,
       }));
       selectedYear.value = year ?? defaultYear.value;
       if (selectedYear.value === null) {
@@ -165,6 +171,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
 
       entries.value = (rows as unknown as DbChangeoverRow[]).map(mapChangeoverRow);
     } catch (reason) {
+      entries.value = [];
       error.value = messageFor(reason, "Unable to load Changeover data.");
     } finally {
       isLoading.value = false;
@@ -239,7 +246,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
     isSaving.value = true;
     try {
       const assignmentChanged = entry.assignedAuthorId !== input.assignedAuthorId;
-      const sourceProvenance = assignmentChanged
+      let sourceProvenance = assignmentChanged
         ? (entry.sourceProvenance.length ? entry.sourceProvenance : [{}]).map((item) => {
           const { raw_author: rawAuthor, ...rest } = item;
           return {
@@ -317,6 +324,60 @@ export const useChangeoverStore = defineStore("changeover", () => {
     }
   }
 
+  async function prepareNextYear(currentYear: number) {
+    if (!supabase || !isSupabaseConfigured) throw new Error("Preparing a Changeover year requires the configured Supabase database.");
+    isSaving.value = true;
+    error.value = null;
+    try {
+      const { data, error: prepareError } = await supabase.rpc("prepare_next_changeover_year", { p_current_year: currentYear });
+      if (prepareError) throw prepareError;
+      await catalogStore.loadCatalog();
+      await load(currentYear + 1);
+      if (error.value) throw new Error(error.value);
+      return data as { currentYear: number; nextYear: number; createdOrMerged: number };
+    } catch (reason) {
+      error.value = messageFor(reason, "Could not prepare the next model-year Changeover draft.");
+      throw reason;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  async function promoteYear(year: number) {
+    if (!supabase || !isSupabaseConfigured) throw new Error("Promoting a Changeover year requires the configured Supabase database.");
+    isSaving.value = true;
+    error.value = null;
+    try {
+      const { error: promoteError } = await supabase.rpc("promote_changeover_year", { p_year: year });
+      if (promoteError) throw promoteError;
+      await catalogStore.loadCatalog();
+      await load(year);
+    } catch (reason) {
+      error.value = messageFor(reason, "Could not promote this Changeover draft.");
+      throw reason;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  async function discardPreparedYear(year: number) {
+    if (!supabase || !isSupabaseConfigured) throw new Error("Discarding a prepared Changeover draft requires the configured Supabase database.");
+    isSaving.value = true;
+    error.value = null;
+    try {
+      const { data, error: discardError } = await supabase.rpc("discard_prepared_changeover_year", { p_year: year });
+      if (discardError) throw discardError;
+      await load(year);
+      if (error.value) throw new Error(error.value);
+      return (data as { removedEntries: number }).removedEntries;
+    } catch (reason) {
+      error.value = messageFor(reason, "Could not discard this prepared Changeover draft.");
+      throw reason;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
   function subscribeToChanges() {
     if (!supabase || !isSupabaseConfigured) return;
     if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
@@ -345,6 +406,9 @@ export const useChangeoverStore = defineStore("changeover", () => {
     addEntry,
     updateEntry,
     updateDeadline,
+    prepareNextYear,
+    promoteYear,
+    discardPreparedYear,
     subscribeToChanges,
     stopRealtime,
   };
@@ -360,6 +424,7 @@ function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
   const rawAuthor = sourceProvenance[0]?.raw_author?.trim() ?? "";
   const hasSourceProvenance = Boolean(sourceProvenance.length);
   const authorReviewed = sourceProvenance[0]?.author_reviewed === true;
+  const annualRollForward = sourceProvenance.some((source) => source.annual_roll_forward === true);
   return {
     id: row.id,
     modelYearVehicleId: row.model_year_vehicle_id,
@@ -374,7 +439,7 @@ function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
     status: row.status,
     assignedAuthorId: row.assigned_author_id as AuthorId | null,
     author: author?.label ?? (rawAuthor.toLowerCase() === "open" ? "" : rawAuthor),
-    isOpen: !row.assigned_author_id && (authorReviewed || rawAuthor.toLowerCase() === "open" || !hasSourceProvenance),
+    isOpen: !row.assigned_author_id && (authorReviewed || rawAuthor.toLowerCase() === "open" || !hasSourceProvenance || annualRollForward),
     notes: row.notes,
     sourceProvenance,
   };

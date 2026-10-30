@@ -33,6 +33,19 @@ from unpublished Changeover rows out of the shared published-page URL field and
 into Changeover-only resource fields. This removes the Buick Envista resource
 link from Page Audit while keeping it available as “Open resource” in Changeover.
 
+Run `migrations/202610300006_prepare_next_changeover_year.sql` to enable the
+Editor-only annual Changeover preparation and promotion workflow. The action
+creates a next-year draft from the current Changeover list (excluding Dead),
+the current Page Audit list (excluding vehicles marked Dead in Changeover), and
+next-year Page Audit rows while excluding vehicles marked Dead in the current
+Changeover year. Authors start unassigned. Statuses start as Published when a
+public URL exists, Vaporware when the current-year row is Vaporware, and
+Awaiting Info otherwise. Current-year notes and other statuses are not carried
+forward. Re-running the updated migration repairs the existing 2028 draft. The
+migration also adds an Editor-only discard action; it removes Changeover entries
+and resets the draft for re-preparation while preserving shared vehicle, Page
+Audit, and task records.
+
 ## Configure a project
 
 1. Create a project in the existing Supabase account and keep its database

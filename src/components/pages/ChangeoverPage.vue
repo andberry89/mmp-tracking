@@ -11,11 +11,25 @@
             <option v-for="year in store.years" :key="year.year" :value="year.year">{{ year.year }}{{ year.isDefault ? ' · Active' : year.state === 'draft' ? ' · Draft' : '' }}</option>
           </select>
         </label>
-        <button v-if="canEdit && store.selectedYear" class="primary-button" type="button" @click="openAdd">＋ Add Vehicle</button>
+        <button v-if="canPrepareNextYear" class="secondary-button" type="button" :disabled="store.isSaving" @click="prepareNextYear">Prepare {{ (store.selectedYear ?? 0) + 1 }}</button>
+        <button v-if="props.canEdit && store.selectedYear" class="primary-button" type="button" @click="openAdd">＋ Add Vehicle</button>
       </div>
     </header>
 
+    <div v-if="isPreparing" class="working-banner" role="status" aria-live="polite">
+      <span class="working-spinner" aria-hidden="true"></span>
+      <span><strong>Preparing {{ (store.selectedYear ?? 0) + 1 }} draft…</strong> Merging Changeover and Page Audit records.</span>
+    </div>
     <div v-if="store.error" class="error-banner" role="alert">{{ store.error }}</div>
+    <div v-if="annualActionMessage" class="action-notice" role="status">{{ annualActionMessage }}</div>
+    <section v-if="isPreparedDraft" class="draft-banner" aria-label="Changeover draft status">
+      <div><strong>{{ store.selectedYear }} Draft</strong><span>Prepared from {{ selectedYearRecord?.preparedFromYear }}</span></div>
+      <div class="draft-actions">
+        <span class="draft-ready">Author unassigned · review the list before promotion</span>
+        <button v-if="props.canEdit" class="primary-button" type="button" :disabled="store.isSaving" @click="promoteDraft">Promote to Active</button>
+        <button v-if="props.canEdit" class="discard-button" type="button" :disabled="store.isSaving" @click="discardDraftOpen = true">Discard Draft</button>
+      </div>
+    </section>
     <div v-if="!store.years.length && !store.isLoading" class="empty-year">
       <strong>No model years are set up yet.</strong>
       <span>Add a model year from Catalog → Models before starting a Changeover list.</span>
@@ -31,7 +45,7 @@
           <span>Deadline pacing</span>
           <strong>{{ pacingLabel }}</strong>
           <small>{{ pacingDetail }}</small>
-          <div v-if="canEdit" class="deadline-control">
+          <div v-if="props.canEdit" class="deadline-control">
             <label>Deadline <input v-model="deadlineDraft" type="date" @change="saveDeadline" /></label>
             <span v-if="deadlineSaved" class="saved-label">Saved</span>
           </div>
@@ -50,26 +64,26 @@
           </div>
         </div>
 
-        <div v-if="store.isLoading" class="loading-state">Loading Changeover…</div>
+        <div v-if="store.isLoading" class="loading-state"><span class="working-spinner" aria-hidden="true"></span><span>Loading Changeover…</span></div>
         <div v-else-if="!filteredEntries.length" class="empty-state">
           <strong>{{ store.entries.length ? 'No vehicles match these filters.' : 'This Changeover list is empty.' }}</strong>
-          <span v-if="!store.entries.length && canEdit">Add vehicles from the shared Catalog to start the list.</span>
-          <button v-if="!store.entries.length && canEdit" class="primary-button" type="button" @click="openAdd">＋ Add Vehicle</button>
+          <span v-if="!store.entries.length && props.canEdit">Add vehicles from the shared Catalog to start the list.</span>
+          <button v-if="!store.entries.length && props.canEdit" class="primary-button" type="button" @click="openAdd">＋ Add Vehicle</button>
         </div>
         <div v-else class="table-scroll">
-          <table :class="{ 'table--editable': canEdit }">
+          <table :class="{ 'table--editable': props.canEdit }">
             <thead><tr>
               <th :aria-sort="sortAria('vehicle')"><button class="sort-button" type="button" @click="sortBy('vehicle')">Vehicle / Segment{{ sortGlyph('vehicle') }}</button></th>
               <th :aria-sort="sortAria('status')"><button class="sort-button" type="button" @click="sortBy('status')">Status{{ sortGlyph('status') }}</button></th>
               <th :aria-sort="sortAria('author')"><button class="sort-button" type="button" @click="sortBy('author')">Author{{ sortGlyph('author') }}</button></th>
               <th :aria-sort="sortAria('notes')"><button class="sort-button" type="button" @click="sortBy('notes')">Notes{{ sortGlyph('notes') }}</button></th>
               <th :aria-sort="sortAria('url')"><button class="sort-button" type="button" @click="sortBy('url')">URL / Resource{{ sortGlyph('url') }}</button></th>
-              <th v-if="canEdit" aria-label="Actions"></th>
+              <th v-if="props.canEdit" aria-label="Actions"></th>
             </tr></thead>
             <tbody>
               <template v-for="(entry, index) in filteredEntries" :key="entry.id">
                 <tr v-if="groupingMode === 'status' && (index === 0 || filteredEntries[index - 1]?.status !== entry.status)" class="status-group-row">
-                  <td :colspan="canEdit ? 6 : 5">{{ statusLabel(entry.status) }} <span>{{ filteredEntries.filter((item) => item.status === entry.status).length }}</span></td>
+                  <td :colspan="props.canEdit ? 6 : 5">{{ statusLabel(entry.status) }} <span>{{ filteredEntries.filter((item) => item.status === entry.status).length }}</span></td>
                 </tr>
                 <tr :class="['changeover-row', `changeover-row--${entry.status}`]">
                   <td><strong>{{ entry.make }} {{ entry.model }}</strong><span class="segment">{{ entry.segment || 'Segment not set' }}</span></td>
@@ -77,7 +91,7 @@
                   <td><span v-if="entry.author" class="author-name">{{ entry.author }}</span><span v-else-if="entry.isOpen" class="open-author">OPEN</span><span v-else class="muted">—</span></td>
                   <td class="notes-cell"><span :class="['notes-preview', { 'notes-preview--expandable': entry.notes.length > NOTE_PREVIEW_LIMIT } ]">{{ notePreview(entry.notes) }}</span><button v-if="entry.notes.length > NOTE_PREVIEW_LIMIT" class="notes-more" type="button" @click="showNotes(entry)">See more</button></td>
                   <td><a v-if="entry.status === 'published' && entry.publicUrl" class="public-link" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer">{{ entry.publicUrl }}<span aria-hidden="true"> ↗</span></a><a v-else-if="entry.resourceUrl" class="public-link" :href="entry.resourceUrl" target="_blank" rel="noopener noreferrer">Open resource<span aria-hidden="true"> ↗</span></a><span v-else class="muted">—</span></td>
-                  <td v-if="canEdit" class="action-cell"><button class="edit-button" type="button" :aria-label="`Edit ${entry.make} ${entry.model}`" @click="openEdit(entry)">Edit</button></td>
+                  <td v-if="props.canEdit" class="action-cell"><button class="edit-button" type="button" :aria-label="`Edit ${entry.make} ${entry.model}`" @click="openEdit(entry)">Edit</button></td>
                 </tr>
               </template>
             </tbody>
@@ -109,6 +123,18 @@
         </div>
       </template>
     </BaseModal>
+    <BaseModal v-model="discardDraftOpen" title="Discard prepared draft?" size="md" :click-to-close="false" :esc-to-close="true" @close="discardDraftOpen = false">
+      <div class="discard-confirmation">
+        <p>This removes all Changeover entries in the {{ store.selectedYear }} draft, including any edits made after it was prepared.</p>
+        <p>Shared vehicle records, Page Audit data, and Publication Tracking tasks will stay in place. The year remains an unprepared draft and can be prepared again.</p>
+      </div>
+      <template #footer>
+        <div class="modal-footer">
+          <button class="secondary-button" type="button" :disabled="store.isSaving" @click="discardDraftOpen = false">Keep draft</button>
+          <button class="discard-button" type="button" :disabled="store.isSaving" @click="discardPreparedDraft">{{ store.isSaving ? 'Discarding…' : 'Discard Changeover entries' }}</button>
+        </div>
+      </template>
+    </BaseModal>
   </section>
 </template>
 
@@ -122,7 +148,7 @@ import type { AuthorId, AuthorsByTeamGroup, GroupedAuthors, TaskDocument } from 
 import ChangeoverEntryModal from "@/components/changeover/ChangeoverEntryModal.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   canEdit?: boolean;
   documents?: TaskDocument[];
   authors?: GroupedAuthors;
@@ -154,6 +180,9 @@ const statusColors: Record<ChangeoverStatus, string> = {
   vaporware: "#9a68b5",
 };
 const notesModalOpen = ref(false);
+const discardDraftOpen = ref(false);
+const isPreparing = ref(false);
+const annualActionMessage = ref("");
 const notesTitle = ref("Notes");
 const expandedNotes = ref("");
 type SortKey = "vehicle" | "status" | "author" | "notes" | "url";
@@ -181,6 +210,11 @@ const publishedVehicleIds = computed(() => documentsStore.documents
   .filter((document) => ["published", "updated"].includes(document.status) && document.modelYearVehicleId)
   .map((document) => document.modelYearVehicleId as string));
 const assignedAuthors = computed(() => [...new Set(store.entries.map((entry) => entry.author).filter(Boolean))].sort((a, b) => a.localeCompare(b)));
+const selectedYearRecord = computed(() => store.years.find((item) => item.year === store.selectedYear) ?? null);
+const nextYearRecord = computed(() => store.years.find((item) => item.year === (store.selectedYear ?? 0) + 1) ?? null);
+const canPrepareNextYear = computed(() => Boolean(props.canEdit && selectedYearRecord.value?.state === "active" && selectedYearRecord.value.isDefault
+  && !nextYearRecord.value?.preparedFromYear && (!nextYearRecord.value || nextYearRecord.value.state === "draft")));
+const isPreparedDraft = computed(() => selectedYearRecord.value?.state === "draft" && selectedYearRecord.value.preparedFromYear !== null && selectedYearRecord.value.preparedFromYear !== undefined);
 const filteredEntries = computed(() => {
   const normalized = query.value.trim().toLowerCase();
   return store.entries.filter((entry) => {
@@ -275,6 +309,35 @@ async function saveDeadline() {
   try { await store.updateDeadline(store.selectedYear, deadlineDraft.value); deadlineSaved.value = true; window.setTimeout(() => { deadlineSaved.value = false; }, 1600); }
   catch { /* The store presents its error inline. */ }
 }
+async function prepareNextYear() {
+  if (store.selectedYear === null) return;
+  annualActionMessage.value = "";
+  isPreparing.value = true;
+  try {
+    const result = await store.prepareNextYear(store.selectedYear);
+    annualActionMessage.value = `Prepared the ${result.nextYear} draft with ${result.createdOrMerged} vehicles. Authors are unassigned; review the list before promotion.`;
+  } catch { /* The store displays preparation errors inline. */ }
+  finally { isPreparing.value = false; }
+}
+async function promoteDraft() {
+  if (store.selectedYear === null) return;
+  annualActionMessage.value = "";
+  try {
+    const year = store.selectedYear;
+    await store.promoteYear(year);
+    annualActionMessage.value = `${year} is now the active Changeover year.`;
+  } catch { /* The store displays promotion errors inline. */ }
+}
+async function discardPreparedDraft() {
+  if (store.selectedYear === null) return;
+  annualActionMessage.value = "";
+  try {
+    const year = store.selectedYear;
+    const removed = await store.discardPreparedYear(year);
+    discardDraftOpen.value = false;
+    annualActionMessage.value = `Discarded the ${year} draft’s ${removed} Changeover entr${removed === 1 ? 'y' : 'ies'}. Shared vehicle, audit, and task records were preserved.`;
+  } catch { /* The store presents its error inline. */ }
+}
 async function saveEntry(input: { vehicle: import("@/stores/catalog").ModelYearVehicleOption; status: ChangeoverStatus; assignedAuthorId: AuthorId | null; notes: string; publicUrl: string; resourceUrl: string }) {
   try {
     if (modalMode.value === "add") await store.addEntry(input.vehicle, input);
@@ -293,6 +356,23 @@ h1 { margin: 0; font: 700 1.65rem/1.2 "Monda", sans-serif; }
 .year-picker, .filters label { display: grid; gap: 5px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 600; }
 select, input { min-height: 36px; padding: 7px 10px; border: 1px solid var(--color-form-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-5); font: 400 .86rem "Asap", sans-serif; }
 .primary-button { min-height: 36px; padding: 0 13px; border: 1px solid transparent; border-radius: 5px; background: var(--green-2); color: var(--white); font: 600 .84rem "Asap", sans-serif; cursor: pointer; white-space: nowrap; }
+.primary-button:disabled, .secondary-button:disabled { cursor: not-allowed; opacity: .55; }
+.secondary-button { min-height: 36px; padding: 0 12px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font: 600 .82rem "Asap", sans-serif; cursor: pointer; white-space: nowrap; }
+.draft-banner { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 15px; border: 1px solid #e4c56b; border-radius: 7px; background: #fff8e4; color: #74530b; }
+.draft-banner > div:first-child { display: grid; gap: 3px; }
+.draft-banner > div:first-child span { font-size: .78rem; }
+.draft-actions { display: flex; align-items: center; justify-content: end; gap: 10px; }
+.discard-button { min-height: 36px; padding: 0 12px; border: 1px solid #dfaaa5; border-radius: 5px; background: #fff; color: #963e36; font: 700 .82rem "Asap", sans-serif; cursor: pointer; white-space: nowrap; }
+.discard-button:hover:not(:disabled) { background: #fff0ee; }
+.discard-button:disabled { cursor: not-allowed; opacity: .6; }
+.discard-confirmation { display: grid; gap: 10px; color: var(--gray-dark-3); font-size: .88rem; line-height: 1.5; }
+.discard-confirmation p { margin: 0; }
+.draft-ready { color: #41643a; font-size: .78rem; font-weight: 700; }
+.action-notice { padding: 9px 12px; border: 1px solid #cfe0cb; border-radius: 6px; background: #f2f8ef; color: #42663b; font-size: .83rem; }
+.working-banner { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 7px; background: color-mix(in srgb, var(--white) 94%, transparent); color: var(--gray-dark-3); font-size: .84rem; }
+.working-banner strong { margin-right: 4px; color: var(--gray-dark-5); }
+.working-spinner { width: 18px; height: 18px; flex: 0 0 auto; border: 2px solid #dce8d8; border-top-color: var(--green-2); border-radius: 50%; animation: changeover-spin .75s linear infinite; }
+@keyframes changeover-spin { to { transform: rotate(360deg); } }
 .overview { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)) minmax(220px, 1.5fr); gap: 10px; }
 .summary-card { display: grid; align-content: start; gap: 5px; min-height: 100px; padding: 13px 14px; border: 1px solid var(--color-border); border-radius: 8px; background: color-mix(in srgb, var(--white) 92%, transparent); }
 .summary-card > span { color: var(--gray-light-4); font-size: .75rem; font-weight: 600; }
@@ -365,5 +445,5 @@ td:first-child strong, td:first-child .segment { position: relative; z-index: 1;
 .error-banner { padding: 10px 12px; border: 1px solid #e5b7b2; border-radius: 6px; background: #fff1ef; color: #8d3930; font-size: .84rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 @media (max-width: 1050px) { .overview { grid-template-columns: repeat(3, minmax(120px, 1fr)); } .deadline-card { grid-column: span 2; } }
-@media (max-width: 760px) { .page-heading, .list-toolbar { align-items: stretch; flex-direction: column; } .heading-actions, .filters { flex-wrap: wrap; } .overview { grid-template-columns: repeat(2, minmax(120px, 1fr)); } .deadline-card { grid-column: auto; } .search-field input { width: 100%; } }
+@media (max-width: 760px) { .page-heading, .list-toolbar { align-items: stretch; flex-direction: column; } .heading-actions, .filters, .draft-banner, .draft-actions { align-items: stretch; flex-wrap: wrap; } .overview { grid-template-columns: repeat(2, minmax(120px, 1fr)); } .deadline-card { grid-column: auto; } .search-field input { width: 100%; } }
 </style>
