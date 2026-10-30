@@ -4,7 +4,7 @@ This is a working roadmap based on the prototype and the team's workbook/process
 
 ## Current checkpoint
 
-Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. Publication Tracking, Changeover, and Page Audit use shared vehicle-year records. Annual Changeover preparation and draft management are implemented. The Editor user-access panel, Account Settings, optional Author links, and server-side invitation function are built; migrations and function deployment are pending.
+Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. Publication Tracking, Changeover, and Page Audit use shared vehicle-year records. Annual Changeover preparation and draft management are implemented. Publication Tracking now supports drag-to-change-status and 25-item Published & Updated pagination. The Editor user-access panel, Account Settings, optional Author links, and server-side invitation function are implemented, migrated, and deployed; the first end-to-end invitation test is pending. The project will use Supabase's default Auth email templates unless a custom SMTP provider becomes available.
 
 ## 1. Confirm the work
 

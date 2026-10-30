@@ -71,6 +71,24 @@ from a machine with the Supabase CLI installed and linked, run
 `supabase functions deploy send-user-invitation`. Supabase sends the configured
 Auth invitation email and returns the recipient to the project's Site URL.
 
+## Auth email templates
+
+The branded invitation and password reset templates are in `templates/invite.html`
+and `templates/recovery.html`. In the Supabase Dashboard, open **Authentication →
+Email Templates**, select **Invite user** and **Reset password**, set their
+subjects to **You're invited to MMP Tracking** and **Reset your MMP Tracking
+password**, and paste the matching HTML file into each template's body. Keep
+`{{ .ConfirmationURL }}` intact; the app relies on that URL to return invitees
+and password-reset users to the configured Site URL.
+
+This project is on Supabase Free and was created after the June 3, 2026 policy
+change. With Supabase's default SMTP, Auth templates are read-only for new Free
+projects, so the app currently uses Supabase's default invitation and recovery
+emails. The branded templates above are optional drafts for a future custom
+SMTP setup. The default mail service only sends to addresses on the Supabase
+organization and is currently limited to two emails per hour; invitation and
+password-reset emails to other addresses may be rejected or rate-limited.
+
 ## Configure a project
 
 1. Create a project in the existing Supabase account and keep its database
@@ -103,3 +121,8 @@ The Free plan is suitable for development and a small pilot, but it can pause
 after a week of low activity and does not include automatic database backups.
 Set up and verify regular off-site exports before using it as the only store for
 production records.
+## Workbook test data
+
+The Publication Tracking and Status test import is split into numbered files in `seeds/publication_tracking_test_batches/` because the full query exceeds the Supabase SQL Editor size limit. Follow that folder's README and run batches `01` through `12` sequentially, then `13_resources_and_date_cleanup.sql`. Do this only in the non-production project, after `seeds/catalog.sql` and `seeds/authors.sql`. The current workbook's Changeover sheets and Page Audit sheets for 2026–2029 already have separate seed files and were imported earlier.
+
+Across the batches are 5,581 importable task rows and 16 active-work links with stable IDs, so rerunning a completed batch does not duplicate its imported rows. The import preserves manually created test rows and does not delete or refresh data. It skips an active task when an exact matching vehicle/year/status/author/details task already exists. Six source rows with uncertain/non-numeric model years are skipped for review; workbook author values that do not match the confirmed active roster remain unassigned. No resource passwords are present in the import. Before launch, use the newer workbook the project owner provides to prepare a reviewed full refresh of tasks, current Changeover, and current Page Audit data.

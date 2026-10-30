@@ -1,0 +1,2 @@
+-- The test import is split to fit the Supabase SQL Editor size limit.
+-- Open README.md in supabase/seeds/publication_tracking_test_batches/ and run batches 01 through 13 in order.

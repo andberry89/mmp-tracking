@@ -2,7 +2,7 @@
   <div
     class="task-row bg-[var(--color-body-background)] border border-solid border-[var(--color-body-border)] rounded-lg transition-all duration-150 ease-in-out"
   >
-    <TaskHeader :doc="doc" />
+    <TaskHeader :doc="doc" :can-drag="canEdit" @drag-start="emit('drag-start', $event)" />
     <TaskStatus
       :status="doc.status"
       :dateClass="getDateFormatClass(doc)"
@@ -71,6 +71,7 @@ const props = defineProps<{
 // Emits
 // ----------------------------------
 const emit = defineEmits<{
+  (e: "drag-start", event: DragEvent): void;
   (e: "assign-author", payload: { doc: TaskDocument; author: Author | null }): void;
   (e: "edit", doc: TaskDocument): void;
   (e: "duplicate", doc: TaskDocument): void;

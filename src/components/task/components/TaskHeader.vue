@@ -1,5 +1,16 @@
 <template>
-  <div>
+  <div class="task-row-leading">
+    <button
+      v-if="canDrag"
+      type="button"
+      class="task-drag-handle"
+      draggable="true"
+      :aria-label="`Drag ${doc.vehicle.make} ${doc.vehicle.model} to another status`"
+      title="Drag to change status"
+      @dragstart="emit('drag-start', $event)"
+    >
+      <span aria-hidden="true">⠿</span>
+    </button>
     <HighPriorityIcon
       v-if="isHighPriority(doc)"
       v-tooltip="{ theme: 'info-tooltip', content: 'High Priority MMP' }"
@@ -34,5 +45,15 @@ import type { TaskDocument } from "@/types";
 // ----------------------------------
 defineProps<{
   doc: TaskDocument;
+  canDrag?: boolean;
 }>();
+const emit = defineEmits<{ (event: "drag-start", dragEvent: DragEvent): void }>();
 </script>
+
+<style scoped>
+.task-row-leading { display: flex; align-items: center; justify-content: flex-start; gap: 3px; min-width: 0; }
+.task-drag-handle { display: grid; width: 18px; height: 26px; place-items: center; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--gray-light-3); cursor: grab; font-size: 17px; line-height: 1; }
+.task-drag-handle:hover { background: var(--white-soft); color: var(--gray-dark-3); }
+.task-drag-handle:active { cursor: grabbing; }
+.task-drag-handle:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 1px; }
+</style>

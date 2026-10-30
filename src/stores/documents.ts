@@ -266,6 +266,11 @@ export const useDocumentsStore = defineStore("documents", () => {
       if ("authorId" in payload) databasePayload.author_id = payload.authorId;
       if ("status" in payload) {
         databasePayload.status = payload.status === "rte" ? "pending_edits" : payload.status;
+        const nextIsPublished = payload.status === "published" || payload.status === "updated";
+        const wasPublished = current.status === "published" || current.status === "updated";
+        if (payload.status && !nextIsPublished && wasPublished) {
+          databasePayload.published_at = null;
+        }
       }
       if ("highPriority" in payload) databasePayload.high_priority = payload.highPriority;
       if ("deadline" in payload) databasePayload.deadline = payload.deadline || null;

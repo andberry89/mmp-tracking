@@ -103,15 +103,20 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Add a year-specific Page Audit checklist with preserved free-form answers, shared live URL, source-status metadata, and Double-check info follow-up.
 - [x] Seed Double-check info? Yes flags from the 2026 and 2027 Changeover sheets into matching Page Audit years.
 - [x] Prepare an idempotent import of workbook Page Audit rows for 2026–2029.
+- [ ] Seed the historical Page Audit sheets (2017–2025) after mapping the older checklist formats; keep these as archive history, separate from the current 2026–2029 sheets.
+- [x] Prepare a test-only Publication Tracking import from the current workbook, including the task history, active status groups, and recognized resource links.
+- [ ] Run the Publication Tracking test import in Supabase and review unmatched Catalog rows, unassigned authors, and source rows with missing or uncertain dates/years.
 - [x] Apply the year-specific award backfill and seed 2026/2027 Double-check info? Yes values into Page Audit.
 - [x] Define field-specific Page Audit expected answers and green/yellow/red formatting; keep 10 Best and Editors' Choice as separate award values outside checklist scoring.
+- [ ] Change the Page Audit cell color for **Pricing under lead image? = “Yes, estimated”** from red to yellow.
 - [x] Use the team-supplied 10 Best and Editors' Choice icons in the Page Audit Awards column.
 - [ ] Review whether any checklist fields should be conditional, required, or use dedicated answer controls instead of free text.
 - [ ] Decide whether Page Audit needs evidence attachments, repeat-audit history, and an audit change log.
 - [ ] Keep later updates linked to the existing published MMP without restarting the new-page lifecycle.
-- [ ] Add fast server-side search/filtering and pagination for the continuously updated publication view.
+- [x] Add Published & Updated history pagination with 25 items per page, newest first, while keeping the statuses in one combined list.
+- [ ] Add server-side search/filtering and pagination if the full task collection grows beyond the current client-loaded workflow.
 - [ ] Define visible conflict handling for two people editing the same record.
-- [ ] Add drag-and-drop behavior for agreed queue interactions.
+- [x] Add drag-and-drop status changes between the Active Work groups and Published & Updated history; keep edit-status controls as the accessible alternative and preserve author/deadline ordering within groups.
 - [x] Add email/password sign-in and Editor/Viewer gating for Publication Tracking task controls; new accounts default to Viewer in the schema.
 - [x] Add invitation-link password setup for initial Auth accounts.
 - [x] Wire the visible “Add New Task” control to a create flow with Make/Model/Model Year selection, automatic Segment display, task details, and resources.
@@ -121,16 +126,17 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [ ] Define loading, empty, error, and save-feedback behavior for real data.
 - [ ] Define audit history and deployment requirements.
 - [x] Build an Editor-only Admin panel to approve user email addresses and assign Editor or Viewer roles.
-- [ ] Run `supabase/migrations/202610300008_fix_save_allowed_user.sql` in Supabase to fix role synchronization in the user-access panel.
-- [ ] Run `supabase/migrations/202610300009_user_identity.sql` in Supabase to add optional Author links and managed display names.
+- [x] Run `supabase/migrations/202610300008_fix_save_allowed_user.sql` in Supabase to fix role synchronization in the user-access panel.
+- [x] Run `supabase/migrations/202610300009_user_identity.sql` in Supabase to add optional Author links and managed display names.
 - [ ] Email users when they are assigned a task.
 - [x] Build in-app account invitations through an Editor-verified Supabase Edge Function, keeping the service-role key on the server.
-- [ ] Deploy the invitation Edge Function and verify its Supabase Auth email and redirect configuration.
+- [x] Deploy the invitation Edge Function; verify its Supabase Auth email and redirect configuration during the planned invite test.
 - [x] Add Account Settings for editable display names and password-reset emails.
 - [x] Show names and email addresses in Manage Users; suggest a name from `first.last@hearst.com` addresses and allow manual edits.
 - [x] Let Editors optionally link an app user to an Author record; users without an Author profile remain valid.
-- [ ] Evaluate an option to keep users signed in for around 30 days, subject to Supabase session and security settings.
-- [ ] Polish the Supabase Auth emails, including invitation and password-reset templates.
+- [x] Confirm persistent sign-in behavior: the browser client uses Supabase's default persistent session, which has no forced expiry by default; server-enforced session time-boxing is Pro-only, so do not lengthen JWT expiry to simulate 30 days.
+- [x] Draft branded Supabase Auth invitation and password-reset email templates.
+- [x] Keep Supabase's default Auth email templates while using its default mailer; defer branded templates unless a custom SMTP provider becomes available.
 - [ ] Define responsive and accessibility requirements.
 - [ ] Add automated checks for the agreed critical workflows.
 
