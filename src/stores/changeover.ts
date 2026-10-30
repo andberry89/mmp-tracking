@@ -304,18 +304,25 @@ export const useChangeoverStore = defineStore("changeover", () => {
     isSaving.value = true;
     try {
       if (supabase && isSupabaseConfigured) {
-        const { error: updateError } = await supabase
+        const { data: updatedYear, error: updateError } = await supabase
           .from("model_years")
           .update({ changeover_deadline: deadline || null })
-          .eq("year", year);
+          .eq("year", year)
+          .select("year, changeover_deadline")
+          .maybeSingle();
         if (updateError) throw updateError;
+        if (!updatedYear) {
+          throw new Error("No deadline was saved. Check that you have Editor access and the selected model year exists.");
+        }
+        years.value = years.value.map((item) => item.year === year
+          ? { ...item, deadline: updatedYear.changeover_deadline ?? "" }
+          : item);
       } else {
         localDeadlines.value[year] = deadline;
         years.value = years.value.map((item) => item.year === year ? { ...item, deadline } : item);
         selectedYear.value = year;
         return;
       }
-      await load(year);
     } catch (reason) {
       error.value = messageFor(reason, "Could not save the Changeover deadline.");
       throw reason;

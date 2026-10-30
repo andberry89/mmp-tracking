@@ -21,6 +21,7 @@ Initial inventory from the prototype, project owner's description, and provided 
 - [x] Define Changeover summary counts and deadline pacing from the workbook; count all rows rather than reproducing the source sheet's Skipped off-by-one range.
 - [x] Make the Changeover deadline editable per model year.
 - [x] Preserve the Changeover statuses Awaiting Info, Info Available, Skipped, Dead, Vaporware, Published, and Embargoed.
+- [ ] Define the workflow for a model that becomes Dead after publication: decide whether the Dead flag lives in Catalog or Changeover, retain the vehicle on Changeover, and remove it from Page Audit.
 - [x] Sync Published status/public URL to Changeover and reflect publication/update plus the shared URL on Page Audit when an MMP task is published or updated. Keep Changeover status manually editable.
 - [x] Define duplicate reconciliation and Editor promotion for generated Changeover drafts.
 - [ ] Decide whether an update is a new version/event under an existing MMP and what history must be retained.

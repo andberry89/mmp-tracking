@@ -250,6 +250,7 @@ function checkResult(check: CheckField, value: string | undefined): "passed" | "
   const answer = value?.trim() ?? "";
   if (!answer) return "attention";
   if (/\bn\s*\/\s*a\b/i.test(answer)) return "exception";
+  if (check.key === "pricing_lead" && /^yes\b/i.test(answer) && /\bestimated\b/i.test(answer)) return "exception";
   if (check.criterion === "model_year") {
     const answerYear = answer.match(/(?:19|20|21)\d{2}/)?.[0];
     return answerYear === String(selectedYear.value) ? "passed" : "exception";

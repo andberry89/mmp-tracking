@@ -41,7 +41,7 @@
     <h3 class="text-base font-bold color-[var(--color-sidebar-text-header)] uppercase mb-[15px]">
       Published & Updates
     </h3>
-    <DropdownMenu :options="ranges" :label="'Show'" />
+    <DropdownMenu :options="ranges" :label="'Show'" @update:selected="selectedPublishedRange = $event || null" />
     <div class="pl-[5px] font-[Asap,sans-serif]">
       <div
         class="font-[400] text-[12px] leading-[1.2] font-[Monda,sans-serif] text-[var(--color-sidebar-text)] py-[6px]"
@@ -69,10 +69,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
 import { teams, statuses } from "@/constants/constants";
-import { getDocumentAuthor } from "@/utils/";
+import { getDocumentAuthor, getRangeDates } from "@/utils/";
+import { isWithinInterval } from "date-fns";
 
 import type { TaskStatus } from "@/types";
 
@@ -92,6 +93,7 @@ const props = defineProps<Props>();
 
 // Store
 const documentsStore = useDocumentsStore();
+const selectedPublishedRange = ref<string | null>(null);
 
 // Color Maps
 // Must match lowercase TaskStatus values
@@ -136,11 +138,21 @@ const quickStats = computed(() => {
 // Published + Updated
 const publishKeys: TaskStatus[] = ["published", "updated"];
 
+const publishedDocumentsInRange = computed(() => {
+  const range = getRangeDates(selectedPublishedRange.value);
+  return documentsStore.documents.filter((doc) => {
+    if (!publishKeys.includes(doc.status)) return false;
+    if (!range) return true;
+    if (!doc.publishedDate) return false;
+    return isWithinInterval(new Date(doc.publishedDate), range);
+  });
+});
+
 const updatedAndPublished = computed(() => {
   return statuses
     .filter((status) => publishKeys.includes(status.value as TaskStatus))
     .map((status) => {
-      const docs = documentsStore.documents.filter((doc) => doc.status === status.value);
+      const docs = publishedDocumentsInRange.value.filter((doc) => doc.status === status.value);
 
       const countByYearMap: Record<string, number> = {};
 
