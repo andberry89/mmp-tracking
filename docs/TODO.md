@@ -1,147 +1,33 @@
 # To Do
 
-Initial inventory from the prototype, project owner's description, and provided workbook. Priorities and owners are intentionally unset until the workflow and constraints are confirmed.
+This is the current roadmap. Email work and the other listed enhancements are deferred until after launch, when we can reassess whether they are needed.
 
-## Product discovery
+## Active before launch
 
-- [x] Capture the three requested workflows: publication tracking, model-year changeover, and page audit.
-- [ ] Walk through handoffs, approvals, exceptions, and current pain points.
-- [ ] Decide how a Changeover row enters Publication Tracking; confirm the Page Audit start/close flow after reviewing the first implementation.
-- [x] Capture the current manual early-year Changeover compilation inputs: current Changeover excluding Dead, current Page Audit completeness check, and already-published vehicles from next-year Page Audit.
-- [x] Add a preferred Editor-triggered **Prepare Next Model Year** draft action using the annual source sheets.
-- [x] Prepare one next-year list at a time; defer simultaneous multi-year future planning.
-- [x] On generation, default status to **Published** when a public URL exists, **Vaporware** when the current-year row is Vaporware, and **Awaiting Info** otherwise. Leave Author unassigned and do not carry current-year notes or other statuses forward.
-- [x] Merge duplicate vehicles by Make/Model/Model Year; do not carry Author assignments or require author-conflict review.
-- [x] Require an explicit Editor action to promote the next-year Changeover draft to the active working list.
-- [x] Promotion switches the default Changeover year; keep prior years accessible and editable.
-- [x] Allow Editors to manually add shared-catalog vehicles to existing model-year Changeover lists outside annual preparation; create new catalog vehicles first.
-- [x] Drop Make Tags from Changeover; move “Double-check info?” to the deferred Page Audit as a later-in-year verification flag for MMPs published before official information is available.
-- [x] Treat Changeover Embargoed as a separate manual status, independent of Publication Tracking Scheduled status or embargo time.
-- [x] Keep status sync one-way: task publication updates Changeover; manual Changeover status edits do not change task status.
-- [x] Define Changeover summary counts and deadline pacing from the workbook; count all rows rather than reproducing the source sheet's Skipped off-by-one range.
-- [x] Make the Changeover deadline editable per model year.
-- [x] Preserve the Changeover statuses Awaiting Info, Info Available, Skipped, Dead, Vaporware, Published, and Embargoed.
-- [ ] Define the workflow for a model that becomes Dead after publication: decide whether the Dead flag lives in Catalog or Changeover, retain the vehicle on Changeover, and remove it from Page Audit.
-- [x] Sync Published status/public URL to Changeover and reflect publication/update plus the shared URL on Page Audit when an MMP task is published or updated. Keep Changeover status manually editable.
-- [x] Define duplicate reconciliation and Editor promotion for generated Changeover drafts.
-- [ ] Decide whether an update is a new version/event under an existing MMP and what history must be retained.
-- [x] Confirm that Publication Tracking tasks can be created independently of Changeover, using database-backed Make, Model, and Model Year selections.
-- [x] Set initial Status to Pending for every new task, whether or not an author is assigned.
-- [x] Add a separate Notes field for vehicle changes or “no changes” / “no changes expected” context.
-- [x] Support a dedicated iMeet link plus multiple material links; material links may include a password for protected sites.
-- [x] Limit resource-password visibility to editors; hide passwords from view-only users.
-- [ ] Decide how stored credentials are protected.
-- [x] Start with two access roles: Editor and Viewer.
-- [x] Allow all Editors to add and edit reference data (Makes, Models, Model Years, Segments, Authors).
-- [x] Keep freelancers without app access outside the initial account system; an Editor handles their task/status updates.
-- [x] Keep Author assignment and Status independent; changing/removing an Author never changes Status automatically.
-- [x] Define Pending → Pending Edits as copy available in iMeet and ready for editing; allow a team member to perform the transition for a freelancer without app access.
-- [x] Define Pending Edits → RTP as edited copy with a new RTP-ready file uploaded to the same iMeet location; the editor usually changes status, and the iMeet URL remains unchanged.
-- [x] Define Published/Updated: the Production Assistant typically marks go-live; first publication is Published, while added information to an existing page is Updated.
-- [x] Allow Pending Edits even if the iMeet URL has not yet been added.
-- [x] Replace the iMeet URL if the work-folder location changes; do not retain the previous URL in history.
-- [x] Capture public live-page URL once on a shared record and reuse it in Publication Tracking, Changeover, and Page Audit; keep the iMeet folder URL distinct.
-- [x] Default publication date/time to the scheduled go-live time for embargoed pages, even if status is updated later; allow user override.
-- [x] Use Eastern Time (ET) as the default for embargo and publication timestamps.
-- [x] Allow the Production Assistant to manually change the scheduled publication timestamp to the actual go-live time when they differ.
-- [x] Keep all status changes manual; embargo times are informational and never auto-advance or block workflow.
-- [x] Allow Editors to enter or edit embargo times without changing Status.
-- [x] Allow Scheduled status without an embargo time.
-- [x] Run update tasks through the normal workflow; allow users with edit access to move tasks to any section at any time.
-- [x] Default new tasks to New MMP and provide an editable Update checkbox; use it to label published work Published vs. Updated.
-- [x] Keep the Published/Updated status label synchronized if the Update checkbox is changed after publication.
-- [x] Preserve inline Notes preview with a “see more” full-note popover and a dedicated resource-folder affordance.
-- [x] Show Notes in Active Work only; omit Notes from Published History.
-- [ ] Match resource-folder behavior: disabled gray when empty; active black when populated. Move resource add/edit controls into Add New Task/Edit Task.
-- [x] Keep current Notes preview for now: 30 characters when the note exceeds 50 characters.
-- [x] Separate Publication Tracking into Active Work (Pending, Pending Edits, RTP, Scheduled) and Published History (Published and Updated together, never mixed with active items).
-- [x] Default Active Work sorting by Author, then nearest Deadline within author; undated items alphabetically by vehicle.
-- [x] Put tasks without an assigned Author in a separate group at the top of Active Work.
-- [x] Sort assigned groups by team (Buyer's Guide, Car and Driver, Freelancers), then alphabetically by Author.
-- [x] Sort Published History newest-first.
-- [x] Add first-release Active Work filters for Make, Model, Model Year, Segment, Author/team, Status, New MMP/Update, and Deadline, plus text search.
-- [x] Allow multiple Active Work filters to be combined.
-- [x] Keep Active Work unpaginated for now; paginate Published History.
-- [x] Use 25 entries per page for Published History by default.
-- [x] Add Published History filters for Make, Model, Model Year, Author/team, Newly Published vs. Updated, and publication date range.
-- [x] Limit task creation and reference-data editing to Editors; Viewers are read-only.
-- [x] Select Supabase as the intended source of truth for live app data; treat the workbook as the initial import source. Microsoft hosting is not required.
-- [ ] Choose frontend hosting and confirm any organization-specific security restrictions.
-- [ ] Agree on expected users/records, acceptable search/update latency, and first release scope.
-- [ ] Confirm which visual choices should carry forward; update [STYLE_GUIDE.md](STYLE_GUIDE.md).
+1. **Finish the visual pass.** Refine the existing screens against the tracking-page baseline and keep the style guide current.
+2. **Address responsiveness and accessibility.** Define the expected device sizes and keyboard/screen-reader behavior, then make the key workflows work well within those constraints.
+3. **Production readiness.**
+   - Choose frontend hosting and confirm organization-specific security restrictions.
+   - Provision initial Editors and verify Supabase Auth, Realtime, and Row Level Security.
+   - Establish and verify off-site database exports.
+   - Review dependency advisories and resolve production risks.
+   - Confirm expected users and data volume; review load time, search/update latency, and simultaneous editing behavior.
+   - Confirm how resource passwords are protected.
+   - Decide where to mark a model Dead after publication; keep it on Changeover and remove it from Page Audit.
+   - Confirm the Changeover-to-Publication Tracking and Page Audit handoffs.
+4. **Import past Page Audits.** Map older checklist formats and seed the 2017–2025 sheets as archive history.
+5. **Load the most current workbook.** Once provided, prepare and reconcile the current Publication Tracking tasks/history, Changeover lists, Page Audits, and Catalog data; review uncertain dates, vehicle matches, and historical author values before applying the import.
+6. **Complete a full codebase audit.** Remove dead or stale code, streamline slow or repetitive processes, add useful comments where they clarify intent, and review formatting and critical workflow coverage.
+7. **Launch.** Complete the release review and deploy after the active items above are ready.
 
-## Product and technical gaps
+## Back burner: reassess after launch
 
-- [x] Run an initial code audit, repair TypeScript/lint setup errors, and connect existing search/author/date filters to the MMP list. See [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md).
-- [ ] Decide whether to apply the remaining Vue formatting warnings in a dedicated style-only pass.
-- [ ] Continue the visual-design pass across the current auth, task, and reference-data screens; review the tracking-page baseline with the user before extending it to Changeover and Page Audit.
-- [ ] Replace the browser page title “Vite App” with the app name and create a matching logo/favicon for browser tabs.
-- [x] Draft shared relational data around vehicle/model years, production work, Changeover, and Page Audit checklist records.
-- [x] Select Supabase as the backend; add the SDK, local client scaffold, login gate, task/author reads, Realtime subscriptions, and persistence for existing task edits/resources.
-- [x] Review and apply the initial schema migration to the new Supabase project.
-- [x] Apply the follow-up catalog Realtime migration in `supabase/migrations/202610280001_catalog_realtime.sql` to the existing Supabase project.
-- [x] Apply the Segment-per-model-year migration in `supabase/migrations/202610280002_segment_per_model_year.sql` to the existing Supabase project.
-- [ ] Provision initial Editors and verify Auth, Realtime, and RLS in the project.
-- [ ] Establish and verify off-site exports before using the Free plan as the only production data store.
-- [ ] Review and resolve dependency advisories before production; `npm audit --omit=dev` currently reports 10 vulnerabilities (9 high, 1 critical).
-- [ ] Import and reconcile workbook history, including inconsistent spellings, repeated year tabs, embedded notes/URLs, and varied statuses.
-- [x] For conflicting Make/Model/Year Segments, use the most recent dated Publication Tracking row; review the Author candidate map in [CATALOG_IMPORT_REVIEW.md](CATALOG_IMPORT_REVIEW.md).
-- [x] Confirm active Author identities and teams with the project owner; prepare the active roster seed in `supabase/seeds/authors.sql`.
-- [x] Run `supabase/seeds/authors.sql` in the Supabase SQL Editor to populate the confirmed active Author roster.
-- [x] Prepare a non-destructive catalog seed from Publication Tracking, Changeover, and Page Audit data using the agreed newest-dated Segment rule.
-- [x] Normalize `Chevy` to `Chevrolet` and run the catalog seed in Supabase; record remaining blank Segment/year exceptions in `docs/CATALOG_IMPORT_REVIEW.md`.
-- [x] Keep tracking aliases omitted from the supplied roster inactive and out of new task assignment.
-- [ ] Decide how to retain unmatched inactive-author names on historical imported tasks; keep them unassigned until identity/team mapping is known.
-- [x] Add editable Make, Model, Segment, and Author records; constrain Author teams to Buyer's Guide (BG), Car and Driver (C/D), and Freelancers (FL).
-- [x] Auto-populate a vehicle year's segment when selecting Make, Model, and Model Year on a new task.
-- [x] Implement a year-specific Changeover view with vehicle search, status/author filters, a status-sorted sortable list, shared URL, author, notes, per-year editable deadlines, status counts, and deadline pacing. “Double-check info?” belongs in Page Audit; Make Tags are dropped.
-- [x] Implement the Editor-triggered Prepare Next Model Year draft, source merge, and explicit promotion workflow.
-- [x] Keep current-year Changeover notes out of the next-year draft.
-- [x] Add an Editor-only discard action for an unpromoted prepared draft; remove Changeover entries while preserving shared vehicle, audit, and task records.
-- [x] Run the updated `supabase/migrations/202610300006_prepare_next_changeover_year.sql` in Supabase to enable draft discard, exclude current-year Dead vehicles, clear carried-over authors/review flags/notes, and repair the existing 2028 draft.
-- [x] Prepare a repeat-safe Changeover import from the workbook's 2024–2027 lists, carrying deadlines and shared URLs while retaining source values that need review.
-- [x] Run `supabase/seeds/changeover.sql` in Supabase. All 1,988 source rows matched the Catalog and were inserted; 169 rows retain internal source-review metadata, including 128 rows with unresolved source-author values. No Review badge or control is shown in Changeover.
-- [x] Add a year-specific Page Audit checklist with preserved free-form answers, shared live URL, source-status metadata, and Double-check info follow-up.
-- [x] Seed Double-check info? Yes flags from the 2026 and 2027 Changeover sheets into matching Page Audit years.
-- [x] Prepare an idempotent import of workbook Page Audit rows for 2026–2029.
-- [ ] Seed the historical Page Audit sheets (2017–2025) after mapping the older checklist formats; keep these as archive history, separate from the current 2026–2029 sheets.
-- [x] Prepare a test-only Publication Tracking import from the current workbook, including the task history, active status groups, and recognized resource links.
-- [ ] Run the Publication Tracking test import in Supabase and review unmatched Catalog rows, unassigned authors, and source rows with missing or uncertain dates/years.
-- [x] Apply the year-specific award backfill and seed 2026/2027 Double-check info? Yes values into Page Audit.
-- [x] Define field-specific Page Audit expected answers and green/yellow/red formatting; keep 10 Best and Editors' Choice as separate award values outside checklist scoring.
-- [ ] Change the Page Audit cell color for **Pricing under lead image? = “Yes, estimated”** from red to yellow.
-- [x] Use the team-supplied 10 Best and Editors' Choice icons in the Page Audit Awards column.
-- [ ] Review whether any checklist fields should be conditional, required, or use dedicated answer controls instead of free text.
-- [ ] Decide whether Page Audit needs evidence attachments, repeat-audit history, and an audit change log.
-- [ ] Keep later updates linked to the existing published MMP without restarting the new-page lifecycle.
-- [x] Add Published & Updated history pagination with 25 items per page, newest first, while keeping the statuses in one combined list.
-- [ ] Add server-side search/filtering and pagination if the full task collection grows beyond the current client-loaded workflow.
-- [ ] Define visible conflict handling for two people editing the same record.
-- [x] Add drag-and-drop status changes between the Active Work groups and Published & Updated history; keep edit-status controls as the accessible alternative and preserve author/deadline ordering within groups.
-- [x] Add email/password sign-in and Editor/Viewer gating for Publication Tracking task controls; new accounts default to Viewer in the schema.
-- [x] Add invitation-link password setup for initial Auth accounts.
-- [x] Wire the visible “Add New Task” control to a create flow with Make/Model/Model Year selection, automatic Segment display, task details, and resources.
-- [x] Add an Editor interface to manage Make, Model, Segment, Author, and Model Year catalog data, including per-year Segment mapping; archived entries stay available for history but are omitted from new task selections.
-- [ ] In the Authors catalog, let users click an author's name to see the tasks assigned to them.
-- [ ] Import and reconcile the workbook's Make, Model, Segment, Author, and Model Year catalog values.
-- [ ] Define loading, empty, error, and save-feedback behavior for real data.
-- [ ] Define audit history and deployment requirements.
-- [x] Build an Editor-only Admin panel to approve user email addresses and assign Editor or Viewer roles.
-- [x] Run `supabase/migrations/202610300008_fix_save_allowed_user.sql` in Supabase to fix role synchronization in the user-access panel.
-- [x] Run `supabase/migrations/202610300009_user_identity.sql` in Supabase to add optional Author links and managed display names.
-- [ ] Email users when they are assigned a task.
-- [x] Build in-app account invitations through an Editor-verified Supabase Edge Function, keeping the service-role key on the server.
-- [x] Deploy the invitation Edge Function; verify its Supabase Auth email and redirect configuration during the planned invite test.
-- [x] Add Account Settings for editable display names and password-reset emails.
-- [x] Show names and email addresses in Manage Users; suggest a name from `first.last@hearst.com` addresses and allow manual edits.
-- [x] Let Editors optionally link an app user to an Author record; users without an Author profile remain valid.
-- [x] Confirm persistent sign-in behavior: the browser client uses Supabase's default persistent session, which has no forced expiry by default; server-enforced session time-boxing is Pro-only, so do not lengthen JWT expiry to simulate 30 days.
-- [x] Draft branded Supabase Auth invitation and password-reset email templates.
-- [x] Keep Supabase's default Auth email templates while using its default mailer; defer branded templates unless a custom SMTP provider becomes available.
-- [ ] Define responsive and accessibility requirements.
-- [ ] Add automated checks for the agreed critical workflows.
+- **Publication history enhancements.** Revisit update/version history, links between later updates and existing MMPs, and any further history features beyond the current Published & Updated list and pagination.
+- **Author task view.** Let users click an author to see their assigned tasks.
+- **Page Audit enhancements.** Revisit conditional checklist fields, evidence attachments, repeat-audit records, and change history. Clean up the Edit Page Audit modal: change the “How Many Galleries” guidance from “Dual” to “Single/Dual”; decide whether selected fields should use dropdowns or radio buttons; consider conditional answer colors that match the Page Audit table.
+- **Email-related work.** Reassess assignment notifications, email templates, and other email improvements after launch.
 
-## Maintenance
+## Recently completed
 
-- [ ] Keep this list aligned with the agreed roadmap and decisions.
-- [ ] Record implementation preferences and architecture decisions in [TECH_HANDOFF.md](TECH_HANDOFF.md).
+- [x] Change the Page Audit cell color for **Pricing under lead image? = “Yes, estimated”** from red to yellow.
+- [x] Replace the browser title “Vite App” with “MMP Tracking” and add the matching SVG favicon.

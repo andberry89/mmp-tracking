@@ -189,13 +189,13 @@
   padding: 4px 0;
   border: 0;
   background: transparent;
-  color: var(--color-body-link);
+  color: var(--green-dark);
   font-weight: 600;
 }
 
 .login-card .reset-button:hover:not(:disabled) {
   background: transparent;
-  color: var(--color-body-link-hover);
+  color: var(--gray-dark-5);
   text-decoration: underline;
   transform: none;
 }

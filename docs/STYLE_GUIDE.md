@@ -18,8 +18,10 @@ This is the working visual baseline for the MMP tracking page. It captures its r
 - **Sidebar:** groups author counts, quick status totals, and Published & Updates counts. Uppercase headings and compact rows make it an at-a-glance summary rail.
 - **Page header:** the page title sits opposite search, filters, sort, and other page-level controls. A fine divider separates this toolbar from the working list.
 - **Tracking list:** column labels sit above a dashed “Add New Task” row, followed by status-group headings and task rows. Task fields are aligned in a dense grid so vehicles, deadlines, status, dates, notes, assets, and authors can be compared across rows.
-- **Reference-data tabs:** use the shared title and toolbar, followed by a restrained white catalog panel. Current screens are visual placeholders that explain each catalog’s role; the editing interface is still to be built.
-- **Sign-in and dialogs:** use a solid warm-light canvas, white surface, charcoal typography, green primary action, and neutral outline. Keep the repeating texture on the main tracking canvas.
+- **Catalog:** Makes, Models, Segments, and Authors share a persistent secondary navigation bar with a moving green underline. Keep transitions in the content below that bar. Use the same compact title, search/filter controls, and add action; show active state with a small green or red indicator. Model and Make detail views should keep related records easy to scan.
+- **Changeover:** Start with the model-year controls and compact status/deadline summary cards, then show the searchable and sortable list. Make and model lead each row, with the status color fading diagonally into that first cell. Default to Make then Model sorting; status grouping is optional.
+- **Page Audit:** Keep the vehicle/segment cell and column header row frozen while the wide checklist scrolls. Use the workbook-like table layout and restrained green/yellow/red cell fills to show checklist results. Keep row editing in the frozen vehicle cell.
+- **Sign-in and dialogs:** use a solid warm-light canvas, white surface, charcoal typography, muted-green primary action, and neutral outline. Keep the repeating texture on the main tracking canvas. Account-help links use the green accent; reserve red for errors and destructive actions.
 - Preserve a clear distinction between page-level controls, the list’s column labels, task rows, and status-group headings when extending this layout.
 
 ## Typography
@@ -71,12 +73,11 @@ This is the working visual baseline for the MMP tracking page. It captures its r
 
 - The shell now stacks its navigation and summary rail at narrow widths. The dense task grid still needs visual review at desktop and smaller widths, including confirmation of its minimum useful viewport.
 - Contrast targets, keyboard interaction details, and reduced-motion behavior still need explicit review.
-- Some newer auth and task-form components use one-off gray and blue values rather than the shared green/neutral tokens. Reconcile those values as those screens are refined.
+- Keep refining newer screens against the shared green/neutral tokens. In particular, avoid using destructive red as a general link-hover color.
 - The current shell dimensions, typography scale, and patterned canvas are provisional choices. Confirm whether they should remain the long-term direction.
 
-## Review questions
+## Remaining review points
 
-- Should the charcoal sidebar, subtle patterned task canvas, and Asap/Monda pairing remain part of the app’s identity?
-- What devices and minimum viewport should the tracking list support?
-- Is the current status and team palette clear and accessible for the team?
-- How much density is useful before task rows become difficult to scan?
+- Confirm the minimum viewport and how the dense tracking list should behave on smaller screens.
+- Review contrast and keyboard focus for status, team, and checklist colors during the responsive/accessibility pass.
+- Confirm whether the current density remains comfortable once the most current workbook is loaded.
