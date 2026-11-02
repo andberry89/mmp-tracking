@@ -70,8 +70,6 @@ const searchQuery = ref("");
 
 const selectedAuthorId = ref<string | null>(null);
 const selectedRangeId = ref<string | null>(null);
-const selectedStatusId = ref<string | null>(null);
-const selectedMakeId = ref<string | null>(null);
 
 // Computed --------------------------------
 
@@ -118,18 +116,14 @@ const filteredDocuments = computed(() => {
   return docs;
 });
 /**
- * Compute PageHeader props based on the current activeLabel.
- * Delegates layout and dropdown setup to getHeaderConfig(),
- * passing reactive filter setters for authors, ranges, status, and makes.
+ * Compute Publication Tracking header props and connect its dropdowns to view filters.
  */
 const headerProps = computed(() =>
-  getHeaderConfig(props.activeLabel, {
+  getHeaderConfig({
     authors: props.authors,
     ranges: props.ranges,
     setAuthor: (id: string) => (selectedAuthorId.value = id),
     setRange: (id: string) => (selectedRangeId.value = id),
-    setStatus: (id: string) => (selectedStatusId.value = id),
-    setMake: (id: string) => (selectedMakeId.value = id),
   })
 );
 
@@ -196,8 +190,6 @@ watch(
   () => {
     selectedAuthorId.value = null;
     selectedRangeId.value = null;
-    selectedStatusId.value = null;
-    selectedMakeId.value = null;
   }
 );
 

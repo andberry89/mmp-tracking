@@ -9,16 +9,24 @@ This is the current roadmap. Email work and the other listed enhancements are de
 3. **Production readiness.**
    - Choose frontend hosting and confirm organization-specific security restrictions.
    - Provision initial Editors and verify Supabase Auth, Realtime, and Row Level Security.
+   - Complete a basic security review covering Supabase protections, app access and data exposure, spam/abuse controls, Edge Functions, and secret handling.
    - Establish and verify off-site database exports.
    - Review dependency advisories and resolve production risks.
    - Confirm expected users and data volume; review load time, search/update latency, and simultaneous editing behavior.
+   - Replace full task-list reloads on Realtime events with appropriately scoped updates or refetches.
    - Confirm how resource passwords are protected.
    - Decide where to mark a model Dead after publication; keep it on Changeover and remove it from Page Audit.
    - Confirm the Changeover-to-Publication Tracking and Page Audit handoffs.
 4. **Import past Page Audits.** Map older checklist formats and seed the 2017–2025 sheets as archive history.
 5. **Load the most current workbook.** Once provided, prepare and reconcile the current Publication Tracking tasks/history, Changeover lists, Page Audits, and Catalog data; review uncertain dates, vehicle matches, and historical author values before applying the import.
 6. **Complete a full codebase audit.** Remove dead or stale code, streamline slow or repetitive processes, add useful comments where they clarify intent, and review formatting and critical workflow coverage.
-7. **Launch.** Complete the release review and deploy after the active items above are ready.
+7. **Develop an automated test suite.** Cover core publication, Changeover, Page Audit, access-control, and data-persistence behavior.
+8. **Launch.** Complete the release review and deploy after the active items above are ready.
+
+## Additional feature ideas (timing TBD)
+
+- **Temporary MMP event tags.** Let the team group tasks by events such as the New York Auto Show or Pebble Beach. Clear the tag when a task is published.
+- **Editor profile pictures.** Let Editors upload a profile photo with file-size and file-type limits and a cropping step.
 
 ## Back burner: reassess after launch
 

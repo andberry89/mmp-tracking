@@ -38,8 +38,15 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 
 - Validate the interface with the people doing the work.
 - Set responsive, accessibility, and browser requirements.
-- Add verification for critical lifecycle transitions and data changes.
+- [ ] Replace full task-list reloads on Realtime events with appropriately scoped updates or refetches.
+- [ ] Complete a basic security review of Supabase Auth, Row Level Security, Edge Functions, app data exposure, spam/abuse controls, and secret handling.
+- [ ] Develop an automated test suite for critical lifecycle transitions, access control, and data changes.
 - Plan deployment, support, and ownership.
+
+## Additional interface ideas (timing TBD)
+
+- Add temporary MMP event tags for grouping work around events such as the New York Auto Show or Pebble Beach; clear a task's tag when it is published.
+- Add Editor profile pictures with upload size/type restrictions and an image-cropping step.
 
 ## Performance and collaboration acceptance
 

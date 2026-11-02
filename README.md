@@ -1,35 +1,31 @@
-# mmp-tracking
+# MMP Tracking
 
-This template should help get you started developing with Vue 3 in Vite.
+MMP Tracking is an internal workspace for publication tracking, model-year Changeover lists, Page Audits, and shared vehicle and author catalogs.
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Local setup
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
+cp .env.example .env.local
 npm run dev
 ```
 
-### Compile and Minify for Production
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local` to connect to the Supabase project. Without these values, the app starts in demo mode with local sample data. Never put a Supabase service-role key in a `VITE_*` variable or in browser code.
 
-```sh
-npm run build
-```
+## Project commands
 
-### Lint with [ESLint](https://eslint.org/)
+- `npm run dev` — start Vite's development server.
+- `npm run build` — build the production bundle.
+- `npm run preview` — serve the built bundle locally.
+- `npm run type-check` — check Vue templates and TypeScript.
+- `npm run lint` — report ESLint issues.
 
-```sh
-npm run lint
-```
+## Architecture
+
+- Vue 3, TypeScript, Vite, and Pinia power the client app.
+- Supabase Postgres, Auth, Row Level Security, and Realtime provide shared data and account access.
+- Demo fixtures live under `src/test/`; they are used only when Supabase settings are absent.
+- Supabase migrations, seed guidance, and Edge Function deployment notes live in `supabase/`.
+- Product workflows and decisions are documented in `docs/`.
+
+See [supabase/README.md](supabase/README.md) for project setup, migration order, seed instructions, and deployment notes.
