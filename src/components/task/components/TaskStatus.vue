@@ -3,7 +3,10 @@
     {{ statusLabel }}
   </div>
 
-  <div :class="dateClass">{{ dateText }}</div>
+  <div :class="[dateClass, 'task-status-date', { 'task-status-date--empty': !dateText }]">
+    <span class="task-mobile-label" aria-hidden="true">Embargo / publish</span>
+    <span>{{ dateText }}</span>
+  </div>
 </template>
 <script setup lang="ts">
 import { computed } from "vue";

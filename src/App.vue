@@ -20,14 +20,22 @@
   <div v-else class="layout-grid">
     <div id="logo" class="logo"></div>
 
-    <header>
+    <header class="app-header">
       <TopNav :active-tab="activeTopLevel" @tab-change="onTabChange" />
       <div v-if="isSupabaseConfigured" class="account-bar">
-        <span>{{ authStore.profile?.display_name || authStore.session?.user.email }}</span>
-        <span class="role-label">{{ authStore.profile?.role }}</span>
-        <button @click="userSettingsOpen = true">Account settings</button>
-        <button v-if="authStore.isEditor" @click="userAccessOpen = true">Manage users</button>
-        <button @click="handleSignOut">Sign out</button>
+        <span class="account-bar__identity">{{ authStore.profile?.display_name || authStore.session?.user.email }}</span>
+        <details ref="accountMenu" class="account-menu" v-click-outside="closeAccountMenu">
+          <summary class="account-menu__trigger" aria-label="Account menu" title="Account menu">
+            <span class="sr-only">Account menu</span>
+            <span class="account-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span>
+          </summary>
+          <div class="account-menu__panel">
+            <span class="role-label">{{ authStore.profile?.role }}</span>
+            <button @click="openAccountSettings">Account settings</button>
+            <button v-if="authStore.isEditor" @click="openUserAccess">Manage users</button>
+            <button @click="signOutFromMenu">Sign out</button>
+          </div>
+        </details>
       </div>
     </header>
 
@@ -85,6 +93,26 @@ const changeoverStore = useChangeoverStore();
 const canEdit = computed(() => !isSupabaseConfigured || authStore.isEditor);
 const userAccessOpen = ref(false);
 const userSettingsOpen = ref(false);
+const accountMenu = ref<HTMLDetailsElement | null>(null);
+
+function closeAccountMenu() {
+  if (accountMenu.value) accountMenu.value.open = false;
+}
+
+function openAccountSettings() {
+  closeAccountMenu();
+  userSettingsOpen.value = true;
+}
+
+function openUserAccess() {
+  closeAccountMenu();
+  userAccessOpen.value = true;
+}
+
+function signOutFromMenu() {
+  closeAccountMenu();
+  handleSignOut();
+}
 
 onMounted(async () => {
   if (!isSupabaseConfigured) {
@@ -222,14 +250,27 @@ function onCatalogTabChange(label: string) {
 }
 
 .account-bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-right: 24px;
   font-size: 0.85rem;
   color: var(--gray-dark-3);
   white-space: nowrap;
 }
+
+.account-bar__identity { max-width: min(34vw, 340px); overflow: hidden; text-overflow: ellipsis; }
+.account-menu { position: relative; }
+.account-menu__trigger { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--color-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-3); cursor: pointer; list-style: none; }
+.account-menu__trigger::-webkit-details-marker { display: none; }
+.account-menu__trigger:hover, .account-menu__trigger:focus-visible { border-color: var(--green-2); background: var(--color-green-soft); }
+.account-menu__trigger:focus-visible, .account-menu__panel button:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.account-menu__icon { display: grid; gap: 4px; }
+.account-menu__icon i { display: block; width: 17px; height: 2px; border-radius: 2px; background: currentColor; }
+.account-menu__panel { position: absolute; z-index: 50; top: calc(100% + 8px); right: 0; display: grid; min-width: 176px; gap: 3px; padding: 7px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--white); box-shadow: var(--color-surface-shadow-hover); }
+.account-menu__panel .role-label { padding: 7px 8px; border-bottom: 1px solid var(--color-divider); }
+.account-menu__panel button { width: 100%; border: 0; text-align: left; }
 
 .account-bar button,
 .auth-message button {
@@ -246,6 +287,9 @@ function onCatalogTabChange(label: string) {
   border-color: var(--green-2);
   background: var(--color-green-soft);
 }
+
+.account-bar .account-menu__panel button { border: 0; padding: 7px 8px; background: transparent; text-align: left; }
+.account-bar .account-menu__panel button:hover { border: 0; background: var(--white-soft); }
 
 .role-label {
   color: var(--gray-light-4);
@@ -264,16 +308,26 @@ function onCatalogTabChange(label: string) {
 
 @media (max-width: 900px) {
   .layout-grid {
-    grid-template-columns: 180px minmax(0, 1fr);
-    grid-template-rows: 72px minmax(0, 1fr);
+    grid-template-columns: 160px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     min-height: 620px;
   }
 
+  .layout-grid header.app-header {
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 4px;
+    padding-right: 8px;
+  }
+
   .account-bar {
-    margin-right: 12px;
+    min-width: 0;
+    margin: 0 8px 0 16px;
     gap: 6px;
     font-size: 0.75rem;
   }
+
+  .account-bar__identity { max-width: 38vw; }
 }
 
 @media (max-width: 620px) {
@@ -283,11 +337,11 @@ function onCatalogTabChange(label: string) {
 
   .layout-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: 64px auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "header"
-      "sidebar"
-      "content";
+      "content"
+      "sidebar";
     height: auto;
     min-height: 100vh;
     overflow: visible;
@@ -301,8 +355,21 @@ function onCatalogTabChange(label: string) {
 
     header {
       grid-area: header;
-      overflow-x: auto;
+      display: block;
+      padding: 0;
+      overflow: hidden;
     }
+
+    .account-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin: 0;
+      padding: 8px 12px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .account-bar__identity { max-width: 58vw; }
 
     #sidebar {
       grid-area: sidebar;

@@ -130,8 +130,15 @@
         <article v-for="author in group.members" :key="author.id" class="record-row author-row">
           <div class="author-name"><span class="status-dot" :class="author.active ? 'status-dot--active' : 'status-dot--inactive'" role="img" :aria-label="author.active ? 'Active' : 'Archived'" /><strong :class="{ inactive: !author.active }">{{ author.label }}</strong></div>
           <div class="row-actions">
-            <button v-if="canEdit" class="button button--quiet" @click="editAuthor(author)">Edit</button>
-            <button v-if="canEdit" class="button button--quiet" @click="toggleAuthor(author)">{{ author.active ? 'Archive' : 'Restore' }}</button>
+            <details v-if="canEdit" class="author-actions-menu">
+              <summary class="author-actions-menu__trigger" :aria-label="`Actions for ${author.label}`" title="Author actions">
+                <span class="sr-only">Author actions</span><span class="author-actions-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span>
+              </summary>
+              <div class="author-actions-menu__panel">
+                <button type="button" class="button button--quiet" @click="closeActionMenu($event); editAuthor(author)">Edit</button>
+                <button type="button" class="button button--quiet" @click="closeActionMenu($event); toggleAuthor(author)">{{ author.active ? 'Archive' : 'Restore' }}</button>
+              </div>
+            </details>
           </div>
         </article>
         <p v-if="!group.members.length" class="empty-state">No matching authors.</p>
@@ -338,6 +345,10 @@ async function runAction(action: () => Promise<void>) {
   try { await action(); }
   catch (reason) { pageError.value = reason instanceof Error ? reason.message : "Could not update this catalog record."; }
 }
+function closeActionMenu(event: MouseEvent) {
+  const menu = (event.currentTarget as HTMLElement).closest("details");
+  if (menu instanceof HTMLDetailsElement) menu.open = false;
+}
 </script>
 
 <style scoped>
@@ -377,6 +388,15 @@ async function runAction(action: () => Promise<void>) {
 .record-meta { margin-left: auto; color: var(--gray-light-4); font-size: 0.78rem; white-space: nowrap; }
 .make-context { color: var(--gray-light-4); font-size: 0.9em; font-weight: 400; }
 .row-actions { flex-shrink: 0; }
+.author-actions-menu { position: relative; }
+.author-actions-menu__trigger { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--color-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); cursor: pointer; list-style: none; }
+.author-actions-menu__trigger::-webkit-details-marker { display: none; }
+.author-actions-menu__trigger:hover, .author-actions-menu__trigger:focus-visible { border-color: var(--green-2); background: var(--white-soft); }
+.author-actions-menu__trigger:focus-visible, .author-actions-menu__panel button:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.author-actions-menu__icon { display: grid; gap: 3px; }
+.author-actions-menu__icon i { display: block; width: 15px; height: 2px; border-radius: 2px; background: currentColor; }
+.author-actions-menu__panel { position: absolute; z-index: 10; top: calc(100% + 5px); right: 0; display: grid; min-width: 128px; gap: 2px; padding: 5px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--white); box-shadow: var(--color-surface-shadow-hover); }
+.author-actions-menu__panel button { justify-content: flex-start; text-align: left; }
 .status-dot { display: inline-block; width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; }
 .status-dot--active { background: #39834e; box-shadow: 0 0 0 2px rgb(57 131 78 / 13%); }
 .status-dot--inactive { background: #bd5148; box-shadow: 0 0 0 2px rgb(189 81 72 / 12%); }

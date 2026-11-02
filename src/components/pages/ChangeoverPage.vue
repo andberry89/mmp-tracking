@@ -39,7 +39,7 @@
       <section class="overview" aria-label="Changeover overview">
         <article class="summary-card open-card"><span>Total Open</span><strong>{{ openCount }}</strong><small>vehicles marked OPEN / Unassigned</small></article>
         <article v-for="status in statusSummary" :key="status.value" class="summary-card" :style="{ borderTop: `3px solid ${statusColor(status.value)}` }">
-          <span>{{ status.label }}</span><strong>{{ status.count }}</strong><small>{{ status.percent }}% {{ status.shareLabel }}</small>
+          <span>{{ status.label }}</span><strong>{{ status.count }} <small class="summary-card__compact-share">({{ status.percent }}%)</small></strong><small class="summary-card__share">{{ status.percent }}% {{ status.shareLabel }}</small>
         </article>
         <article class="summary-card deadline-card">
           <span>Deadline pacing</span>
@@ -70,8 +70,9 @@
           <span v-if="!store.entries.length && props.canEdit">Add vehicles from the shared Catalog to start the list.</span>
           <button v-if="!store.entries.length && props.canEdit" class="primary-button" type="button" @click="openAdd">＋ Add Vehicle</button>
         </div>
-        <div v-else class="table-scroll">
-          <table :class="{ 'table--editable': props.canEdit }">
+        <template v-else>
+          <div class="table-scroll desktop-changeover-list" role="region" tabindex="0" aria-label="Changeover list. Scroll horizontally to see all columns.">
+            <table :class="{ 'table--editable': props.canEdit }">
             <thead><tr>
               <th :aria-sort="sortAria('vehicle')"><button class="sort-button" type="button" @click="sortBy('vehicle')">Vehicle / Segment{{ sortGlyph('vehicle') }}</button></th>
               <th :aria-sort="sortAria('status')"><button class="sort-button" type="button" @click="sortBy('status')">Status{{ sortGlyph('status') }}</button></th>
@@ -95,8 +96,31 @@
                 </tr>
               </template>
             </tbody>
-          </table>
-        </div>
+            </table>
+          </div>
+
+          <div class="changeover-cards" :class="{ 'changeover-cards--editable': props.canEdit }">
+            <template v-for="(entry, index) in filteredEntries" :key="entry.id">
+              <h3 v-if="groupingMode === 'status' && (index === 0 || filteredEntries[index - 1]?.status !== entry.status)" class="card-status-group">{{ statusLabel(entry.status) }}</h3>
+              <article class="changeover-card" :class="[`changeover-card--${entry.status}`, { 'changeover-card--grouped': groupingMode === 'status' }]">
+                <div class="changeover-card__topline">
+                  <span class="status-pill" :class="`status-pill--${entry.status}`">{{ statusLabel(entry.status) }}</span>
+                  <span v-if="entry.author" class="changeover-author-badge" :title="entry.author" :aria-label="`Author: ${entry.author}`">{{ authorInitials(entry.author) }}</span>
+                  <span v-else-if="entry.isOpen" class="changeover-author-badge changeover-author-badge--open">OPEN</span>
+                </div>
+                <a v-if="entry.status === 'published' && entry.publicUrl" class="changeover-card__vehicle changeover-card__vehicle--linked" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">
+                  <strong>{{ entry.make }} {{ entry.model }} <span aria-hidden="true">↗</span></strong>
+                </a>
+                <strong v-else class="changeover-card__vehicle">{{ entry.make }} {{ entry.model }}</strong>
+                <div v-if="entry.notes || (entry.status !== 'published' && entry.resourceUrl)" class="changeover-card__footer">
+                  <button v-if="entry.notes" class="notes-more" type="button" @click="showNotes(entry)">See notes</button>
+                  <a v-if="entry.status !== 'published' && entry.resourceUrl" class="changeover-card__resource" :href="entry.resourceUrl" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Resource <span aria-hidden="true">↗</span></a>
+                </div>
+                <button v-if="props.canEdit" class="changeover-card__edit" type="button" :aria-label="`Edit ${entry.make} ${entry.model}`" @click="openEdit(entry)">Edit</button>
+              </article>
+            </template>
+          </div>
+        </template>
       </section>
     </template>
 
@@ -281,6 +305,12 @@ function openAdd() {
 }
 function openEdit(entry: ChangeoverEntry) { modalMode.value = "edit"; editingEntry.value = entry; modalOpen.value = true; }
 function statusLabel(value: ChangeoverStatus) { return statusOptions.find((status) => status.value === value)?.label ?? value; }
+function authorInitials(label: string) {
+  const normalized = label.trim().toLowerCase();
+  const author = authorsStore.allAuthors.find((item) => item.label.toLowerCase() === normalized || item.lastName.toLowerCase() === normalized);
+  if (author?.initials) return author.initials;
+  return label.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+}
 function clearFilters() {
   query.value = "";
   statusFilter.value = "all";
@@ -374,15 +404,16 @@ select, input { min-height: 36px; padding: 7px 10px; border: 1px solid var(--col
 .working-spinner { width: 18px; height: 18px; flex: 0 0 auto; border: 2px solid #dce8d8; border-top-color: var(--green-2); border-radius: 50%; animation: changeover-spin .75s linear infinite; }
 @keyframes changeover-spin { to { transform: rotate(360deg); } }
 .overview { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)) minmax(220px, 1.5fr); gap: 10px; }
-.summary-card { display: grid; align-content: start; gap: 5px; min-height: 100px; padding: 13px 14px; border: 1px solid var(--color-border); border-radius: 8px; background: color-mix(in srgb, var(--white) 92%, transparent); }
+.summary-card { display: grid; min-width: 0; align-content: start; gap: 5px; min-height: 100px; padding: 13px 14px; border: 1px solid var(--color-border); border-radius: 8px; background: color-mix(in srgb, var(--white) 92%, transparent); }
 .summary-card > span { color: var(--gray-light-4); font-size: .75rem; font-weight: 600; }
 .summary-card strong { font: 700 1.35rem/1.1 "Monda", sans-serif; }
 .summary-card small { color: var(--gray-light-4); font-size: .73rem; }
+.summary-card__compact-share { display: none; font: 600 .76rem/1 "Asap", sans-serif !important; }
 .open-card { border-top: 3px solid var(--orange); }
-.deadline-card { grid-template-columns: 1fr; }
+.deadline-card { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .deadline-control { display: flex; align-items: end; gap: 9px; margin-top: 2px; }
-.deadline-control label { display: grid; gap: 4px; color: var(--gray-dark-3); font-size: .73rem; font-weight: 600; }
-.deadline-control input { min-height: 30px; padding: 5px 8px; }
+.deadline-control label { display: grid; min-width: 0; flex: 1 1 0; gap: 4px; color: var(--gray-dark-3); font-size: .73rem; font-weight: 600; }
+.deadline-control input { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 30px; padding: 5px 8px; }
 .saved-label { padding-bottom: 6px; color: var(--green-dark); font-size: .74rem; }
 .list-panel { overflow: hidden; border: 1px solid var(--color-border); border-radius: 8px; background: color-mix(in srgb, var(--white) 94%, transparent); }
 .list-toolbar { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding: 16px 17px; border-bottom: 1px solid var(--color-border); }
@@ -394,6 +425,8 @@ select, input { min-height: 36px; padding: 7px 10px; border: 1px solid var(--col
 .clear-filters-button:disabled { opacity: .5; cursor: default; }
 .search-field input { width: 190px; }
 .table-scroll { overflow-x: auto; }
+.table-scroll:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.changeover-cards { display: none; }
 table { width: 100%; min-width: 1000px; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: .82rem; }
 table.table--editable { min-width: 1090px; }
 th { padding: 10px 13px; color: var(--gray-light-4); font-size: .72rem; font-weight: 700; white-space: nowrap; }
@@ -439,11 +472,65 @@ td:first-child strong, td:first-child .segment { position: relative; z-index: 1;
 .status-group-row td { padding-top: 10px; padding-bottom: 7px; background: rgba(255, 255, 255, .72); color: var(--gray-dark-3); font: 700 .8rem "Monda", sans-serif; }
 .status-group-row span { margin-left: 6px; color: var(--gray-light-4); font: 500 .73rem "Asap", sans-serif; }
 .edit-button { padding: 5px 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font: 600 .75rem "Asap", sans-serif; cursor: pointer; }
+.changeover-card { position: relative; display: grid; min-width: 0; min-height: 128px; align-content: start; gap: 11px; padding: 12px 13px; overflow: hidden; border: 1px solid var(--color-border); border-radius: 8px; background: var(--white); box-shadow: var(--color-surface-shadow); }
+.changeover-card::before { position: absolute; inset: 0 auto 0 0; width: 6px; background: var(--row-status-color); content: ""; }
+.changeover-card--awaiting_info { --row-status-color: #9aa4aa; }
+.changeover-card--info_available { --row-status-color: #45b8d3; }
+.changeover-card--embargoed { --row-status-color: #eab02f; }
+.changeover-card--published { --row-status-color: #6eaa5d; }
+.changeover-card--skipped { --row-status-color: #e9a49b; }
+.changeover-card--dead { --row-status-color: #c9483f; }
+.changeover-card--vaporware { --row-status-color: #9a68b5; }
+.changeover-card__topline { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; }
+.changeover-card__vehicle { min-width: 0; color: var(--gray-dark-5); font-size: .94rem; line-height: 1.35; overflow-wrap: anywhere; }
+a.changeover-card__vehicle { text-decoration: none; }
+a.changeover-card__vehicle:hover { color: var(--blue-3, #277da1); text-decoration: underline; }
+.changeover-card__vehicle span { color: var(--blue-3, #277da1); font-size: .8em; }
+.changeover-author-badge { display: inline-grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border: 2px solid var(--white); border-radius: 50%; background: var(--green-2); color: var(--white); box-shadow: 0 1px 3px rgb(0 0 0 / 18%); font-size: .62rem; font-weight: 700; }
+.changeover-author-badge--open { width: auto; padding: 0 8px; border-radius: 12px; background: var(--gray-light-1); color: var(--gray-dark-3); box-shadow: none; }
+.changeover-card__footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.changeover-cards--editable .changeover-card__footer { padding-right: 45px; }
+.changeover-card__resource { color: var(--blue-3, #277da1); font-size: .76rem; text-decoration: none; }
+.changeover-card__resource:hover { text-decoration: underline; }
+.changeover-card__edit { position: absolute; right: 10px; bottom: 10px; padding: 4px 8px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font: 600 .72rem "Asap", sans-serif; cursor: pointer; }
+.card-status-group { grid-column: 1 / -1; margin: 6px 0 0; padding: 8px 2px 3px; border-bottom: 1px solid var(--color-divider); color: var(--gray-dark-3); font: 700 .88rem "Monda", sans-serif; }
 .empty-state, .empty-year, .loading-state { display: grid; justify-items: center; gap: 8px; padding: 42px 16px; color: var(--gray-light-4); text-align: center; font-size: .85rem; }
 .empty-state strong, .empty-year strong { color: var(--gray-dark-3); }
 .empty-year { border: 1px dashed var(--color-border); border-radius: 8px; }
 .error-banner { padding: 10px 12px; border: 1px solid #e5b7b2; border-radius: 6px; background: #fff1ef; color: #8d3930; font-size: .84rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-@media (max-width: 1050px) { .overview { grid-template-columns: repeat(3, minmax(120px, 1fr)); } .deadline-card { grid-column: span 2; } }
-@media (max-width: 760px) { .page-heading, .list-toolbar { align-items: stretch; flex-direction: column; } .heading-actions, .filters, .draft-banner, .draft-actions { align-items: stretch; flex-wrap: wrap; } .overview { grid-template-columns: repeat(2, minmax(120px, 1fr)); } .deadline-card { grid-column: auto; } .search-field input { width: 100%; } }
+@media (max-width: 1250px) { .overview { grid-template-columns: repeat(3, minmax(0, 1fr)); } .deadline-card { grid-column: span 2; } .summary-card { min-height: 88px; padding: 11px; } }
+@media (max-width: 1200px) {
+  .desktop-changeover-list { display: none; }
+  .changeover-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr)); gap: 10px; padding: 12px; }
+  .list-toolbar { align-items: flex-start; flex-direction: column; }
+  .filters { max-width: 100%; flex-wrap: wrap; }
+  .overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .deadline-card { grid-column: span 2; }
+  .summary-card { min-height: 82px; padding: 10px; }
+  .summary-card__share { display: none; }
+  .summary-card__compact-share { display: inline; }
+}
+@media (max-width: 760px) {
+  .page-heading, .list-toolbar { align-items: stretch; flex-direction: column; }
+  .heading-actions, .filters, .draft-banner, .draft-actions { align-items: stretch; flex-wrap: wrap; }
+  .overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary-card { min-height: 74px; gap: 3px; padding: 9px 10px; }
+  .summary-card strong { font-size: 1.12rem; }
+  .summary-card__share { display: none; }
+  .summary-card__compact-share { display: inline; }
+  .deadline-card { grid-column: auto; }
+  .search-field input { width: 100%; }
+}
+@media (max-width: 520px) {
+  .overview { gap: 7px; }
+  .summary-card { padding: 8px; }
+  .summary-card > span { font-size: .68rem; }
+  .deadline-card { grid-column: 1 / -1; }
+  .changeover-cards { grid-template-columns: minmax(0, 1fr); padding: 9px; }
+  .draft-banner, .draft-actions, .modal-footer { flex-direction: column; }
+  .filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .filters > * { min-width: 0; }
+  .filters select, .filters input { width: 100%; min-width: 0; }
+}
 </style>

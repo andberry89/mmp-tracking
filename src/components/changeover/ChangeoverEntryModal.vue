@@ -195,5 +195,9 @@ function save() {
 .primary-button { border: 1px solid transparent; background: var(--green-2); color: var(--white); }
 .primary-button:disabled { cursor: wait; opacity: 0.6; }
 .secondary-button { border: 1px solid var(--color-form-border); background: var(--white); color: var(--gray-dark-3); }
-@media (max-width: 620px) { .entry-grid { grid-template-columns: 1fr; } }
+@media (max-width: 620px) {
+  .entry-grid { grid-template-columns: 1fr; }
+  .modal-footer { flex-wrap: wrap; }
+  .modal-footer button { flex: 1 1 120px; }
+}
 </style>

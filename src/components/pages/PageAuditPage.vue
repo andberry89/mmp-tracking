@@ -38,7 +38,7 @@
         <span v-if="!auditStore.entries.length && canEdit">Use Add to Audit to start with a vehicle from the shared Catalog.</span>
         <button v-if="!auditStore.entries.length && canEdit" class="primary-button" type="button" @click="openAdd">＋ Add to Audit</button>
       </div>
-      <div v-else class="table-scroll">
+      <div v-else class="table-scroll" role="region" tabindex="0" aria-label="Page Audit checklist. Scroll to see all vehicle fields.">
         <table class="audit-table" :class="{ 'table--editable': canEdit }">
           <thead><tr>
             <th class="vehicle-column">Vehicle / Segment</th><th class="people-column">Author / Auditor</th><th class="checklist-summary-column">Checklist</th><th class="awards-column">Awards</th><th class="status-column">Status</th>
@@ -340,6 +340,7 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .clear-filters-button:hover:not(:disabled) { border-color: var(--green-2); color: var(--green-dark); }
 .clear-filters-button:disabled { opacity: .5; cursor: default; }
 .table-scroll { max-height: min(72vh, 780px); overflow: auto; overscroll-behavior: contain; }
+.table-scroll:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .audit-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; text-align: left; font-size: .8rem; }
 .audit-table th { position: sticky; z-index: 2; top: 0; padding: 11px 7px; border-bottom: 1px solid var(--color-border); background: #f7f8f6; color: var(--gray-light-4); font-size: .7rem; font-weight: 700; line-height: 1.25; vertical-align: bottom; white-space: normal; overflow-wrap: anywhere; }
 .audit-table td { padding: 9px 7px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
@@ -411,5 +412,5 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .shared-link-note a { color: var(--blue-3, #277da1); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 9px; }
 @media (max-width: 1100px) { .list-toolbar { align-items: flex-start; flex-direction: column; } .filters { flex-wrap: wrap; } .form-grid--meta { grid-template-columns: repeat(3, minmax(120px, 1fr)); } .checklist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .page-heading { align-items: flex-start; flex-direction: column; } .heading-actions { width: 100%; } .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .form-grid--meta, .checklist-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .page-heading { align-items: flex-start; flex-direction: column; } .heading-actions { width: 100%; } .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .form-grid--meta, .checklist-grid { grid-template-columns: 1fr; } .audit-form { gap: 14px; } .modal-actions { flex-wrap: wrap; } .modal-actions button { flex: 1 1 120px; } }
 </style>

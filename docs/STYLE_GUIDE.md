@@ -71,8 +71,8 @@ This is the working visual baseline for the MMP tracking page. It captures its r
 
 ## Responsive behavior and known gaps
 
-- The shell now stacks its navigation and summary rail at narrow widths. The dense task grid still needs visual review at desktop and smaller widths, including confirmation of its minimum useful viewport.
-- Contrast targets, keyboard interaction details, and reduced-motion behavior still need explicit review.
+- The shell keeps navigation and account controls available as space narrows, then moves the content ahead of the summary rail on phones. MMP task rows become compact cards at narrower widths; Changeover and Page Audit keep their wide table layout in focusable, labeled scroll regions.
+- Review the minimum useful viewport, contrast targets, keyboard interactions, and reduced-motion behavior across all screens.
 - Keep refining newer screens against the shared green/neutral tokens. In particular, avoid using destructive red as a general link-hover color.
 - The current shell dimensions, typography scale, and patterned canvas are provisional choices. Confirm whether they should remain the long-term direction.
 

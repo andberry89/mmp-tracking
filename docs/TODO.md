@@ -5,7 +5,7 @@ This is the current roadmap. Email work and the other listed enhancements are de
 ## Active before launch
 
 1. **Finish the visual pass.** Refine the existing screens against the tracking-page baseline and keep the style guide current.
-2. **Address responsiveness and accessibility.** Define the expected device sizes and keyboard/screen-reader behavior, then make the key workflows work well within those constraints.
+2. **Address responsiveness and accessibility.** The MMP workboard switches to compact task cards at narrower widths, while the wide Changeover/Page Audit tables remain keyboard-focusable scroll regions. Review all screens at the agreed device sizes, then refine keyboard/screen-reader behavior, contrast, and reduced motion.
 3. **Production readiness.**
    - Choose frontend hosting and confirm organization-specific security restrictions.
    - Provision initial Editors and verify Supabase Auth, Realtime, and Row Level Security.

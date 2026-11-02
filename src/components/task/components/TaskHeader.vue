@@ -25,14 +25,16 @@
   </div>
 
   <div
-    :class="[
+    class="task-deadline"
+    :class="{ 'task-deadline--empty': doc.published || !doc.deadline }"
+  >
+    <span class="task-mobile-label" aria-hidden="true">Deadline</span>
+    <span :class="[
       'font-bold',
       isHighPriority(doc)
         ? 'text-[var(--color-body-text-priority)]'
         : 'text-[var(--color-body-text-secondary)]',
-    ]"
-  >
-    {{ doc.published ? "" : doc.deadline }}
+    ]">{{ doc.published ? "" : doc.deadline }}</span>
   </div>
 </template>
 <script setup lang="ts">

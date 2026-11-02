@@ -123,6 +123,23 @@ onBeforeUnmount(() => {
     width 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@media (max-width: 900px) {
+  .top-nav { gap: 14px; padding: 0 16px; }
+  .top-nav__link { font-size: clamp(16px, 2.4vw, 20px); }
+}
+
+@media (max-width: 620px) {
+  .top-nav {
+    min-height: 56px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    gap: 18px;
+    padding: 0 14px;
+    scrollbar-width: thin;
+  }
+  .top-nav__link { font-size: clamp(16px, 4.5vw, 20px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .top-nav__indicator {
     transition: none;

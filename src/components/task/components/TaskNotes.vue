@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!doc.published" class="text-[var(--color-body-text-tertiary)] text-[11px]">
+  <div v-if="!doc.published" class="task-notes text-[var(--color-body-text-tertiary)] text-[11px]" :class="{ 'task-notes--empty': !doc.notes }">
+    <span v-if="doc.notes" class="task-mobile-label" aria-hidden="true">Notes</span>
     <span>{{ truncatedNotes }}</span>
     <Popper class="notes-popper" placement="top" offset-distance="8" locked disableClickAway arrow>
       <div class="inline" @click="toggleNotes">
@@ -17,7 +18,7 @@
       </template>
     </Popper>
   </div>
-  <div v-else class="text-[var(--color-body-text-tertiary)] text-[11px]"></div>
+  <div v-else class="task-notes task-notes--empty text-[var(--color-body-text-tertiary)] text-[11px]"></div>
 </template>
 <script setup lang="ts">
 import { ref, computed } from "vue";

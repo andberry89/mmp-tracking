@@ -3,91 +3,97 @@
     <p v-if="documentsStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
       Could not load or save shared data: {{ documentsStore.error }}
     </p>
-    <section class="task-column-header mt-5 grid">
-      <div class="content-column-header" v-for="header in headers" :key="header">
-        <span class="column-header-text">{{ header }}</span>
-      </div>
-    </section>
-
-    <section
-      v-if="canEdit"
-      @click="openNewTask"
-      class="add-task-row flex items-center gap-[10px] px-[10px] py-[10px] text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border border-dashed border-[var(--color-add-new-item-border)] cursor-pointer mb-[5px] transition-colors duration-200 ease-in-out"
-    >
-      <PlusIcon class="fill-[var(--color-add-new)] p-0 m-0 cursor-pointer" />
-      <span>Add New Task</span>
-    </section>
-
-    <section class="task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
-      <section
-        v-for="group in activeStatusGroups"
-        :key="group.status"
-        class="task-status-group"
-        :class="{ 'task-status-group--drag-over': dragOverTarget === group.status }"
-        @dragover.prevent="allowDrop($event, group.status)"
-        @drop="dropOnTarget($event, group.status)"
-      >
-        <h3 class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]">
-          {{ group.label }} <span class="task-count">{{ sortedByStatus[group.status].length }}</span>
-        </h3>
-        <p v-if="dragOverTarget === group.status" class="drop-hint">Drop to move to {{ group.label }}</p>
-        <TaskItem
-          v-for="doc in sortedByStatus[group.status]"
-          :key="doc.id"
-          :doc="doc"
-          class="grid"
-          :can-edit="canEdit"
-          :activeAuthorsByTeam="computedActiveAuthorsByTeam"
-          @drag-start="handleDragStart($event, doc)"
-          @dragend="clearDrag"
-          @assign-author="handleAssignAuthor"
-          @edit="handleEdit"
-          @duplicate="handleDuplicate"
-          @delete="handleDelete"
-          @add-asset="handleAddAsset"
-          @delete-asset="handleDeleteAsset"
-        />
-        <p v-if="draggedTaskId && !sortedByStatus[group.status].length" class="empty-drop-hint">Drop here to move to {{ group.label }}</p>
-      </section>
-
-      <section
-        class="task-status-group task-history-group"
-        :class="{ 'task-status-group--drag-over': dragOverTarget === 'published-history' }"
-        @dragover.prevent="allowDrop($event, 'published-history')"
-        @drop="dropOnTarget($event, 'published-history')"
-      >
-        <h3 class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]">
-          Published &amp; Updated <span class="task-count">{{ sortedByStatus.published.length }}</span>
-        </h3>
-        <div v-if="sortedByStatus.published.length > pageSize" class="history-pagination" aria-label="Published and updated task pages">
-          <span>Showing {{ pageRangeStart }}–{{ pageRangeEnd }} of {{ sortedByStatus.published.length }}</span>
-          <div class="history-pagination__controls">
-            <button type="button" :disabled="currentPublishedPage === 1" @click="currentPublishedPage--">Previous</button>
-            <span>Page {{ currentPublishedPage }} of {{ publishedPageCount }}</span>
-            <button type="button" :disabled="currentPublishedPage === publishedPageCount" @click="currentPublishedPage++">Next</button>
+    <div class="task-workboard-scroll" role="region" tabindex="0" aria-label="Task workboard">
+      <div class="task-workboard">
+        <section class="task-column-header mt-5 grid" aria-label="Task columns">
+          <div class="content-column-header" v-for="header in headers" :key="header" :aria-hidden="!header || undefined">
+            <span class="column-header-text">{{ header }}</span>
           </div>
-        </div>
-        <p v-if="dragOverTarget === 'published-history'" class="drop-hint">Drop to publish as {{ draggedTask?.new ? 'Published' : 'Updated' }}</p>
-        <p v-if="draggedTaskId && !sortedByStatus.published.length" class="empty-drop-hint">Drop here to add to Published &amp; Updated</p>
-        <p v-if="!sortedByStatus.published.length && !draggedTaskId" class="history-empty">No published or updated tasks yet.</p>
-        <TaskItem
-          v-for="doc in pagedPublishedTasks"
-          :key="doc.id"
-          :doc="doc"
-          class="grid"
-          :can-edit="canEdit"
-          :activeAuthorsByTeam="computedActiveAuthorsByTeam"
-          @drag-start="handleDragStart($event, doc)"
-          @dragend="clearDrag"
-          @assign-author="handleAssignAuthor"
-          @edit="handleEdit"
-          @duplicate="handleDuplicate"
-          @delete="handleDelete"
-          @add-asset="handleAddAsset"
-          @delete-asset="handleDeleteAsset"
-        />
-      </section>
-    </section>
+          <div class="content-column-header" aria-hidden="true"></div>
+        </section>
+
+        <button
+          v-if="canEdit"
+          type="button"
+          @click="openNewTask"
+          class="add-task-row flex w-full items-center gap-[10px] px-[10px] py-[10px] text-left text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border border-dashed border-[var(--color-add-new-item-border)] bg-transparent cursor-pointer mb-[5px] transition-colors duration-200 ease-in-out"
+        >
+          <PlusIcon class="fill-[var(--color-add-new)] p-0 m-0 cursor-pointer" />
+          <span>Add New Task</span>
+        </button>
+
+        <section class="task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
+          <section
+            v-for="group in activeStatusGroups"
+            :key="group.status"
+            class="task-status-group"
+            :class="{ 'task-status-group--drag-over': dragOverTarget === group.status }"
+            @dragover.prevent="allowDrop($event, group.status)"
+            @drop="dropOnTarget($event, group.status)"
+          >
+            <h3 class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]">
+              {{ group.label }} <span class="task-count">{{ sortedByStatus[group.status].length }}</span>
+            </h3>
+            <p v-if="dragOverTarget === group.status" class="drop-hint">Drop to move to {{ group.label }}</p>
+            <TaskItem
+              v-for="doc in sortedByStatus[group.status]"
+              :key="doc.id"
+              :doc="doc"
+              class="grid"
+              :can-edit="canEdit"
+              :activeAuthorsByTeam="computedActiveAuthorsByTeam"
+              @drag-start="handleDragStart($event, doc)"
+              @dragend="clearDrag"
+              @assign-author="handleAssignAuthor"
+              @edit="handleEdit"
+              @duplicate="handleDuplicate"
+              @delete="handleDelete"
+              @add-asset="handleAddAsset"
+              @delete-asset="handleDeleteAsset"
+            />
+            <p v-if="draggedTaskId && !sortedByStatus[group.status].length" class="empty-drop-hint">Drop here to move to {{ group.label }}</p>
+          </section>
+
+          <section
+            class="task-status-group task-history-group"
+            :class="{ 'task-status-group--drag-over': dragOverTarget === 'published-history' }"
+            @dragover.prevent="allowDrop($event, 'published-history')"
+            @drop="dropOnTarget($event, 'published-history')"
+          >
+            <h3 class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]">
+              Published &amp; Updated <span class="task-count">{{ sortedByStatus.published.length }}</span>
+            </h3>
+            <div v-if="sortedByStatus.published.length > pageSize" class="history-pagination" aria-label="Published and updated task pages">
+              <span>Showing {{ pageRangeStart }}–{{ pageRangeEnd }} of {{ sortedByStatus.published.length }}</span>
+              <div class="history-pagination__controls">
+                <button type="button" :disabled="currentPublishedPage === 1" @click="currentPublishedPage--">Previous</button>
+                <span>Page {{ currentPublishedPage }} of {{ publishedPageCount }}</span>
+                <button type="button" :disabled="currentPublishedPage === publishedPageCount" @click="currentPublishedPage++">Next</button>
+              </div>
+            </div>
+            <p v-if="dragOverTarget === 'published-history'" class="drop-hint">Drop to publish as {{ draggedTask?.new ? 'Published' : 'Updated' }}</p>
+            <p v-if="draggedTaskId && !sortedByStatus.published.length" class="empty-drop-hint">Drop here to add to Published &amp; Updated</p>
+            <p v-if="!sortedByStatus.published.length && !draggedTaskId" class="history-empty">No published or updated tasks yet.</p>
+            <TaskItem
+              v-for="doc in pagedPublishedTasks"
+              :key="doc.id"
+              :doc="doc"
+              class="grid"
+              :can-edit="canEdit"
+              :activeAuthorsByTeam="computedActiveAuthorsByTeam"
+              @drag-start="handleDragStart($event, doc)"
+              @dragend="clearDrag"
+              @assign-author="handleAssignAuthor"
+              @edit="handleEdit"
+              @duplicate="handleDuplicate"
+              @delete="handleDelete"
+              @add-asset="handleAddAsset"
+              @delete-asset="handleDeleteAsset"
+            />
+          </section>
+        </section>
+      </div>
+    </div>
 
     <!-- Modals -->
     <component
@@ -369,7 +375,7 @@ const headers = [
   display: grid;
   justify-items: start;
   align-items: center;
-  grid-template-columns: 36px 1fr 100px 120px 175px 1fr 50px 50px 32px;
+  grid-template-columns: 36px minmax(180px, 1.15fr) 100px 120px 175px minmax(140px, 1fr) 50px 50px 32px;
   padding: 8px 20px 8px 4px;
 }
 
@@ -389,6 +395,18 @@ const headers = [
 
 .task-column-header {
   margin-bottom: 6px;
+  grid-template-columns: 36px minmax(180px, 1.15fr) 100px 120px 175px minmax(140px, 1fr) 50px 50px 32px;
+}
+
+.task-workboard-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.task-workboard-scroll:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 .add-task-row {
@@ -399,6 +417,11 @@ const headers = [
 .add-task-row:hover {
   border-color: var(--color-add-new-item-border-hover);
   background: var(--white);
+}
+
+.add-task-row:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 .task-group-heading {
@@ -426,7 +449,39 @@ const headers = [
 .history-pagination button:disabled { opacity: 0.45; cursor: not-allowed; }
 .history-empty { margin: 0; padding: 12px; color: var(--gray-light-4); font-size: 0.84rem; }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+  .task-workboard-scroll { overflow: visible; }
+  .task-workboard { min-width: 0; }
+  .task-column-header { display: none; }
+  :deep(.task-row) {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "leading vehicle status"
+      "leading deadline date"
+      "notes notes notes"
+      "assets author actions";
+    gap: 7px 10px;
+    align-items: center;
+    padding: 10px 12px;
+  }
+  :deep(.task-row > .task-row-leading) { grid-area: leading; align-self: stretch; }
+  :deep(.task-row > .task-vehicle) { grid-area: vehicle; min-width: 0; padding-left: 0; overflow-wrap: anywhere; }
+  :deep(.task-row > .task-deadline) { grid-area: deadline; min-width: 0; }
+  :deep(.task-row > .status-badge) { grid-area: status; justify-self: end; width: auto; white-space: nowrap; }
+  :deep(.task-row > .task-status-date) { grid-area: date; justify-self: end; min-width: 0; text-align: right; white-space: normal; }
+  :deep(.task-row > .task-notes) { grid-area: notes; min-width: 0; padding-top: 7px; border-top: 1px solid var(--color-divider); }
+  :deep(.task-row > .task-notes--empty) { display: none; }
+  :deep(.task-row > .assets-popper),
+  :deep(.task-row > .asset-empty) { grid-area: assets; justify-self: start; }
+  :deep(.task-row > .author-picker),
+  :deep(.task-row > .task-author-static) { grid-area: author; justify-self: center; }
+  :deep(.task-row > .task-actions) { grid-area: actions; justify-self: end; }
+  :deep(.task-mobile-label) { display: block; margin-bottom: 2px; color: var(--gray-light-4); font-size: 10px; font-weight: 600; line-height: 1.2; }
+  :deep(.task-deadline--empty),
+  :deep(.task-status-date--empty) { display: none; }
+
   .history-pagination { align-items: flex-start; flex-direction: column; }
 }
+
+:deep(.task-mobile-label) { display: none; }
 </style>
