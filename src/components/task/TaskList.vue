@@ -12,8 +12,13 @@
           <div class="content-column-header" aria-hidden="true"></div>
         </section>
 
+        <div v-if="!documentsStore.hasLoaded" class="task-loading-state" role="status" aria-live="polite">
+          <span class="task-loading-spinner" aria-hidden="true"></span>
+          <span>Loading MMP workbook…</span>
+        </div>
+
         <button
-          v-if="canEdit"
+          v-if="canEdit && documentsStore.hasLoaded"
           type="button"
           @click="openNewTask"
           class="add-task-row flex w-full items-center gap-[10px] px-[10px] py-[10px] text-left text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border border-dashed border-[var(--color-add-new-item-border)] bg-transparent cursor-pointer mb-[5px] transition-colors duration-200 ease-in-out"
@@ -22,7 +27,7 @@
           <span>Add New Task</span>
         </button>
 
-        <section class="task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
+        <section v-if="documentsStore.hasLoaded" class="task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
           <section
             v-for="group in activeStatusGroups"
             :key="group.status"
@@ -396,6 +401,38 @@ const headers = [
 .task-column-header {
   margin-bottom: 6px;
   grid-template-columns: 36px minmax(180px, 1.15fr) 100px 120px 175px minmax(140px, 1fr) 50px 50px 32px;
+}
+
+.task-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 150px;
+  margin-top: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--white) 72%, transparent);
+  color: var(--gray-light-4);
+  font-size: 0.9rem;
+}
+
+.task-loading-spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 2px solid #dce8d8;
+  border-top-color: var(--green-2);
+  border-radius: 50%;
+  animation: task-loading-spin 0.75s linear infinite;
+}
+
+@keyframes task-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-loading-spinner { animation: none; }
 }
 
 .task-workboard-scroll {

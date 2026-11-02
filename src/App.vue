@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { ModalsContainer } from "vue-final-modal";
 
 import DashboardSidebar from "@/components/layout/DashboardSidebar.vue";
@@ -94,6 +94,8 @@ const canEdit = computed(() => !isSupabaseConfigured || authStore.isEditor);
 const userAccessOpen = ref(false);
 const userSettingsOpen = ref(false);
 const accountMenu = ref<HTMLDetailsElement | null>(null);
+let loadedWorkspaceUserId: string | null = null;
+let workspaceLoadPromise: Promise<void> | null = null;
 
 function closeAccountMenu() {
   if (accountMenu.value) accountMenu.value.open = false;
@@ -123,23 +125,50 @@ onMounted(async () => {
   }
 
   await authStore.initializeAuth();
-  if (authStore.session && authStore.profile) await loadWorkspaceData();
 });
 
+watch(
+  () => [
+    authStore.session?.user.id ?? null,
+    authStore.profile?.id ?? null,
+    authStore.needsPasswordSetup,
+  ] as const,
+  ([sessionUserId, profileUserId, needsPasswordSetup]) => {
+    if (sessionUserId && sessionUserId === profileUserId && !needsPasswordSetup) {
+      void loadWorkspaceData();
+    }
+  },
+  { immediate: true },
+);
+
 async function loadWorkspaceData() {
-  if (!authStore.session || !authStore.profile) return;
-  await Promise.all([
-    authorsStore.loadAuthors(),
-    documentsStore.loadDocuments(),
-    catalogStore.loadCatalog(),
-  ]);
-  await changeoverStore.load();
-  documentsStore.subscribeToChanges();
-  catalogStore.subscribeToChanges();
-  changeoverStore.subscribeToChanges();
+  const userId = authStore.session?.user.id;
+  if (!userId || authStore.profile?.id !== userId || authStore.needsPasswordSetup) return;
+  if (loadedWorkspaceUserId === userId) return;
+  if (workspaceLoadPromise) return workspaceLoadPromise;
+
+  workspaceLoadPromise = (async () => {
+    await Promise.all([
+      authorsStore.loadAuthors(),
+      documentsStore.loadDocuments(),
+      catalogStore.loadCatalog(),
+    ]);
+    await changeoverStore.load();
+    documentsStore.subscribeToChanges();
+    catalogStore.subscribeToChanges();
+    changeoverStore.subscribeToChanges();
+    loadedWorkspaceUserId = userId;
+  })();
+
+  try {
+    await workspaceLoadPromise;
+  } finally {
+    workspaceLoadPromise = null;
+  }
 }
 
 async function handleSignOut() {
+  loadedWorkspaceUserId = null;
   documentsStore.stopRealtime();
   catalogStore.stopRealtime();
   changeoverStore.stopRealtime();
