@@ -11,6 +11,7 @@ interface QueryBuilder<T> extends PromiseLike<QueryResult<T>> {
   eq(column: string, value: string): QueryBuilder<T>;
   order(column: string, options?: { ascending?: boolean }): QueryBuilder<T>;
   range(from: number, to: number): QueryBuilder<T>;
+  in(column: string, values: string[]): QueryBuilder<T>;
 }
 
 interface QueryClient {
@@ -107,7 +108,61 @@ const taskColumns = [
 ].join(",");
 
 export async function fetchTasks(): Promise<TaskDocument[]> {
-  return (await fetchTaskRows()).map(mapTask);
+  return (await fetchTaskRows({ column: "status", values: ["pending", "pending_edits", "rtp", "scheduled"] })).map(mapTask);
+}
+
+export interface PublishedTaskPage {
+  items: TaskDocument[];
+  totalCount: number;
+}
+
+interface PublishedTaskPageRow extends Omit<DbTask, "status"> {
+  status: "published" | "updated";
+}
+
+export async function fetchPublishedTaskPage(input: {
+  page: number;
+  pageSize: number;
+  startAt: string | null;
+  endAt: string | null;
+  authorId: string | null;
+  query: string;
+}): Promise<PublishedTaskPage> {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { data, error } = await supabase.rpc("get_published_task_page", {
+    p_page: input.page,
+    p_page_size: input.pageSize,
+    p_start_at: input.startAt,
+    p_end_at: input.endAt,
+    p_author_id: input.authorId,
+    p_query: input.query || null,
+  });
+  if (error) throw new Error(error.message);
+  const result = data as { items?: PublishedTaskPageRow[]; total_count?: number } | null;
+  return {
+    items: (result?.items ?? []).map(mapTask),
+    totalCount: Number(result?.total_count ?? 0),
+  };
+}
+
+export interface PublishedTaskStat {
+  status: "published" | "updated";
+  modelYear: number;
+  count: number;
+}
+
+export async function fetchPublishedTaskStats(startAt: string | null, endAt: string | null): Promise<PublishedTaskStat[]> {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { data, error } = await supabase.rpc("get_published_task_stats", {
+    p_start_at: startAt,
+    p_end_at: endAt,
+  });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Array<{ status: "published" | "updated"; model_year: number; task_count: number }>).map((row) => ({
+    status: row.status,
+    modelYear: row.model_year,
+    count: Number(row.task_count),
+  }));
 }
 
 export async function fetchTaskById(taskId: string): Promise<TaskDocument | null> {
@@ -120,7 +175,7 @@ export async function fetchTasksForVehicle(vehicleId: string): Promise<TaskDocum
   return rows.map(mapTask);
 }
 
-async function fetchTaskRows(filter?: { column: "id" | "model_year_vehicle_id"; value: string }) {
+async function fetchTaskRows(filter?: { column: "id" | "model_year_vehicle_id"; value: string } | { column: "status"; values: string[] }) {
   if (!supabase) throw new Error("Supabase is not configured.");
   const client = supabase;
 
@@ -128,7 +183,8 @@ async function fetchTaskRows(filter?: { column: "id" | "model_year_vehicle_id"; 
     let query = (client as unknown as QueryClient)
       .from("mmp_tasks")
       .select(taskColumns);
-    if (filter) query = query.eq(filter.column, filter.value);
+    if (filter && "value" in filter) query = query.eq(filter.column, filter.value);
+    if (filter && "values" in filter) query = query.in(filter.column, filter.values);
     return query
       .order("created_at", { ascending: true })
       .order("id", { ascending: true })
@@ -136,7 +192,7 @@ async function fetchTaskRows(filter?: { column: "id" | "model_year_vehicle_id"; 
   }) as Promise<DbTask[]>;
 }
 
-function mapTask(row: DbTask): TaskDocument {
+export function mapTask(row: DbTask): TaskDocument {
   const status = row.status === "pending_edits" ? "rte" : row.status;
   const assets: TaskAsset[] = row.task_resources.map((resource) => ({
     id: resource.id,

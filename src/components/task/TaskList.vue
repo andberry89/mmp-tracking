@@ -1,7 +1,7 @@
 <template>
   <div>
-    <p v-if="documentsStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
-      Could not load or save shared data: {{ documentsStore.error }}
+    <p v-if="documentsStore.error || historyStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
+      Could not load or save shared data: {{ documentsStore.error || historyStore.error }}
     </p>
     <div v-if="documentsStore.hasLoaded" class="task-view-tabs" role="tablist" aria-label="Publication Tracking views">
       <button
@@ -26,7 +26,7 @@
         @dragover.prevent="allowDrop($event, 'published-history')"
         @drop="dropOnTarget($event, 'published-history')"
       >
-        Published &amp; Updated <span class="task-count">{{ sortedByStatus.published.length }}</span>
+        Published &amp; Updated <span class="task-count">{{ historyTotalCount }}</span>
       </button>
     </div>
 
@@ -117,7 +117,7 @@
           <label>From <input v-model="customDateStart" type="date" /></label>
           <label>To <input v-model="customDateEnd" type="date" /></label>
         </div>
-        <span class="history-results-count">{{ filteredPublishedTasks.length }} tasks</span>
+        <span class="history-results-count">{{ historyTotalCount }} tasks</span>
       </div>
 
       <div v-if="canEdit" class="history-return-dropzones" aria-label="Move a task back to Active Work">
@@ -132,8 +132,8 @@
         >Drop to {{ group.label }}</button>
       </div>
 
-      <div v-if="filteredPublishedTasks.length > pageSize" class="history-pagination" aria-label="Published and updated task pages">
-        <span>Showing {{ pageRangeStart }}–{{ pageRangeEnd }} of {{ filteredPublishedTasks.length }}</span>
+      <div v-if="historyTotalCount > pageSize" class="history-pagination" aria-label="Published and updated task pages">
+        <span>Showing {{ pageRangeStart }}–{{ pageRangeEnd }} of {{ historyTotalCount }}</span>
         <div class="history-pagination__controls">
           <button type="button" :disabled="currentPublishedPage === 1" @click="currentPublishedPage--">Previous</button>
           <span>Page {{ currentPublishedPage }} of {{ publishedPageCount }}</span>
@@ -141,10 +141,13 @@
         </div>
       </div>
       <p v-if="draggedTaskId && dragOverTarget === 'published-history'" class="drop-hint">Drop to publish as {{ draggedTask?.new ? 'Published' : 'Updated' }}</p>
-      <p v-if="!filteredPublishedTasks.length && !draggedTaskId" class="history-empty">No published or updated tasks in this date range.</p>
+      <div v-if="historyStore.isLoading" class="task-loading-state" role="status" aria-live="polite">
+        <span class="task-loading-spinner" aria-hidden="true"></span><span>Loading published history…</span>
+      </div>
+      <p v-else-if="!historyTotalCount && !draggedTaskId" class="history-empty">No published or updated tasks in this date range.</p>
       <div class="task-workboard-scroll" role="region" tabindex="0" aria-label="Published and updated tasks">
         <TaskItem
-          v-for="doc in pagedPublishedTasks"
+          v-for="doc in historyTasks"
           :key="doc.id"
           :doc="doc"
           class="grid"
@@ -180,9 +183,11 @@
 import { ref, computed, watch } from "vue";
 import { endOfDay, isWithinInterval, parseISO, startOfDay } from "date-fns";
 import { useDocumentsStore } from "@/stores/documents";
+import { usePublicationHistoryStore } from "@/stores/publicationHistory";
 import { sortDocuments } from "@/utils/sort-functions";
 import { getRangeDates } from "@/utils/helpers";
 import { ranges as publishedDateRanges } from "@/constants";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
@@ -206,6 +211,8 @@ const props = defineProps<{
   documents?: TaskDocument[];
   activeAuthorsByTeam?: AuthorsByTeamGroup[];
   canEdit?: boolean;
+  searchQuery?: string;
+  authorId?: string | null;
 }>();
 
 // ----------------------------------
@@ -213,6 +220,7 @@ const props = defineProps<{
 // ----------------------------------
 const documentsStore = useDocumentsStore();
 const catalogStore = useCatalogStore();
+const historyStore = usePublicationHistoryStore();
 
 // ----------------------------------
 // Modal and Task Handlers
@@ -257,11 +265,12 @@ function closeModal() {
 }
 
 // Save from Edit modal - full TaskDocument
-function saveTask(
+async function saveTask(
   updatedTask: TaskDocument,
   options: { closeModal?: boolean } = { closeModal: true }
 ) {
-  documentsStore.updateDocument(updatedTask.id, updatedTask);
+  await documentsStore.updateDocument(updatedTask.id, updatedTask, modalPayload.value ?? undefined);
+  if (taskView.value === "history") await loadHistoryPage();
   if (options.closeModal) closeModal();
 }
 
@@ -271,20 +280,21 @@ async function handleModalSave(payload: TaskDocument | NewTaskInput | EditTaskSu
     return;
   }
   if ("task" in payload && "resources" in payload) {
-    await documentsStore.updateDocument(payload.task.id, payload.task);
+    await documentsStore.updateDocument(payload.task.id, payload.task, modalPayload.value ?? undefined);
     if (documentsStore.error) return;
     for (const resource of payload.resources) {
-      const saved = await documentsStore.addAssetToDocument(payload.task.id, resource);
+      const saved = await documentsStore.addAssetToDocument(payload.task.id, resource, payload.task);
       if (!saved) return;
     }
+    if (taskView.value === "history") await loadHistoryPage();
     closeModal();
     return;
   }
-  saveTask(payload as TaskDocument);
+  await saveTask(payload as TaskDocument);
 }
 
 function confirmDuplicate(task: TaskDocument) {
-  documentsStore.duplicateDocument(task.id);
+  documentsStore.duplicateDocument(task.id, task);
   closeModal();
 }
 
@@ -299,7 +309,7 @@ function confirmDelete() {
 
 // Assign author (no modal)
 function handleAssignAuthor({ doc, author }: { doc: TaskDocument; author: Author | null }) {
-  documentsStore.updateAuthor(doc.id, author);
+  documentsStore.updateAuthor(doc.id, author, doc);
 }
 
 // Edit / Duplicate / Delete open modals
@@ -317,7 +327,7 @@ function handleDelete(task: TaskDocument) {
 
 // Assets handled via store
 function handleDeleteAsset({ doc, idx }: { doc: TaskDocument; idx: number }) {
-  documentsStore.deleteAssetFromDocument(doc.id, idx);
+  documentsStore.deleteAssetFromDocument(doc.id, idx, doc);
 }
 
 function handleAddAsset({
@@ -327,7 +337,7 @@ function handleAddAsset({
   doc: TaskDocument;
   asset: TaskResourceInput;
 }) {
-  documentsStore.addAssetToDocument(doc.id, asset);
+  documentsStore.addAssetToDocument(doc.id, asset, doc);
 }
 
 // ----------------------------------
@@ -345,7 +355,7 @@ const sortedByStatus = computed(() => {
     published: sorted.published,
   };
 });
-const filteredPublishedTasks = computed(() => sortedByStatus.value.published.filter((doc) => {
+const localPublishedTasks = computed(() => sortedByStatus.value.published.filter((doc) => {
   if (!doc.publishedDate) return selectedHistoryRange.value === "all";
   const publishedAt = new Date(doc.publishedDate);
   if (Number.isNaN(publishedAt.getTime())) return false;
@@ -365,19 +375,52 @@ const filteredPublishedTasks = computed(() => sortedByStatus.value.published.fil
   const range = getRangeDates(selectedHistoryRange.value);
   return range ? isWithinInterval(publishedAt, range) : true;
 }));
-const publishedPageCount = computed(() => Math.max(1, Math.ceil(filteredPublishedTasks.value.length / pageSize)));
-const pagedPublishedTasks = computed(() => {
+const historyTotalCount = computed(() => isSupabaseConfigured ? historyStore.totalCount : localPublishedTasks.value.length);
+const publishedPageCount = computed(() => Math.max(1, Math.ceil(historyTotalCount.value / pageSize)));
+const historyTasks = computed(() => {
+  if (isSupabaseConfigured) return historyStore.entries;
   const firstIndex = (currentPublishedPage.value - 1) * pageSize;
-  return filteredPublishedTasks.value.slice(firstIndex, firstIndex + pageSize);
+  return localPublishedTasks.value.slice(firstIndex, firstIndex + pageSize);
 });
 const pageRangeStart = computed(() => (currentPublishedPage.value - 1) * pageSize + 1);
-const pageRangeEnd = computed(() => Math.min(currentPublishedPage.value * pageSize, filteredPublishedTasks.value.length));
-const draggedTask = computed(() => (props.documents ?? documentsStore.documents).find((doc) => doc.id === draggedTaskId.value) ?? null);
+const pageRangeEnd = computed(() => Math.min(currentPublishedPage.value * pageSize, historyTotalCount.value));
+const allVisibleTasks = computed(() => [...(props.documents ?? documentsStore.documents), ...historyStore.entries]);
+const draggedTask = computed(() => allVisibleTasks.value.find((doc) => doc.id === draggedTaskId.value) ?? null);
 
-watch([() => props.documents, selectedHistoryRange, customDateStart, customDateEnd], () => { currentPublishedPage.value = 1; });
+const historyDateRange = computed(() => {
+  if (selectedHistoryRange.value === "custom") {
+    const start = customDateStart.value ? startOfDay(parseISO(customDateStart.value)) : null;
+    const end = customDateEnd.value ? endOfDay(parseISO(customDateEnd.value)) : null;
+    if (start && Number.isNaN(start.getTime())) return { startAt: null, endAt: null };
+    if (end && Number.isNaN(end.getTime())) return { startAt: null, endAt: null };
+    return { startAt: start?.toISOString() ?? null, endAt: end?.toISOString() ?? null };
+  }
+  const range = selectedHistoryRange.value === "all" ? null : getRangeDates(selectedHistoryRange.value);
+  return { startAt: range?.start.toISOString() ?? null, endAt: range?.end.toISOString() ?? null };
+});
+
+watch([taskView, selectedHistoryRange, customDateStart, customDateEnd, () => props.authorId, () => props.searchQuery], () => {
+  currentPublishedPage.value = 1;
+  void loadHistoryPage();
+}, { immediate: true });
+watch(currentPublishedPage, () => {
+  void loadHistoryPage();
+});
 watch(publishedPageCount, (pageCount) => {
   if (currentPublishedPage.value > pageCount) currentPublishedPage.value = pageCount;
 });
+
+async function loadHistoryPage() {
+  const range = historyDateRange.value;
+  await historyStore.loadPage({
+    page: currentPublishedPage.value,
+    pageSize,
+    startAt: range.startAt,
+    endAt: range.endAt,
+    authorId: props.authorId ?? null,
+    query: props.searchQuery ?? "",
+  });
+}
 
 function handleDragStart(event: DragEvent, doc: TaskDocument) {
   if (!canEdit.value || !event.dataTransfer) return;
@@ -399,13 +442,14 @@ async function dropOnTarget(event: DragEvent, target: TaskStatus | "published-hi
   draggedTaskId.value = null;
   if (!canEdit.value || !taskId) return;
 
-  const task = (props.documents ?? documentsStore.documents).find((doc) => doc.id === taskId);
+  const task = allVisibleTasks.value.find((doc) => doc.id === taskId);
   if (!task) return;
   const nextStatus: TaskStatus = target === "published-history"
     ? task.new ? "published" : "updated"
     : target;
   if (task.status !== nextStatus) {
-    await documentsStore.updateDocument(task.id, { status: nextStatus });
+    await documentsStore.updateDocument(task.id, { status: nextStatus }, task);
+    if (taskView.value === "history" || target === "published-history") await loadHistoryPage();
     taskView.value = target === "published-history" ? "history" : "active";
   }
 }

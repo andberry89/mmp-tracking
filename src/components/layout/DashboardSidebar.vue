@@ -69,11 +69,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
+import { usePublicationHistoryStore } from "@/stores/publicationHistory";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { teams, statuses } from "@/constants/constants";
 import { getDocumentAuthor, getRangeDates } from "@/utils/";
-import { isWithinInterval } from "date-fns";
 
 import type { TaskStatus } from "@/types";
 
@@ -93,6 +94,7 @@ const props = defineProps<Props>();
 
 // Store
 const documentsStore = useDocumentsStore();
+const historyStore = usePublicationHistoryStore();
 const selectedPublishedRange = ref<string | null>(null);
 
 // Color Maps
@@ -138,40 +140,39 @@ const quickStats = computed(() => {
 // Published + Updated
 const publishKeys: TaskStatus[] = ["published", "updated"];
 
-const publishedDocumentsInRange = computed(() => {
-  const range = getRangeDates(selectedPublishedRange.value);
-  return documentsStore.documents.filter((doc) => {
-    if (!publishKeys.includes(doc.status)) return false;
-    if (!range) return true;
-    if (!doc.publishedDate) return false;
-    return isWithinInterval(new Date(doc.publishedDate), range);
-  });
-});
-
 const updatedAndPublished = computed(() => {
   return statuses
     .filter((status) => publishKeys.includes(status.value as TaskStatus))
     .map((status) => {
-      const docs = publishedDocumentsInRange.value.filter((doc) => doc.status === status.value);
-
       const countByYearMap: Record<string, number> = {};
-
-      docs.forEach((doc) => {
-        if (!doc.vehicle || doc.vehicle.modelYear == null) return;
-
-        const year = String(doc.vehicle.modelYear);
-        countByYearMap[year] = (countByYearMap[year] || 0) + 1;
+      let count = 0;
+      historyStore.stats.forEach((stat) => {
+        if (stat.status !== status.value) return;
+        count += stat.count;
+        const year = String(stat.modelYear);
+        countByYearMap[year] = (countByYearMap[year] || 0) + stat.count;
       });
 
       const countByYear = Object.entries(countByYearMap).sort(([a], [b]) => Number(b) - Number(a));
 
       return {
         ...status,
-        count: docs.length,
+        count,
         countByYear,
       };
     });
 });
+
+watch(selectedPublishedRange, (rangeId) => {
+  const range = getRangeDates(rangeId);
+  void historyStore.loadStats(range?.start.toISOString() ?? null, range?.end.toISOString() ?? null);
+}, { immediate: true });
+watch(() => documentsStore.documents, () => {
+  if (!isSupabaseConfigured) {
+    const range = getRangeDates(selectedPublishedRange.value);
+    void historyStore.loadStats(range?.start.toISOString() ?? null, range?.end.toISOString() ?? null);
+  }
+}, { deep: true });
 
 // Tasks assigned per author
 function assigned(author: Author) {

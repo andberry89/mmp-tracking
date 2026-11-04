@@ -254,7 +254,7 @@ export const useDocumentsStore = defineStore("documents", () => {
           }
           const latest = await fetchTaskById(taskId);
           if (generation !== realtimeGeneration) return;
-          if (latest) upsertDocument(latest);
+          if (latest && isActiveTask(latest)) upsertDocument(latest);
           else removeDocument(taskId);
         }, generation);
       })
@@ -264,7 +264,7 @@ export const useDocumentsStore = defineStore("documents", () => {
         queueRealtimeRefresh(async () => {
           const latest = await fetchTaskById(taskId);
           if (generation !== realtimeGeneration) return;
-          if (latest) upsertDocument(latest);
+          if (latest && isActiveTask(latest)) upsertDocument(latest);
           else removeDocument(taskId);
         }, generation);
       })
@@ -274,11 +274,12 @@ export const useDocumentsStore = defineStore("documents", () => {
         queueRealtimeRefresh(async () => {
           const latest = await fetchTasksForVehicle(vehicleId);
           if (generation !== realtimeGeneration) return;
-          const latestIds = new Set(latest.map((doc) => doc.id));
+          const activeLatest = latest.filter(isActiveTask);
+          const latestIds = new Set(activeLatest.map((doc) => doc.id));
           documents.value = documents.value.filter((doc) =>
             doc.modelYearVehicleId !== vehicleId || latestIds.has(doc.id)
           );
-          latest.forEach(upsertDocument);
+          activeLatest.forEach(upsertDocument);
         }, generation);
       })
       .subscribe();
@@ -305,12 +306,10 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ------------------------------
   // ACTIONS — Updates
   // ------------------------------
-  async function updateDocument(id: string, payload: Partial<TaskDocument>) {
+  async function updateDocument(id: string, payload: Partial<TaskDocument>, baseDocument?: TaskDocument) {
     error.value = null;
     const idx = documents.value.findIndex((doc) => doc.id === id);
-    if (idx === -1) return;
-
-    const current = documents.value[idx];
+    const current = idx === -1 ? baseDocument : documents.value[idx];
     if (!current) return;
 
     const merged: TaskDocument = {
@@ -364,7 +363,8 @@ export const useDocumentsStore = defineStore("documents", () => {
       merged.publishedDate = merged.embargoDate || new Date().toISOString();
     }
 
-    documents.value[idx] = applyTaskRules(merged);
+    if (isActiveTask(merged)) upsertDocument(merged);
+    else removeDocument(id);
   }
 
   async function deleteDocument(id: string) {
@@ -375,12 +375,12 @@ export const useDocumentsStore = defineStore("documents", () => {
         return;
       }
     }
-    documents.value = documents.value.filter((doc) => doc.id !== id);
+    removeDocument(id);
     error.value = null;
   }
 
-  async function duplicateDocument(id: string) {
-    const original = documents.value.find((doc) => doc.id === id);
+  async function duplicateDocument(id: string, baseDocument?: TaskDocument) {
+    const original = documents.value.find((doc) => doc.id === id) ?? baseDocument;
     if (!original) return null;
 
     const newDoc: TaskDocument = {
@@ -416,8 +416,8 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ------------------------------
   // ACTIONS — Asset Management
   // ------------------------------
-  async function addAssetToDocument(id: string, asset: TaskResourceInput): Promise<boolean> {
-    const doc = getDocumentById(id).value;
+  async function addAssetToDocument(id: string, asset: TaskResourceInput, baseDocument?: TaskDocument): Promise<boolean> {
+    const doc = getDocumentById(id).value ?? baseDocument;
     if (!doc) return false;
     if (asset.password && (!isSupabaseConfigured || !supabase)) {
       error.value = "Password storage requires the Supabase connection to be configured.";
@@ -459,16 +459,16 @@ export const useDocumentsStore = defineStore("documents", () => {
           return false;
         }
       }
-      await updateDocument(id, { assets: [...doc.assets, data as TaskAsset] });
+      await updateDocument(id, { assets: [...doc.assets, data as TaskAsset] }, doc);
       return !error.value;
     }
 
-    await updateDocument(id, { assets: [...doc.assets, safeAsset] });
+    await updateDocument(id, { assets: [...doc.assets, safeAsset] }, doc);
     return !error.value;
   }
 
-  async function deleteAssetFromDocument(id: string, index: number) {
-    const doc = getDocumentById(id).value;
+  async function deleteAssetFromDocument(id: string, index: number, baseDocument?: TaskDocument) {
+    const doc = getDocumentById(id).value ?? baseDocument;
     if (!doc) return;
 
     const newAssets = [...doc.assets];
@@ -485,7 +485,7 @@ export const useDocumentsStore = defineStore("documents", () => {
         return;
       }
     }
-    await updateDocument(id, { assets: newAssets });
+    await updateDocument(id, { assets: newAssets }, doc);
   }
 
   // ------------------------------
@@ -495,10 +495,10 @@ export const useDocumentsStore = defineStore("documents", () => {
     updateDocument(id, { status });
   }
 
-  function updateAuthor(id: string, author: Author | null) {
+  function updateAuthor(id: string, author: Author | null, baseDocument?: TaskDocument) {
     updateDocument(id, {
       authorId: author ? author.id : null,
-    });
+    }, baseDocument);
   }
 
   function updateVehicle(id: string, vehicle: Partial<TaskVehicle>) {
@@ -566,4 +566,8 @@ function toTimestamp(value: string | undefined) {
   if (!value) return null;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function isActiveTask(document: TaskDocument) {
+  return document.status !== "published" && document.status !== "updated";
 }

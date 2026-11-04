@@ -22,6 +22,8 @@
           :authors="authors"
           :activeAuthorsByTeam="activeAuthorsByTeam"
           :can-edit="canEdit"
+          :search-query="activeLabel === 'MMPs' ? searchQuery : ''"
+          :author-id="activeLabel === 'MMPs' ? selectedAuthorId : null"
         />
       </div>
     </Transition>
