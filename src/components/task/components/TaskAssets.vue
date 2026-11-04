@@ -4,7 +4,7 @@
     class="assets-popper"
     placement="auto"
     offset-distance="8"
-    locked
+    :locked="!showAddForm"
     arrow
     @open:popper="assetsVisible = true"
     @close:popper="assetsVisible = false"
@@ -165,6 +165,7 @@ function isValidUrl(url: string) {
 .assets-popper :deep(.popper) {
   width: min(360px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
+  box-sizing: border-box;
   max-height: min(68vh, 560px);
   overflow-y: auto;
   padding: 14px;

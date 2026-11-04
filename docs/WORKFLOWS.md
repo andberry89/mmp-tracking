@@ -83,6 +83,8 @@ Editors may manually add vehicles to an existing model-year Changeover list at a
 
 When a Publication Tracking task is published or updated, sync the matching model-year Changeover row to **Published**. Page Audit uses the live URL from the shared model-year vehicle record. This status sync is one-way: an Editor may manually change the Changeover status, and that change does not change the Publication Tracking task. A date-stamped publication/update history could be added later if the team wants that context in Page Audit.
 
+When an Author is assigned or changed on a Publication Tracking task, the matching model-year Changeover row should receive the same assigned Author. Whether this assignment also updates Page Audit's author names is still to be decided: Page Audit stores author names as free text and may be recording the published page's authorship, which can differ from the current task assignment.
+
 ### Annual list roll-forward
 
 Today this list is compiled manually early in the year; nothing is generated automatically. During compilation, the team combines three sources:
@@ -112,6 +114,19 @@ The app imports the 2026–2029 audit rows as a starting point. Existing importe
 
 The checklist summary reports pass, review, and needs-work counts separately; it does not reduce them to a single done state. Evidence uploads, repeat-audit history, and audit change history remain future decisions.
 
+## 4. Rankings and Rank-in-segment
+
+The Rank-in-segment workbook organizes vehicles into broad body-style sections and finer segments. The app will use **Rankings** as the top navigation label, provide a year selector, and focus initially on 2027. Backfilling older ranking years may be considered later. Treat EC labels shifted into the wrong award-year columns in the source as mistakes rather than historical awards.
+
+Each model-year vehicle has one shared rating from 1 through 10 in half-point increments. Editors can change it wherever it appears in Catalog, Rankings, or Page Audit; all views must read and update the same canonical value. The current Page Audit C/D Rating checklist value is separate and must be connected to the shared rating rather than kept as a competing copy.
+
+10Best and Editors' Choice awards are shared data across Catalog, Rankings, and Page Audit, with award-year history preserved. The current Page Audit award flags are stored separately and must be connected to the shared award data.
+
+Each Segment has a broad body-style/category assignment, initially Cars, SUVs, Vans, or Pickup Trucks. A model-year vehicle may be assigned to more than one segment, including multiple segments within the same body style, and has an independent rank within each segment. Store segment membership separately from the single model-year vehicle identity so the same catalog vehicle can appear in multiple ranked lists. Drag-and-drop reorders entries within a segment and updates that segment's rank positions; its star rating remains independent of rank. Publication Tracking, Changeover, and Page Audit display all the vehicle's assigned segment names.
+
+Provide vehicle search, body-style filtering, and a comparison view that lets Editors select multiple segments. Viewers can search and compare but cannot change ratings, awards, or rank order.
+
+
 ## Suggested app relationship
 
 ```text
@@ -140,3 +155,4 @@ This is a design proposal, not a description of the existing code or a final sch
 - What resources are commonly attached to a task, and do they need uploaded files, links, or both?
 - How do simultaneous edits work today, and what should happen if two people edit the same item?
 - Which views/actions need to be faster than the spreadsheet, and what response time feels fast enough?
+- Should assigning an Author to a Publication Tracking task update only Changeover, or also Page Audit's author names?

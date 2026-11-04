@@ -1,10 +1,10 @@
 # Roadmap
 
-This is a working roadmap based on the prototype and the team's workbook/process description as of 2026-10-23. It is not a committed delivery schedule. See [WORKFLOWS.md](WORKFLOWS.md) for the process model and questions to resolve.
+This is a working roadmap, not a committed delivery schedule. The ordered, current task list lives in [TODO.md](TODO.md); see [WORKFLOWS.md](WORKFLOWS.md) for the process model.
 
 ## Current checkpoint
 
-Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years; each Make/Model/Year record carries its Segment. Publication Tracking, Changeover, and Page Audit use shared vehicle-year records. Annual Changeover preparation and draft management are implemented. Publication Tracking now supports drag-to-change-status and 25-item Published & Updated pagination. The Editor user-access panel, Account Settings, optional Author links, and server-side invitation function are implemented, migrated, and deployed; the first end-to-end invitation test is pending. The project will use Supabase's default Auth email templates unless a custom SMTP provider becomes available.
+Supabase Auth, task persistence, and Realtime scaffolding are in place. The Catalog supports Editor management of Makes, Models, Segments, Authors, and Model Years. Publication Tracking, Changeover, and Page Audit use shared vehicle-year records. Annual Changeover preparation and draft management are implemented. Publication Tracking supports drag-to-change-status and 25-item Published & Updated pagination. Editor/Viewer access, user management, account settings, and the server-side invitation function are implemented; the invitation flow still needs a release check. The basic security review is complete, and the current responsive/accessibility pass has been accepted. The project will use Supabase's default Auth email templates unless a custom SMTP provider becomes available.
 
 ## 1. Confirm the work
 
@@ -39,7 +39,7 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 - Validate the interface with the people doing the work.
 - Set responsive, accessibility, and browser requirements.
 - [ ] Replace full task-list reloads on Realtime events with appropriately scoped updates or refetches.
-- [ ] Complete a basic security review of Supabase Auth, Row Level Security, Edge Functions, app data exposure, spam/abuse controls, and secret handling.
+- [x] Complete a basic security review of Supabase Auth, Row Level Security, Edge Functions, app data exposure, spam/abuse controls, and secret handling. Remaining production configuration is tracked in [TODO.md](TODO.md).
 - [ ] Develop an automated test suite for critical lifecycle transitions, access control, and data changes.
 - Plan deployment, support, and ownership.
 
@@ -47,6 +47,13 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 
 - Add temporary MMP event tags for grouping work around events such as the New York Auto Show or Pebble Beach; clear a task's tag when it is published.
 - Add Editor profile pictures with upload size/type restrictions and an image-cropping step.
+
+## Next product area
+
+- Build Rankings for 2027 first, with a year selector, body-style filters, search, multi-segment comparison, and drag-and-drop ranking within each segment.
+- Support multiple segment assignments per model year, with independent rankings per segment placement.
+- Share vehicle ratings and award history across Catalog, Rankings, and Page Audit.
+- Keep implementation order and remaining launch requirements in [TODO.md](TODO.md).
 
 ## Performance and collaboration acceptance
 

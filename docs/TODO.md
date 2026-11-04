@@ -1,41 +1,54 @@
 # To Do
 
-This is the current roadmap. Email work and the other listed enhancements are deferred until after launch, when we can reassess whether they are needed.
+This list is ordered by dependency. Email enhancements and other optional features remain deferred until after launch.
 
-## Active before launch
+## Completed or accepted
 
-1. **Finish the visual pass.** Refine the existing screens against the tracking-page baseline and keep the style guide current.
-2. **Address responsiveness and accessibility.** The MMP workboard switches to compact task cards at narrower widths, while the wide Changeover/Page Audit tables remain keyboard-focusable scroll regions. Review all screens at the agreed device sizes, then refine keyboard/screen-reader behavior, contrast, and reduced motion.
-3. **Production readiness.**
-   - Choose frontend hosting and confirm organization-specific security restrictions.
-   - Provision initial Editors and verify Supabase Auth, Realtime, and Row Level Security.
-   - Complete a basic security review covering Supabase protections, app access and data exposure, spam/abuse controls, Edge Functions, and secret handling.
-   - Establish and verify off-site database exports.
-   - Review dependency advisories and resolve production risks.
-   - Confirm expected users and data volume; review load time, search/update latency, and simultaneous editing behavior.
-   - Replace full task-list reloads on Realtime events with appropriately scoped updates or refetches.
-   - Confirm how resource passwords are protected.
-   - Decide where to mark a model Dead after publication; keep it on Changeover and remove it from Page Audit.
-   - Confirm the Changeover-to-Publication Tracking and Page Audit handoffs.
-4. **Import past Page Audits.** Map older checklist formats and seed the 2017–2025 sheets as archive history.
-5. **Load the most current workbook.** Once provided, prepare and reconcile the current Publication Tracking tasks/history, Changeover lists, Page Audits, and Catalog data; review uncertain dates, vehicle matches, and historical author values before applying the import.
-6. **Complete a full codebase audit.** Remove dead or stale code, streamline slow or repetitive processes, add useful comments where they clarify intent, and review formatting and critical workflow coverage.
-7. **Develop an automated test suite.** Cover core publication, Changeover, Page Audit, access-control, and data-persistence behavior.
-8. **Launch.** Complete the release review and deploy after the active items above are ready.
+- Responsive and accessibility pass accepted for the current app. Recheck affected breakpoints after adding Rankings and multi-segment labels.
+- Basic security review completed. The anonymous `SECURITY DEFINER` permissions were removed; the remaining authenticated-function findings are intentional and authorization-checked. Leaked-password protection is unavailable on the current Supabase Free plan.
+- Netlify selected; the first production deploy is working. Final Supabase production URLs and invitation-function CORS still need configuration against the chosen site URL.
+- Editor/Viewer access, user management, account settings, and in-app invitation flow are implemented. End-to-end invitation setup still needs a release check.
+- Resource passwords are stored separately and restricted to Editors by RLS.
+- Browser title and favicon updated to MMP Tracking.
+- MMP Published & Updated pagination, MMP status drag-and-drop, Changeover, Page Audit, and annual Changeover preparation are implemented.
 
-## Additional feature ideas (timing TBD)
+## Remaining before launch — in order
 
-- **Temporary MMP event tags.** Let the team group tasks by events such as the New York Auto Show or Pebble Beach. Clear the tag when a task is published.
-- **Editor profile pictures.** Let Editors upload a profile photo with file-size and file-type limits and a cropping step.
+1. **Complete the full codebase audit.** Review dead/stale code, data flow, formatting, dependency risks, performance hotspots, comments, and critical workflows. Keep the cleanup focused on changes that make the app safer or easier to maintain.
 
-## Back burner: reassess after launch
+2. **Finish the required cross-workflow data and feature work.** Stabilize schema and behavior before importing the final workbook:
+   - Build **Rankings** with a 2027 focus and year selector. Support body-style filters, search, comparing multiple segments, and drag-and-drop rank order within each segment.
+   - Give **Published & Updated** its own view, separate from Active Work. Keep its pagination and add date filters with useful presets (including the past 90 days) and a custom date-range selector.
+   - Support multiple segment assignments per model-year vehicle. Show all assigned segments in Publication Tracking, Changeover, and Page Audit. Keep an independent rank for each vehicle/segment placement.
+   - Store one shared 1–10 rating in half-point steps. Editors can update it wherever it appears in Catalog, Rankings, or Page Audit.
+   - Share 10Best and Editors' Choice award history across Catalog, Rankings, and Page Audit. Treat misaligned EC year labels in the source workbook as errors, not awards. Backfill older ranking years later if desired.
+   - When an MMP task's Author changes, update the matching Changeover assignment. Keep Page Audit author names separate unless the team decides they should represent the current assignment too.
+   - Define the workflow for marking a model Dead after publication: keep it in Changeover and remove it from Page Audit.
 
-- **Publication history enhancements.** Revisit update/version history, links between later updates and existing MMPs, and any further history features beyond the current Published & Updated list and pagination.
-- **Author task view.** Let users click an author to see their assigned tasks.
-- **Page Audit enhancements.** Revisit conditional checklist fields, evidence attachments, repeat-audit records, and change history. Clean up the Edit Page Audit modal: change the “How Many Galleries” guidance from “Dual” to “Single/Dual”; decide whether selected fields should use dropdowns or radio buttons; consider conditional answer colors that match the Page Audit table.
-- **Email-related work.** Reassess assignment notifications, email templates, and other email improvements after launch.
+3. **Prepare the production environment before importing current data.**
+   - Confirm the Netlify production URL, then set Supabase Site URL and allowed redirects and restrict invitation-function CORS to that origin.
+   - Establish and verify off-site database exports before applying data migrations or importing the final workbook.
+   - Confirm the intended 30-day sign-in behavior against the current Supabase plan and implement the supported option.
+   - Verify Auth, RLS, Realtime, Editor/Viewer access, and the in-app invitation flow with a test account.
 
-## Recently completed
+4. **Import and reconcile the current workbook.** When Andrew provides the latest workbook, update Catalog, Publication Tracking tasks and history, current Changeover lists, and current Page Audits. Reconcile uncertain dates, vehicle matches, ratings, award history, and author values before applying the import. The 2027 Rankings data should be imported after its schema is stable.
 
-- [x] Change the Page Audit cell color for **Pricing under lead image? = “Yes, estimated”** from red to yellow.
-- [x] Replace the browser title “Vite App” with “MMP Tracking” and add the matching SVG favicon.
+5. **Import historical Page Audits.** Map older checklist formats and seed 2017–2025 as archive history after the current-year data and shared rating/award structure are settled.
+
+6. **Complete reliability and performance work.** Replace full task-list reloads on each Realtime event with scoped updates or refetches. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Changeover, Page Audit, Rankings, access control, imports, and persistence.
+
+7. **Finish the visual and responsive pass.** Refine all screens against the tracking-page baseline, update the style guide, and check the Rankings nav breakpoint and multi-segment layouts. Review keyboard and screen-reader use, contrast, and reduced-motion behavior.
+
+8. **Launch.** Run the release review, confirm backups and access controls, deploy the release, and verify the production workflows with the team.
+
+## Additional ideas — timing TBD
+
+- Temporary MMP event tags for grouping work around events such as the New York Auto Show or Pebble Beach; clear the tag when a task is published.
+- Editor profile pictures with upload size/type restrictions and cropping.
+
+## Back burner — reassess after launch
+
+- Publication history enhancements, update/version history, and links between later updates and existing MMPs.
+- Click an author to see their assigned tasks.
+- Page Audit conditional fields, evidence attachments, repeat-audit records, and change history. Also clean up the Edit Page Audit modal: change “How Many Galleries” guidance to “Single/Dual,” decide whether selected fields should use dropdowns or radio buttons, and consider conditional answer colors matching the table.
+- Assignment notifications, email templates, and other email improvements.
