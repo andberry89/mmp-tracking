@@ -8,6 +8,7 @@ interface QueryResult<T> {
 
 interface QueryBuilder<T> extends PromiseLike<QueryResult<T>> {
   select(columns: string): QueryBuilder<T>;
+  eq(column: string, value: string): QueryBuilder<T>;
   order(column: string, options?: { ascending?: boolean }): QueryBuilder<T>;
   range(from: number, to: number): QueryBuilder<T>;
 }
@@ -87,70 +88,88 @@ export async function fetchAuthors() {
   }));
 }
 
+const taskColumns = [
+  "id",
+  "model_year_vehicle_id",
+  "author_id",
+  "status",
+  "task_kind",
+  "high_priority",
+  "deadline",
+  "notes",
+  "embargo_at",
+  "embargo_notes",
+  "published_at",
+  "created_at",
+  "updated_at",
+  "model_year_vehicles!inner(id, model_year, segments(name), models!inner(name, makes!inner(name)))",
+  "task_resources(id, kind, label, url, notes)",
+].join(",");
+
 export async function fetchTasks(): Promise<TaskDocument[]> {
+  return (await fetchTaskRows()).map(mapTask);
+}
+
+export async function fetchTaskById(taskId: string): Promise<TaskDocument | null> {
+  const rows = await fetchTaskRows({ column: "id", value: taskId });
+  return rows[0] ? mapTask(rows[0]) : null;
+}
+
+export async function fetchTasksForVehicle(vehicleId: string): Promise<TaskDocument[]> {
+  const rows = await fetchTaskRows({ column: "model_year_vehicle_id", value: vehicleId });
+  return rows.map(mapTask);
+}
+
+async function fetchTaskRows(filter?: { column: "id" | "model_year_vehicle_id"; value: string }) {
   if (!supabase) throw new Error("Supabase is not configured.");
   const client = supabase;
 
-  const columns = [
-    "id",
-    "model_year_vehicle_id",
-    "author_id",
-    "status",
-    "task_kind",
-    "high_priority",
-    "deadline",
-    "notes",
-    "embargo_at",
-    "embargo_notes",
-    "published_at",
-    "created_at",
-    "updated_at",
-    "model_year_vehicles!inner(id, model_year, segments(name), models!inner(name, makes!inner(name)))",
-    "task_resources(id, kind, label, url, notes)",
-  ].join(",");
+  return fetchAllPages((from, to) => {
+    let query = (client as unknown as QueryClient)
+      .from("mmp_tasks")
+      .select(taskColumns);
+    if (filter) query = query.eq(filter.column, filter.value);
+    return query
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to);
+  }) as Promise<DbTask[]>;
+}
 
-  const rows = await fetchAllPages((from, to) => (client as unknown as QueryClient)
-    .from("mmp_tasks")
-    .select(columns)
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true })
-    .range(from, to));
+function mapTask(row: DbTask): TaskDocument {
+  const status = row.status === "pending_edits" ? "rte" : row.status;
+  const assets: TaskAsset[] = row.task_resources.map((resource) => ({
+    id: resource.id,
+    kind: resource.kind,
+    label: resource.label,
+    url: resource.url,
+    notes: resource.notes,
+  }));
 
-  return (rows as DbTask[]).map((row) => {
-    const status = row.status === "pending_edits" ? "rte" : row.status;
-    const assets: TaskAsset[] = row.task_resources.map((resource) => ({
-      id: resource.id,
-      kind: resource.kind,
-      label: resource.label,
-      url: resource.url,
-      notes: resource.notes,
-    }));
-
-    return {
-      id: row.id,
-      modelYearVehicleId: row.model_year_vehicle_id,
-      createdDate: row.created_at,
-      updatedDate: [row.updated_at],
-      highPriority: row.high_priority,
-      vehicle: {
-        make: row.model_year_vehicles.models.makes.name,
-        model: row.model_year_vehicles.models.name,
-        segment: row.model_year_vehicles.segments?.name ?? "",
-        modelYear: row.model_year_vehicles.model_year,
-      },
-      authorId: row.author_id as AuthorId | null,
-      deadline: row.deadline ?? "",
-      status,
-      notes: row.notes,
-      assets,
-      embargoDate: row.embargo_at ?? "",
-      embargoNotes: row.embargo_notes,
-      embargo: Boolean(row.embargo_at),
-      published: row.status === "published" || row.status === "updated",
-      new: row.task_kind === "new_mmp",
-      publishedDate: row.published_at ?? "",
-    };
-  });
+  return {
+    id: row.id,
+    modelYearVehicleId: row.model_year_vehicle_id,
+    createdDate: row.created_at,
+    updatedDate: [row.updated_at],
+    highPriority: row.high_priority,
+    vehicle: {
+      make: row.model_year_vehicles.models.makes.name,
+      model: row.model_year_vehicles.models.name,
+      segment: row.model_year_vehicles.segments?.name ?? "",
+      modelYear: row.model_year_vehicles.model_year,
+    },
+    authorId: row.author_id as AuthorId | null,
+    deadline: row.deadline ?? "",
+    status,
+    notes: row.notes,
+    assets,
+    embargoDate: row.embargo_at ?? "",
+    embargoNotes: row.embargo_notes,
+    embargo: Boolean(row.embargo_at),
+    published: row.status === "published" || row.status === "updated",
+    new: row.task_kind === "new_mmp",
+    publishedDate: row.published_at ?? "",
+  };
 }
 
 async function fetchAllPages<T>(

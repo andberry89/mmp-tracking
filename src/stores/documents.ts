@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 import { applyTaskRules } from "@/utils/apply-task-rules";
 import { sortDocuments } from "@/utils/sort-functions";
 import { testDocuments } from "@/test";
-import { fetchTasks } from "@/lib/supabase-data";
+import { fetchTaskById, fetchTasks, fetchTasksForVehicle } from "@/lib/supabase-data";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 import type { NewTaskInput, TaskDocument, TaskStatus, TaskAsset, TaskResourceInput, Author, TaskVehicle } from "@/types";
@@ -19,6 +19,8 @@ export const useDocumentsStore = defineStore("documents", () => {
   const hasLoaded = ref(false);
   const isSaving = ref(false);
   let realtimeChannel: ReturnType<NonNullable<typeof supabase>["channel"]> | null = null;
+  let realtimeGeneration = 0;
+  let realtimeRefreshQueue: Promise<void> = Promise.resolve();
 
   // ------------------------------
   // GETTERS
@@ -47,6 +49,17 @@ export const useDocumentsStore = defineStore("documents", () => {
 
   function insertDocument(doc: TaskDocument) {
     documents.value.unshift(applyTaskRules(doc));
+  }
+
+  function upsertDocument(doc: TaskDocument) {
+    const index = documents.value.findIndex((current) => current.id === doc.id);
+    const normalized = applyTaskRules(doc);
+    if (index === -1) documents.value.unshift(normalized);
+    else documents.value.splice(index, 1, normalized);
+  }
+
+  function removeDocument(id: string) {
+    documents.value = documents.value.filter((doc) => doc.id !== id);
   }
 
   async function createDocument(input: NewTaskInput): Promise<boolean> {
@@ -227,25 +240,66 @@ export const useDocumentsStore = defineStore("documents", () => {
   function subscribeToChanges() {
     if (!supabase || !isSupabaseConfigured) return;
     if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
+    const generation = ++realtimeGeneration;
 
     realtimeChannel = supabase
       .channel("mmp-tracking-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "mmp_tasks" }, () => {
-        void loadDocuments();
+      .on("postgres_changes", { event: "*", schema: "public", table: "mmp_tasks" }, (payload) => {
+        const taskId = payload.eventType === "DELETE" ? payload.old.id : payload.new.id;
+        if (typeof taskId !== "string") return;
+        queueRealtimeRefresh(async () => {
+          if (payload.eventType === "DELETE") {
+            removeDocument(taskId);
+            return;
+          }
+          const latest = await fetchTaskById(taskId);
+          if (generation !== realtimeGeneration) return;
+          if (latest) upsertDocument(latest);
+          else removeDocument(taskId);
+        }, generation);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "task_resources" }, () => {
-        void loadDocuments();
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_resources" }, (payload) => {
+        const taskId = payload.eventType === "DELETE" ? payload.old.task_id : payload.new.task_id;
+        if (typeof taskId !== "string") return;
+        queueRealtimeRefresh(async () => {
+          const latest = await fetchTaskById(taskId);
+          if (generation !== realtimeGeneration) return;
+          if (latest) upsertDocument(latest);
+          else removeDocument(taskId);
+        }, generation);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicles" }, () => {
-        void loadDocuments();
+      .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicles" }, (payload) => {
+        const vehicleId = payload.eventType === "DELETE" ? payload.old.id : payload.new.id;
+        if (typeof vehicleId !== "string") return;
+        queueRealtimeRefresh(async () => {
+          const latest = await fetchTasksForVehicle(vehicleId);
+          if (generation !== realtimeGeneration) return;
+          const latestIds = new Set(latest.map((doc) => doc.id));
+          documents.value = documents.value.filter((doc) =>
+            doc.modelYearVehicleId !== vehicleId || latestIds.has(doc.id)
+          );
+          latest.forEach(upsertDocument);
+        }, generation);
       })
       .subscribe();
   }
 
   function stopRealtime() {
+    realtimeGeneration += 1;
     if (!supabase || !realtimeChannel) return;
     void supabase.removeChannel(realtimeChannel);
     realtimeChannel = null;
+  }
+
+  function queueRealtimeRefresh(refresh: () => Promise<void>, generation: number) {
+    realtimeRefreshQueue = realtimeRefreshQueue
+      .then(async () => {
+        if (generation === realtimeGeneration) await refresh();
+      })
+      .catch((reason: unknown) => {
+        if (generation !== realtimeGeneration) return;
+        error.value = reason instanceof Error ? reason.message : "Unable to refresh the changed task.";
+      });
   }
 
   // ------------------------------
