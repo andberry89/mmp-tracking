@@ -26,7 +26,7 @@ This list is ordered by dependency. Email enhancements and other optional featur
    - Define the workflow for marking a model Dead after publication: keep it in Changeover and remove it from Page Audit.
 
 3. **Prepare the production environment before importing current data.**
-   - Confirm the Netlify production URL, then set Supabase Site URL and allowed redirects and restrict invitation-function CORS to that origin.
+   - Confirm the Netlify production URL and set Supabase Site URL and allowed redirects. The invitation-function origin allowlist is configured and deployed.
    - Establish and verify off-site database exports before applying data migrations or importing the final workbook.
    - Confirm the intended 30-day sign-in behavior against the current Supabase plan and implement the supported option.
    - Verify Auth, RLS, Realtime, Editor/Viewer access, and the in-app invitation flow with a test account.
@@ -35,7 +35,7 @@ This list is ordered by dependency. Email enhancements and other optional featur
 
 5. **Import historical Page Audits.** Map older checklist formats and seed 2017–2025 as archive history after the current-year data and shared rating/award structure are settled.
 
-6. **Complete reliability and performance work.** Replace full task-list reloads on each Realtime event with scoped updates or refetches. Make multi-record writes atomic or safely recoverable, especially task duplication with resources and Changeover row/public-URL edits. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Changeover, Page Audit, Rankings, access control, imports, and persistence.
+6. **Complete reliability and performance work.** Replace full task-list reloads on each Realtime event with scoped updates or refetches. Verify the applied migration for atomic task duplication and Changeover row/public-URL edits. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Changeover, Page Audit, Rankings, access control, imports, and persistence.
 
 7. **Finish the visual and responsive pass.** Refine all screens against the tracking-page baseline, update the style guide, and check the Rankings nav breakpoint and multi-segment layouts. Review keyboard and screen-reader use, contrast, and reduced-motion behavior.
 

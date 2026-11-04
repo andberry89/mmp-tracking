@@ -193,21 +193,20 @@ export const useChangeoverStore = defineStore("changeover", () => {
     isSaving.value = true;
     try {
       if (supabase && isSupabaseConfigured) {
-        const { error: insertError } = await supabase.from("changeover_entries").insert({
-          model_year_vehicle_id: vehicle.id,
-          status: input.status,
-          assigned_author_id: input.assignedAuthorId,
-          notes: input.notes.trim(),
-          resource_url: input.status === "published" ? null : input.resourceUrl.trim() || null,
+        const { error: saveError } = await supabase.rpc("save_changeover_entry", {
+          p_entry_id: null,
+          p_model_year_vehicle_id: vehicle.id,
+          p_status: input.status,
+          p_assigned_author_id: input.assignedAuthorId,
+          p_notes: input.notes.trim(),
+          p_resource_url: input.resourceUrl.trim(),
+          p_public_url: input.publicUrl.trim(),
+          p_source_provenance: [],
         });
-        if (insertError?.code === "23505") {
+        if (saveError?.code === "23505") {
           throw new Error(`${vehicle.make} ${vehicle.model} is already on this Changeover list.`);
         }
-        if (insertError) throw insertError;
-        const { error: urlError } = await supabase.from("model_year_vehicles")
-          .update({ public_url: input.status === "published" ? input.publicUrl.trim() || null : null })
-          .eq("id", vehicle.id);
-        if (urlError) throw urlError;
+        if (saveError) throw saveError;
         await load(selectedYear.value ?? undefined);
         return;
       }
@@ -259,23 +258,17 @@ export const useChangeoverStore = defineStore("changeover", () => {
         })
         : entry.sourceProvenance;
       if (supabase && isSupabaseConfigured) {
-        const { error: entryError } = await supabase
-          .from("changeover_entries")
-          .update({
-            status: input.status,
-            assigned_author_id: input.assignedAuthorId,
-            notes: input.notes.trim(),
-            resource_url: input.status === "published" ? null : input.resourceUrl.trim() || null,
-            source_provenance: sourceProvenance,
-          })
-          .eq("id", entry.id);
-        if (entryError) throw entryError;
-
-        const { error: urlError } = await supabase
-          .from("model_year_vehicles")
-          .update({ public_url: input.status === "published" ? input.publicUrl.trim() || null : null })
-          .eq("id", entry.modelYearVehicleId);
-        if (urlError) throw urlError;
+        const { error: saveError } = await supabase.rpc("save_changeover_entry", {
+          p_entry_id: entry.id,
+          p_model_year_vehicle_id: entry.modelYearVehicleId,
+          p_status: input.status,
+          p_assigned_author_id: input.assignedAuthorId,
+          p_notes: input.notes.trim(),
+          p_resource_url: input.resourceUrl.trim(),
+          p_public_url: input.publicUrl.trim(),
+          p_source_provenance: sourceProvenance,
+        });
+        if (saveError) throw saveError;
         await load(selectedYear.value ?? undefined);
         return;
       }

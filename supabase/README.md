@@ -63,6 +63,11 @@ Run `migrations/202610300009_user_identity.sql` after migration 008 to add
 optional Author links and editable display names to app users. The Manage Users
 panel suggests a display name for addresses matching `first.last@hearst.com`.
 
+Run `migrations/202611040001_atomic_workflow_writes.sql` before deploying the
+matching app update. It adds Editor-checked database functions that save the
+Changeover row and shared URL in one transaction and duplicate a task together
+with its material resources.
+
 The invitation Edge Function uses the Supabase project's injected
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` environment
 variables. The repository's `config.toml` keeps JWT verification enabled; the
@@ -70,6 +75,11 @@ function also checks the caller's active Editor role in the database. To deploy
 from a machine with the Supabase CLI installed and linked, run
 `supabase functions deploy send-user-invitation`. Supabase sends the configured
 Auth invitation email and returns the recipient to the project's Site URL.
+The function allows local development origins by default. Set the exact
+production origin (and any exact preview origins the team uses) in the
+comma-separated `APP_ALLOWED_ORIGINS` Edge Function secret before deploying the
+updated function; do not use a wildcard. For example:
+`supabase secrets set APP_ALLOWED_ORIGINS=https://your-site.netlify.app`.
 
 ## Auth email templates
 

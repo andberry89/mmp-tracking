@@ -339,50 +339,20 @@ export const useDocumentsStore = defineStore("documents", () => {
     };
 
     if (isSupabaseConfigured && supabase) {
-      if (!original.modelYearVehicleId) {
-        error.value = "This task is missing its shared model-year vehicle record.";
+      const { data: newTaskId, error: duplicateError } = await supabase.rpc("duplicate_mmp_task", {
+        p_task_id: id,
+      });
+      if (duplicateError || !newTaskId) {
+        error.value = duplicateError?.message ?? "Could not duplicate this task.";
         return null;
       }
 
-      const { data, error: insertError } = await supabase
-        .from("mmp_tasks")
-        .insert({
-          model_year_vehicle_id: original.modelYearVehicleId,
-          author_id: original.authorId,
-          status: "pending",
-          task_kind: "new_mmp",
-          high_priority: original.highPriority,
-          deadline: original.deadline || null,
-          notes: original.notes,
-          embargo_at: toTimestamp(original.embargoDate),
-          embargo_notes: original.embargoNotes,
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !data) {
-        error.value = insertError?.message ?? "Could not duplicate this task.";
-        return null;
-      }
-
-      newDoc.id = data.id;
-      newDoc.assets = [];
-      const materials = original.assets.filter((asset) => asset.kind !== "imeet");
-      if (materials.length) {
-        const { error: resourceError } = await supabase.from("task_resources").insert(
-          materials.map((asset) => ({
-            task_id: newDoc.id,
-            kind: "material" as const,
-            label: asset.label || asset.notes,
-            url: asset.url,
-            notes: asset.notes,
-          }))
-        );
-        if (resourceError) error.value = resourceError.message;
-      }
-
-      void loadDocuments();
-      return newDoc;
+      newDoc.id = newTaskId as string;
+      newDoc.assets = original.assets
+        .filter((asset) => asset.kind === "material")
+        .map(({ kind, label, url, notes }) => ({ kind, label, url, notes }));
+      await loadDocuments();
+      return documents.value.find((document) => document.id === newDoc.id) ?? newDoc;
     }
 
     insertDocument(newDoc);
