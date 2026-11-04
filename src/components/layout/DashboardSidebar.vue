@@ -184,7 +184,7 @@ function authorsForSidebar(team: (typeof teams)[number]) {
 }
 
 // Available to template
-const { authors, ranges } = props;
+const { ranges } = props;
 </script>
 
 <style lang="scss" scoped>

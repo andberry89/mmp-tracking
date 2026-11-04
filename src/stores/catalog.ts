@@ -101,20 +101,21 @@ export const useCatalogStore = defineStore("catalog", () => {
       isLoading.value = false;
       return;
     }
+    const client = supabase;
 
     try {
       const [makeResult, segmentResult, yearResult, modelRows, vehicleYearRows] = await Promise.all([
-        supabase.from("makes").select("id, name, active").order("name"),
-        supabase.from("segments").select("id, name, active").order("name"),
-        supabase.from("model_years").select("year, state, is_default").order("year", { ascending: false }),
-        fetchAllPages((from, to) => supabase
+        client.from("makes").select("id, name, active").order("name"),
+        client.from("segments").select("id, name, active").order("name"),
+        client.from("model_years").select("year, state, is_default").order("year", { ascending: false }),
+        fetchAllPages((from, to) => client
           .from("models")
           .select("id, make_id, name, active, makes!inner(name)")
           .order("name")
           .order("make_id")
           .order("id")
           .range(from, to)),
-        fetchAllPages((from, to) => supabase
+        fetchAllPages((from, to) => client
           .from("model_year_vehicles")
           .select("id, model_id, model_year, segment_id, public_url, models!inner(name, make_id, active, makes!inner(name, active)), segments(name)")
           .order("model_year", { ascending: false })
@@ -266,7 +267,7 @@ export const useCatalogStore = defineStore("catalog", () => {
     if (!Number.isInteger(year) || year < 1900 || year > 2200) throw new Error("Enter a model year from 1900 to 2200.");
     if (modelYears.value.includes(year)) throw new Error("That model year is already in the catalog.");
     if (!supabase || !isSupabaseConfigured) {
-      modelYearRecords.value = [...modelYearRecords.value, { year, state: "draft", isDefault: false }].sort((a, b) => b.year - a.year);
+      modelYearRecords.value = [...modelYearRecords.value, { year, state: "draft" as const, isDefault: false }].sort((a, b) => b.year - a.year);
       modelYears.value = modelYearRecords.value.map((row) => row.year);
       return;
     }

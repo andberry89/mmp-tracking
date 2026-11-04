@@ -81,7 +81,8 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
       }
       selectedYear.value = year ?? catalog.modelYearRecords.find((item) => item.isDefault)?.year ?? catalog.modelYears[0] ?? null;
       if (selectedYear.value === null) { entries.value = []; return; }
-      const rows = await fetchAllPages((from, to) => supabase
+      const client = supabase;
+      const rows = await fetchAllPages((from, to) => client
         .from("page_audit_entries")
         .select("id, model_year_vehicle_id, page_status, checklist, awards, author_names, auditor_initials, audited_at, double_check_info, audit_notes, model_year_vehicles!inner(model_year, public_url, models!inner(name, makes!inner(name)), segments(name))")
         .eq("model_year_vehicles.model_year", selectedYear.value)

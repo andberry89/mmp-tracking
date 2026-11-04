@@ -67,7 +67,7 @@ import { TEAM_COLOR_MAP } from "@/constants/task-style-maps";
 import type { Author, AuthorsByTeamGroup, AssignState } from "@/types";
 
 const FEEDBACK_DELAY_MS = 1000;
-const props = defineProps<{ author: Author | null; authorsByTeam: AuthorsByTeamGroup[] }>();
+defineProps<{ author: Author | null; authorsByTeam: AuthorsByTeamGroup[] }>();
 const emit = defineEmits<{ (e: "assign", author: Author | null): void }>();
 
 const selectedAuthorId = ref<string | null>(null);

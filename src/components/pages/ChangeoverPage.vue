@@ -263,7 +263,11 @@ const filteredEntries = computed(() => {
 });
 const remainingDays = computed(() => {
   if (!deadlineDraft.value) return null;
-  const [year, month, day] = deadlineDraft.value.split("-").map(Number);
+  const parts = deadlineDraft.value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!parts) return null;
+  const year = Number(parts[1]);
+  const month = Number(parts[2]);
+  const day = Number(parts[3]);
   const today = new Date();
   const deadlineUtc = Date.UTC(year, month - 1, day);
   const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());

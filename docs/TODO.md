@@ -14,7 +14,7 @@ This list is ordered by dependency. Email enhancements and other optional featur
 
 ## Remaining before launch — in order
 
-1. **Complete the full codebase audit.** Review dead/stale code, data flow, formatting, dependency risks, performance hotspots, comments, and critical workflows. Keep the cleanup focused on changes that make the app safer or easier to maintain.
+1. [x] **Complete the full codebase audit.** The audit and first cleanup pass are recorded in [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md). Follow-up data-integrity and scale fixes remain in the relevant workflow/reliability items below.
 
 2. **Finish the required cross-workflow data and feature work.** Stabilize schema and behavior before importing the final workbook:
    - Build **Rankings** with a 2027 focus and year selector. Support body-style filters, search, comparing multiple segments, and drag-and-drop rank order within each segment.
@@ -35,7 +35,7 @@ This list is ordered by dependency. Email enhancements and other optional featur
 
 5. **Import historical Page Audits.** Map older checklist formats and seed 2017–2025 as archive history after the current-year data and shared rating/award structure are settled.
 
-6. **Complete reliability and performance work.** Replace full task-list reloads on each Realtime event with scoped updates or refetches. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Changeover, Page Audit, Rankings, access control, imports, and persistence.
+6. **Complete reliability and performance work.** Replace full task-list reloads on each Realtime event with scoped updates or refetches. Make multi-record writes atomic or safely recoverable, especially task duplication with resources and Changeover row/public-URL edits. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Changeover, Page Audit, Rankings, access control, imports, and persistence.
 
 7. **Finish the visual and responsive pass.** Refine all screens against the tracking-page baseline, update the style guide, and check the Rankings nav breakpoint and multi-segment layouts. Review keyboard and screen-reader use, contrast, and reduced-motion behavior.
 

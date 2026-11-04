@@ -162,7 +162,8 @@ export const useChangeoverStore = defineStore("changeover", () => {
         return;
       }
 
-      const rows = await fetchAllPages((from, to) => supabase
+      const client = supabase;
+      const rows = await fetchAllPages((from, to) => client
         .from("changeover_entries")
         .select("id, model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, resource_url, authors(label), model_year_vehicles!inner(id, model_id, model_year, public_url, models!inner(id, name, make_id, makes!inner(name)), segments(name))")
         .eq("model_year_vehicles.model_year", selectedYear.value)

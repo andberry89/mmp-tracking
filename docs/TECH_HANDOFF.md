@@ -13,7 +13,7 @@
 
 ## Current behavior and limitations
 
-- The dashboard has top-level MMPs, Changeover, and Catalog navigation; Catalog contains Makes, Models, Segments, and Authors views.
+- The dashboard has top-level MMPs, Changeover, Page Audit, and Catalog navigation; Catalog contains Makes, Models, Segments, and Authors views. Rankings is planned; see `TODO.md` for its scope and order.
 - Publication Tracking groups Active Work into Pending, Pending Edits, Ready to Publish, and Scheduled. Editors can drag a task between groups to change its status; dropping into Published & Updated maps `new_mmp` to Published and `update` to Updated. Tasks remain automatically ordered by the author/deadline rules inside each group. The Edit Task status selector remains available as a keyboard-friendly alternative. Published & Updated is a single newest-first list with 25 visible items per page. This pagination is currently client-side because the task store loads the full collection; server-side pagination/search remains a future scaling step.
 - The MMP view has task cards with edit, duplicate, delete, author assignment, and asset management interactions.
 - Editors can manage Makes, Models, Segments, Authors, and Model Years in the Catalog. Models reference a Make; each Model Year vehicle record carries its own Segment. Task creation uses active catalog entries and fills Segment from the selected Make/Model/Year. Catalog table changes are broadcast through Supabase Realtime.
@@ -58,7 +58,7 @@ The team currently uses a shared Excel workbook for three primary processes. The
 - **Reference lists:** Make, Model, Segment, and Author should become editable controlled data. Each author belongs to Buyer's Guide (BG), Car and Driver (C/D), or Freelancers (FL). Selecting a make/model should fill the model's segment automatically.
 - **Collaboration:** several people need shared, near-real-time updates. Speed versus the current spreadsheet is a release requirement, not a later polish item.
 - **Initial access roles:** use only Editor and Viewer. Editors can change tasks, add/edit Makes, Models, Model Years, Segments, and Authors, and see resource passwords; Viewers are read-only and cannot see resource passwords. Team members may update freelancer work when the freelancer does not have app access.
-- **Later capabilities:** user authentication and drag-and-drop are desired. Define account provisioning and drag/drop effects before implementation.
+- **Implemented capabilities:** Editor/Viewer authentication and role-based access are in place. Publication Tracking supports drag-and-drop status changes; the access model and workflow details are described above.
 - **Access implication:** freelancers without app access are not given accounts initially; an Editor handles task/status updates for them. Account access for freelancers can be reconsidered later.
 
 ### Data-shape recommendation (to validate)
@@ -67,9 +67,9 @@ Keep Publication Tracking as its own fast, living view. Changeover and Page Audi
 
 ### Backend decision
 
-Supabase is selected for the backend, with the Free plan preferred for development and a small pilot. Microsoft hosting is not required. The schema draft uses Postgres, Supabase Auth, Row Level Security for Editor/Viewer roles, and Realtime for shared updates. The Free plan can pause after a week of low activity and does not include automatic database backups; plan and verify off-site exports before relying on it as the only production store. The migration and client scaffold are local only and have not been applied to a hosted project. The app supports email/password sign-in, reads task and author data, subscribes to task/resource/model-year changes, and persists edits to existing tasks and resources when configured. Without Supabase environment settings it stays in demo mode; with settings, it requires an authenticated profile and does not silently replace remote errors or empty data with samples. The current Editor/Viewer gate covers Publication Tracking task controls. See `supabase/README.md`.
+Supabase is the shared backend, and Netlify is selected for hosting. The Postgres migrations have been applied to the hosted project. The schema uses Supabase Auth, Row Level Security for Editor/Viewer roles, and Realtime for shared updates. The Free plan does not include automatic database backups; verify off-site exports before relying on it as the only production store. The app supports email/password sign-in, reads shared task and catalog data, and persists Editor changes when configured. Without Supabase environment settings it stays in demo mode; with settings, it requires an authorized profile and does not silently replace remote errors or empty data with samples. See `supabase/README.md` and `TODO.md` for remaining production configuration.
 
-The initial product focus was Publication Tracking. Changeover, Page Audit, and annual Changeover preparation/reconciliation are implemented as separate workflows over shared vehicle/year records. Remaining near-term work includes applying the annual preparation migration in Supabase, reviewing Page Audit conditional completion rules, and improving server-side filtering and pagination for Publication Tracking.
+Publication Tracking, Changeover, Page Audit, and annual Changeover preparation/reconciliation are implemented as separate workflows over shared vehicle-year records. Rankings and the reliability/performance work remain pending; the ordered list is in `TODO.md`.
 
 ## Working preferences to confirm
 
@@ -103,7 +103,7 @@ These are proposals until the project owner confirms them:
 - `npm run dev` — start the local Vite development server.
 - `npm run build` — create the production bundle.
 - `npm run type-check` — run Vue and TypeScript checking.
-- `npm run lint` — run ESLint with its current `--fix` option; be aware this can modify files.
+- `npm run lint` — run ESLint without automatically rewriting files. `npm run lint -- --quiet` reports only errors; the full command currently reports formatting warnings.
 
 ## Git access note
 

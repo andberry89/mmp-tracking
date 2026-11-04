@@ -136,7 +136,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import BaseModal from "@/components/common/BaseModal.vue";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
-import { useCatalogStore, type ModelYearVehicleOption } from "@/stores/catalog";
+import { useCatalogStore } from "@/stores/catalog";
 import { usePageAuditStore, type AuditChecklist, type PageAuditEntry, type PageAuditInput } from "@/stores/pageAudit";
 
 withDefaults(defineProps<{ canEdit?: boolean }>(), { canEdit: false });
@@ -174,7 +174,7 @@ const checks2026: CheckField[] = [
 ];
 
 const checks2027: CheckField[] = [
-  checks2026[0], checks2026[1], checks2026[2], checks2026[3], checks2026[4],
+  ...checks2026.slice(0, 5),
   { key: "hlv", label: "H/L/V", guidance: "Yes/No", criterion: "yes" },
   { key: "specs_glance", label: "Specs at a Glance?", guidance: "Yes/No", criterion: "yes" },
   { key: "video", label: "Video", guidance: "Yes/No", criterion: "yes" },
@@ -199,7 +199,7 @@ const catalog = useCatalogStore();
 const auditStore = usePageAuditStore();
 const query = ref("");
 const statusFilter = ref("all");
-const selectedYear = ref(catalog.modelYearRecords.find((year) => year.isDefault)?.year ?? catalog.modelYears[0] ?? 2027);
+const selectedYear = ref<number>(catalog.modelYearRecords.find((year) => year.isDefault)?.year ?? catalog.modelYears[0] ?? 2027);
 const modalOpen = ref(false);
 const modalMode = ref<"add" | "edit">("add");
 const editingEntry = ref<PageAuditEntry | null>(null);
@@ -242,7 +242,7 @@ onMounted(() => {
 onBeforeUnmount(() => auditStore.stopRealtime());
 watch(selectedYear, (year) => { query.value = ""; statusFilter.value = "all"; void auditStore.load(year); });
 watch(() => catalog.modelYears, (years) => {
-  if (!years.includes(selectedYear.value) && years.length) selectedYear.value = years.includes(2027) ? 2027 : years[0];
+  if (!years.includes(selectedYear.value) && years.length) selectedYear.value = years.includes(2027) ? 2027 : (years[0] ?? 2027);
 });
 
 function checksForYear(year: number): CheckField[] { return year === 2026 ? checks2026 : checks2027; }

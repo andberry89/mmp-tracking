@@ -9,6 +9,7 @@ interface QueryResult<T> {
 interface QueryBuilder<T> extends PromiseLike<QueryResult<T>> {
   select(columns: string): QueryBuilder<T>;
   order(column: string, options?: { ascending?: boolean }): QueryBuilder<T>;
+  range(from: number, to: number): QueryBuilder<T>;
 }
 
 interface QueryClient {
@@ -88,6 +89,7 @@ export async function fetchAuthors() {
 
 export async function fetchTasks(): Promise<TaskDocument[]> {
   if (!supabase) throw new Error("Supabase is not configured.");
+  const client = supabase;
 
   const columns = [
     "id",
@@ -107,14 +109,14 @@ export async function fetchTasks(): Promise<TaskDocument[]> {
     "task_resources(id, kind, label, url, notes)",
   ].join(",");
 
-  const result = (await (supabase as unknown as QueryClient)
+  const rows = await fetchAllPages((from, to) => (client as unknown as QueryClient)
     .from("mmp_tasks")
     .select(columns)
-    .order("created_at", { ascending: false })) as QueryResult<unknown[]>;
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
+    .range(from, to));
 
-  if (result.error) throw new Error(result.error.message);
-
-  return ((result.data ?? []) as DbTask[]).map((row) => {
+  return (rows as DbTask[]).map((row) => {
     const status = row.status === "pending_edits" ? "rte" : row.status;
     const assets: TaskAsset[] = row.task_resources.map((resource) => ({
       id: resource.id,
@@ -149,4 +151,19 @@ export async function fetchTasks(): Promise<TaskDocument[]> {
       publishedDate: row.published_at ?? "",
     };
   });
+}
+
+async function fetchAllPages<T>(
+  fetchPage: (from: number, to: number) => PromiseLike<QueryResult<T[]>>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const result = await fetchPage(from, from + pageSize - 1);
+    if (result.error) throw new Error(result.error.message);
+    const page = result.data ?? [];
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
 }
