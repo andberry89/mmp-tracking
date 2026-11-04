@@ -45,7 +45,6 @@
 
     <main id="content">
       <MainContent
-        :ranges="ranges"
         :authors="sortedAuthors"
         :activeLabel="activeLabel"
         :can-edit="canEdit"

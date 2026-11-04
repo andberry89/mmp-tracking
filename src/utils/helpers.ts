@@ -5,6 +5,7 @@ import {
   endOfMonth,
   subWeeks,
   subMonths,
+  subDays,
 } from "date-fns";
 
 export const compareDates = (a: string | Date, b: string | Date) =>
@@ -60,6 +61,9 @@ export const getRangeDates = (rangeId: string | null) => {
       const firstOfThisMonth = startOfMonth(now);
       const endOfThisMonth = endOfMonth(now);
       return { start: firstOfThisMonth, end: endOfThisMonth };
+    }
+    case "past_90_days": {
+      return { start: subDays(now, 89), end: now };
     }
     default:
       return null;

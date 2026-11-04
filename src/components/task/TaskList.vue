@@ -3,7 +3,47 @@
     <p v-if="documentsStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
       Could not load or save shared data: {{ documentsStore.error }}
     </p>
-    <div class="task-workboard-scroll" role="region" tabindex="0" aria-label="Task workboard">
+    <div v-if="documentsStore.hasLoaded" class="task-view-tabs" role="tablist" aria-label="Publication Tracking views">
+      <button
+        id="active-work-tab"
+        type="button"
+        role="tab"
+        :aria-selected="taskView === 'active'"
+        aria-controls="active-work-panel"
+        :class="['task-view-tab', taskView === 'active' && 'task-view-tab--active']"
+        @click="taskView = 'active'"
+      >
+        Active Work
+      </button>
+      <button
+        id="published-history-tab"
+        type="button"
+        role="tab"
+        :aria-selected="taskView === 'history'"
+        aria-controls="published-history-panel"
+        :class="['task-view-tab', taskView === 'history' && 'task-view-tab--active', dragOverTarget === 'published-history' && 'task-view-tab--drop-target']"
+        @click="taskView = 'history'"
+        @dragover.prevent="allowDrop($event, 'published-history')"
+        @drop="dropOnTarget($event, 'published-history')"
+      >
+        Published &amp; Updated <span class="task-count">{{ sortedByStatus.published.length }}</span>
+      </button>
+    </div>
+
+    <div v-if="!documentsStore.hasLoaded" class="task-loading-state" role="status" aria-live="polite">
+      <span class="task-loading-spinner" aria-hidden="true"></span>
+      <span>Loading MMP workbook…</span>
+    </div>
+
+    <section
+      v-else-if="taskView === 'active'"
+      id="active-work-panel"
+      role="tabpanel"
+      aria-labelledby="active-work-tab"
+      class="task-workboard-scroll"
+      tabindex="0"
+      aria-label="Active Work"
+    >
       <div class="task-workboard">
         <section class="task-column-header mt-5 grid" aria-label="Task columns">
           <div class="content-column-header" v-for="header in headers" :key="header" :aria-hidden="!header || undefined">
@@ -12,13 +52,8 @@
           <div class="content-column-header" aria-hidden="true"></div>
         </section>
 
-        <div v-if="!documentsStore.hasLoaded" class="task-loading-state" role="status" aria-live="polite">
-          <span class="task-loading-spinner" aria-hidden="true"></span>
-          <span>Loading MMP workbook…</span>
-        </div>
-
         <button
-          v-if="canEdit && documentsStore.hasLoaded"
+          v-if="canEdit"
           type="button"
           @click="openNewTask"
           class="add-task-row flex w-full items-center gap-[10px] px-[10px] py-[10px] text-left text-[var(--color-add-new-item-text)] font-bold text-[14px] leading-[1.2] font-[Asap,sans-serif] border border-dashed border-[var(--color-add-new-item-border)] bg-transparent cursor-pointer mb-[5px] transition-colors duration-200 ease-in-out"
@@ -27,7 +62,7 @@
           <span>Add New Task</span>
         </button>
 
-        <section v-if="documentsStore.hasLoaded" class="task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
+        <section class="task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]">
           <section
             v-for="group in activeStatusGroups"
             :key="group.status"
@@ -58,47 +93,74 @@
             />
             <p v-if="draggedTaskId && !sortedByStatus[group.status].length" class="empty-drop-hint">Drop here to move to {{ group.label }}</p>
           </section>
-
-          <section
-            class="task-status-group task-history-group"
-            :class="{ 'task-status-group--drag-over': dragOverTarget === 'published-history' }"
-            @dragover.prevent="allowDrop($event, 'published-history')"
-            @drop="dropOnTarget($event, 'published-history')"
-          >
-            <h3 class="task-group-heading mt-[24px] mb-[8px] font-bold text-[16px] leading-[1.2] font-[Asap,sans-serif] text-[var(--color-body-header-text)]">
-              Published &amp; Updated <span class="task-count">{{ sortedByStatus.published.length }}</span>
-            </h3>
-            <div v-if="sortedByStatus.published.length > pageSize" class="history-pagination" aria-label="Published and updated task pages">
-              <span>Showing {{ pageRangeStart }}–{{ pageRangeEnd }} of {{ sortedByStatus.published.length }}</span>
-              <div class="history-pagination__controls">
-                <button type="button" :disabled="currentPublishedPage === 1" @click="currentPublishedPage--">Previous</button>
-                <span>Page {{ currentPublishedPage }} of {{ publishedPageCount }}</span>
-                <button type="button" :disabled="currentPublishedPage === publishedPageCount" @click="currentPublishedPage++">Next</button>
-              </div>
-            </div>
-            <p v-if="dragOverTarget === 'published-history'" class="drop-hint">Drop to publish as {{ draggedTask?.new ? 'Published' : 'Updated' }}</p>
-            <p v-if="draggedTaskId && !sortedByStatus.published.length" class="empty-drop-hint">Drop here to add to Published &amp; Updated</p>
-            <p v-if="!sortedByStatus.published.length && !draggedTaskId" class="history-empty">No published or updated tasks yet.</p>
-            <TaskItem
-              v-for="doc in pagedPublishedTasks"
-              :key="doc.id"
-              :doc="doc"
-              class="grid"
-              :can-edit="canEdit"
-              :activeAuthorsByTeam="computedActiveAuthorsByTeam"
-              @drag-start="handleDragStart($event, doc)"
-              @dragend="clearDrag"
-              @assign-author="handleAssignAuthor"
-              @edit="handleEdit"
-              @duplicate="handleDuplicate"
-              @delete="handleDelete"
-              @add-asset="handleAddAsset"
-              @delete-asset="handleDeleteAsset"
-            />
-          </section>
         </section>
       </div>
-    </div>
+    </section>
+
+    <section
+      v-else
+      id="published-history-panel"
+      role="tabpanel"
+      aria-labelledby="published-history-tab"
+      class="published-history-view"
+    >
+      <div class="history-toolbar">
+        <label class="history-range-select">
+          <span>Date range</span>
+          <select v-model="selectedHistoryRange">
+            <option value="all">All dates</option>
+            <option v-for="range in publishedDateRanges" :key="range.id" :value="range.id">{{ range.label }}</option>
+            <option value="custom">Custom range</option>
+          </select>
+        </label>
+        <div v-if="selectedHistoryRange === 'custom'" class="history-custom-range">
+          <label>From <input v-model="customDateStart" type="date" /></label>
+          <label>To <input v-model="customDateEnd" type="date" /></label>
+        </div>
+        <span class="history-results-count">{{ filteredPublishedTasks.length }} tasks</span>
+      </div>
+
+      <div v-if="canEdit" class="history-return-dropzones" aria-label="Move a task back to Active Work">
+        <span>Move back to Active Work:</span>
+        <button
+          v-for="group in activeStatusGroups"
+          :key="group.status"
+          type="button"
+          :class="{ 'history-return-dropzone--active': dragOverTarget === group.status }"
+          @dragover.prevent="allowDrop($event, group.status)"
+          @drop="dropOnTarget($event, group.status)"
+        >Drop to {{ group.label }}</button>
+      </div>
+
+      <div v-if="filteredPublishedTasks.length > pageSize" class="history-pagination" aria-label="Published and updated task pages">
+        <span>Showing {{ pageRangeStart }}–{{ pageRangeEnd }} of {{ filteredPublishedTasks.length }}</span>
+        <div class="history-pagination__controls">
+          <button type="button" :disabled="currentPublishedPage === 1" @click="currentPublishedPage--">Previous</button>
+          <span>Page {{ currentPublishedPage }} of {{ publishedPageCount }}</span>
+          <button type="button" :disabled="currentPublishedPage === publishedPageCount" @click="currentPublishedPage++">Next</button>
+        </div>
+      </div>
+      <p v-if="draggedTaskId && dragOverTarget === 'published-history'" class="drop-hint">Drop to publish as {{ draggedTask?.new ? 'Published' : 'Updated' }}</p>
+      <p v-if="!filteredPublishedTasks.length && !draggedTaskId" class="history-empty">No published or updated tasks in this date range.</p>
+      <div class="task-workboard-scroll" role="region" tabindex="0" aria-label="Published and updated tasks">
+        <TaskItem
+          v-for="doc in pagedPublishedTasks"
+          :key="doc.id"
+          :doc="doc"
+          class="grid"
+          :can-edit="canEdit"
+          :activeAuthorsByTeam="computedActiveAuthorsByTeam"
+          @drag-start="handleDragStart($event, doc)"
+          @dragend="clearDrag"
+          @assign-author="handleAssignAuthor"
+          @edit="handleEdit"
+          @duplicate="handleDuplicate"
+          @delete="handleDelete"
+          @add-asset="handleAddAsset"
+          @delete-asset="handleDeleteAsset"
+        />
+      </div>
+    </section>
 
     <!-- Modals -->
     <component
@@ -116,8 +178,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { endOfDay, isWithinInterval, parseISO, startOfDay } from "date-fns";
 import { useDocumentsStore } from "@/stores/documents";
 import { sortDocuments } from "@/utils/sort-functions";
+import { getRangeDates } from "@/utils/helpers";
+import { ranges as publishedDateRanges } from "@/constants";
 
 import { PlusIcon } from "@/assets/icons";
 import TaskItem from "@/components/task/TaskItem.vue";
@@ -159,7 +224,11 @@ const modalType = ref<"new" | "edit" | "duplicate" | "delete" | null>(null);
 const modalPayload = ref<TaskDocument | null>(null);
 const draggedTaskId = ref<string | null>(null);
 const dragOverTarget = ref<TaskStatus | "published-history" | null>(null);
+const taskView = ref<"active" | "history">("active");
 const currentPublishedPage = ref(1);
+const selectedHistoryRange = ref("all");
+const customDateStart = ref("");
+const customDateEnd = ref("");
 const pageSize = 25;
 const activeStatusGroups: { status: TaskStatus; label: string }[] = [
   { status: "pending", label: "Pending" },
@@ -276,16 +345,36 @@ const sortedByStatus = computed(() => {
     published: sorted.published,
   };
 });
-const publishedPageCount = computed(() => Math.max(1, Math.ceil(sortedByStatus.value.published.length / pageSize)));
+const filteredPublishedTasks = computed(() => sortedByStatus.value.published.filter((doc) => {
+  if (!doc.publishedDate) return selectedHistoryRange.value === "all";
+  const publishedAt = new Date(doc.publishedDate);
+  if (Number.isNaN(publishedAt.getTime())) return false;
+
+  if (selectedHistoryRange.value === "custom") {
+    const start = customDateStart.value ? startOfDay(parseISO(customDateStart.value)) : null;
+    const end = customDateEnd.value ? endOfDay(parseISO(customDateEnd.value)) : null;
+    if (start && Number.isNaN(start.getTime())) return false;
+    if (end && Number.isNaN(end.getTime())) return false;
+    if (start && end && start > end) return false;
+    if (start && publishedAt < start) return false;
+    if (end && publishedAt > end) return false;
+    return true;
+  }
+
+  if (selectedHistoryRange.value === "all") return true;
+  const range = getRangeDates(selectedHistoryRange.value);
+  return range ? isWithinInterval(publishedAt, range) : true;
+}));
+const publishedPageCount = computed(() => Math.max(1, Math.ceil(filteredPublishedTasks.value.length / pageSize)));
 const pagedPublishedTasks = computed(() => {
   const firstIndex = (currentPublishedPage.value - 1) * pageSize;
-  return sortedByStatus.value.published.slice(firstIndex, firstIndex + pageSize);
+  return filteredPublishedTasks.value.slice(firstIndex, firstIndex + pageSize);
 });
 const pageRangeStart = computed(() => (currentPublishedPage.value - 1) * pageSize + 1);
-const pageRangeEnd = computed(() => Math.min(currentPublishedPage.value * pageSize, sortedByStatus.value.published.length));
+const pageRangeEnd = computed(() => Math.min(currentPublishedPage.value * pageSize, filteredPublishedTasks.value.length));
 const draggedTask = computed(() => (props.documents ?? documentsStore.documents).find((doc) => doc.id === draggedTaskId.value) ?? null);
 
-watch(() => props.documents, () => { currentPublishedPage.value = 1; });
+watch([() => props.documents, selectedHistoryRange, customDateStart, customDateEnd], () => { currentPublishedPage.value = 1; });
 watch(publishedPageCount, (pageCount) => {
   if (currentPublishedPage.value > pageCount) currentPublishedPage.value = pageCount;
 });
@@ -315,7 +404,10 @@ async function dropOnTarget(event: DragEvent, target: TaskStatus | "published-hi
   const nextStatus: TaskStatus = target === "published-history"
     ? task.new ? "published" : "updated"
     : target;
-  if (task.status !== nextStatus) await documentsStore.updateDocument(task.id, { status: nextStatus });
+  if (task.status !== nextStatus) {
+    await documentsStore.updateDocument(task.id, { status: nextStatus });
+    taskView.value = target === "published-history" ? "history" : "active";
+  }
 }
 
 function clearDrag() {
@@ -480,6 +572,22 @@ const headers = [
 .task-status-group--drag-over { background: color-mix(in srgb, var(--green-2) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--green-2) 55%, transparent); }
 .task-count { color: var(--gray-light-4); font-size: 0.78rem; font-weight: 500; }
 .drop-hint, .empty-drop-hint { margin: 0 0 6px; padding: 8px 12px; border: 1px dashed var(--green-2); border-radius: 6px; color: var(--gray-dark-3); background: var(--color-green-soft); font-size: 0.8rem; }
+.task-view-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 14px; border-bottom: 1px solid var(--color-divider); }
+.task-view-tab { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 13px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--gray-light-4); cursor: pointer; font: 700 0.96rem "Monda", sans-serif; }
+.task-view-tab:hover, .task-view-tab--active { color: var(--gray-dark-4); }
+.task-view-tab--active { border-bottom-color: var(--green-2); }
+.task-view-tab--drop-target { background: color-mix(in srgb, var(--green-2) 12%, transparent); }
+.task-view-tab:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: -3px; }
+.published-history-view { min-width: 0; }
+.history-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 14px; margin: 12px 0; }
+.history-range-select, .history-custom-range label { display: grid; gap: 4px; color: var(--gray-dark-3); font-size: 0.75rem; font-weight: 600; }
+.history-range-select select, .history-custom-range input { min-width: 155px; height: 36px; padding: 0 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-4); font: 400 0.84rem "Asap", sans-serif; }
+.history-custom-range { display: flex; flex-wrap: wrap; gap: 10px; }
+.history-custom-range input { min-width: 140px; }
+.history-results-count { margin-left: auto; padding-bottom: 9px; color: var(--gray-light-4); font-size: 0.8rem; }
+.history-return-dropzones { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding: 9px 10px; border: 1px dashed var(--color-border); border-radius: 6px; color: var(--gray-light-4); font-size: 0.78rem; }
+.history-return-dropzones button { min-height: 30px; padding: 0 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font: 600 0.74rem "Asap", sans-serif; }
+.history-return-dropzones button.history-return-dropzone--active { border-color: var(--green-2); background: var(--color-green-soft); }
 .history-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; color: var(--gray-light-4); font-size: 0.78rem; }
 .history-pagination__controls { display: flex; align-items: center; gap: 8px; }
 .history-pagination button { min-height: 30px; padding: 0 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font: 600 0.75rem "Asap", sans-serif; cursor: pointer; }
@@ -518,6 +626,7 @@ const headers = [
   :deep(.task-status-date--empty) { display: none; }
 
   .history-pagination { align-items: flex-start; flex-direction: column; }
+  .history-results-count { width: 100%; margin-left: 0; padding-bottom: 0; }
 }
 
 :deep(.task-mobile-label) { display: none; }

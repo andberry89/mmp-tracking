@@ -2,13 +2,11 @@ import type { DropdownConfig, GroupedAuthors } from "@/types";
 
 export interface MmpHeaderConfigParams {
   authors: GroupedAuthors;
-  ranges: Array<{ id: string; label: string }>;
   setAuthor: (id: string) => void;
-  setRange: (id: string) => void;
 }
 
 /** Build the search and filter controls used by the Publication Tracking header. */
-export function getHeaderConfig({ authors, ranges, setAuthor, setRange }: MmpHeaderConfigParams) {
+export function getHeaderConfig({ authors, setAuthor }: MmpHeaderConfigParams) {
   const authorOptions = authors.all
     .filter((author) => author.active)
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
@@ -24,13 +22,6 @@ export function getHeaderConfig({ authors, ranges, setAuthor, setRange }: MmpHea
         options: authorOptions,
         onSelect: setAuthor,
         class: "min-w-[175px]",
-      },
-      {
-        id: "range",
-        label: "Date Range",
-        options: ranges,
-        onSelect: setRange,
-        class: "min-w-[160px]",
       },
     ] satisfies DropdownConfig[],
   };
