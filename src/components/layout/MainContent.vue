@@ -177,6 +177,7 @@ function onSearchUpdate(query: string) {
 watch(
   () => props.activeLabel,
   () => {
+    searchQuery.value = "";
     selectedAuthorId.value = null;
   }
 );
