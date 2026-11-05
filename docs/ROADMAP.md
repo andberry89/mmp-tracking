@@ -50,9 +50,8 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 
 ## Next product area
 
-- Build Rankings for 2027 first, with a year selector, body-style filters, search, multi-segment comparison, and drag-and-drop ranking within each segment.
-- Support multiple segment assignments per model year, with independent rankings per segment placement.
-- Share vehicle ratings and award history across Catalog, Rankings, and Page Audit.
+- Rankings now has a first working UI and a database migration on the `codex/rankings` branch. Before team use, apply the migration, import/reconcile the 2027 ranking worksheet, and review the screen with real data.
+- It supports a model-year selector, body-style filter, search, multi-segment comparison, drag-and-drop ranking, future/unranked states, shared ratings, and shared award history.
 - Keep implementation order and remaining launch requirements in [TODO.md](TODO.md).
 
 ## Performance and collaboration acceptance

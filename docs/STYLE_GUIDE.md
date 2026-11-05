@@ -64,6 +64,7 @@ This is the working visual baseline for the MMP tracking page. It captures its r
 
 - Check `src/styles/tokens.css`, `src/styles/base.css`, `src/styles/utilities.css`, and `src/styles/typography.css` before adding another visual convention.
 - Prefer shared primitives in `src/components/common/` for recurring modals, menus, and controls.
+- Any surface opened by a button as a popover or menu closes when the user clicks outside it. Keep this behavior consistent across the app; hover-only tooltips may close on pointer leave instead.
 - Reuse the shared search, filter, form-control, and button treatments; use red for destructive actions and green for primary actions.
 - Reuse the status and team mappings in `src/constants/constants.ts` and `src/constants/task-style-maps.ts` wherever those values appear.
 - Keep spacing and alignment consistent with the compact task-row rhythm. Give forms and detail surfaces enough breathing room to remain readable while using the same typography, neutral surfaces, borders, and action accent.

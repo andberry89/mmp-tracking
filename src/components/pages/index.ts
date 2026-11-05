@@ -5,3 +5,4 @@ export { default as SegmentPage } from "./SegmentPage.vue";
 export { default as AuthorPage } from "./AuthorPage.vue";
 export { default as ChangeoverPage } from "./ChangeoverPage.vue";
 export { default as PageAuditPage } from "./PageAuditPage.vue";
+export { default as RankingsPage } from "./RankingsPage.vue";

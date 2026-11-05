@@ -87,6 +87,18 @@ export const useDocumentsStore = defineStore("documents", () => {
           .single();
         if (vehicleError) throw vehicleError;
 
+        if (input.segmentId) {
+          const { error: segmentError } = await supabase
+            .from("model_year_vehicle_segments")
+            .upsert({
+              model_year_vehicle_id: vehicleRow.id,
+              model_year: input.modelYear,
+              segment_id: input.segmentId,
+              entry_state: "unranked",
+            }, { onConflict: "model_year_vehicle_id,segment_id", ignoreDuplicates: true });
+          if (segmentError) throw segmentError;
+        }
+
         const { data: taskRow, error: taskError } = await supabase
           .from("mmp_tasks")
           .insert({

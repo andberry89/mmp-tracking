@@ -42,7 +42,7 @@
 import { computed, ref, watch } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
 
-import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage, ChangeoverPage, PageAuditPage } from "@/components/pages";
+import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage, ChangeoverPage, PageAuditPage, RankingsPage } from "@/components/pages";
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 import CatalogNav from "@/components/pages/components/CatalogNav.vue";
 
@@ -131,6 +131,8 @@ const activeComponent = computed(() => {
       return ChangeoverPage;
     case "Page Audit":
       return PageAuditPage;
+    case "Rankings":
+      return RankingsPage;
     default:
       return TaskPage;
   }

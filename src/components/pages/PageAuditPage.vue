@@ -41,7 +41,7 @@
       <div v-else class="table-scroll" role="region" tabindex="0" aria-label="Page Audit checklist. Scroll to see all vehicle fields.">
         <table class="audit-table" :class="{ 'table--editable': canEdit }">
           <thead><tr>
-            <th class="vehicle-column">Vehicle / Segment</th><th class="people-column">Author / Auditor</th><th class="checklist-summary-column">Checklist</th><th class="awards-column">Awards</th><th class="status-column">Status</th>
+            <th class="vehicle-column">Vehicle / Segment</th><th class="people-column">Author / Auditor</th><th class="checklist-summary-column">Checklist</th><th class="rating-column">Rating</th><th class="awards-column">Awards</th><th class="status-column">Status</th>
             <th v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-heading"><span>{{ check.label }}</span></th>
             <th class="notes-column">Audit notes</th>
           </tr></thead>
@@ -54,6 +54,7 @@
                 <span><i class="summary-dot summary-dot--exception"></i>{{ checklistCounts(entry).exception }} review</span>
                 <span><i class="summary-dot summary-dot--attention"></i>{{ checklistCounts(entry).attention }} needs work</span>
               </td>
+              <td class="rating-cell">{{ entry.rating ?? '—' }}</td>
               <td class="awards-cell"><div class="award-list"><img v-if="entry.awards.tenBest" class="award-icon" :src="tenBestLogo" alt="10 Best" /><img v-if="entry.awards.editorsChoice" class="award-icon" :src="editorsChoiceLogo" alt="Editors’ Choice" /><span v-if="!entry.awards.tenBest && !entry.awards.editorsChoice" class="muted">—</span></div></td>
               <td class="status-cell"><span>{{ entry.pageStatus || '—' }}</span><strong v-if="entry.doubleCheckInfo" class="status-review">Needs Review</strong></td>
               <td v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-cell" :class="`check-cell--${checkResult(check, entry.checklist[check.key])}`">{{ entry.checklist[check.key] || '—' }}</td>
@@ -99,6 +100,9 @@
 
         <section class="awards-form-section" aria-label="Awards">
           <div class="section-heading"><h3>Awards</h3><span>Tracked separately from checklist scoring.</span></div>
+          <label class="field-label">Shared rating
+            <select v-model="draft.rating"><option :value="null">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select>
+          </label>
           <div class="award-options">
             <label><input v-model="draft.awards.tenBest" type="checkbox" /> 10 Best</label>
             <label><input v-model="draft.awards.editorsChoice" type="checkbox" /> Editors’ Choice</label>
@@ -197,6 +201,7 @@ const checks2027: CheckField[] = [
 
 const catalog = useCatalogStore();
 const auditStore = usePageAuditStore();
+const ratingOptions = Array.from({ length: 19 }, (_, index) => 1 + index * 0.5);
 const query = ref("");
 const statusFilter = ref("all");
 const selectedYear = ref<number>(catalog.modelYearRecords.find((year) => year.isDefault)?.year ?? catalog.modelYears[0] ?? 2027);
@@ -208,6 +213,7 @@ const draft = reactive({
   pageStatus: "",
   checklist: {} as AuditChecklist,
   awards: { tenBest: false, editorsChoice: false },
+  rating: null as number | null,
   authorNames: "",
   auditorInitials: "",
   auditedAt: "",
@@ -240,6 +246,9 @@ onMounted(() => {
   auditStore.subscribeToChanges();
 });
 onBeforeUnmount(() => auditStore.stopRealtime());
+watch(draftVehicleId, () => {
+  if (modalMode.value === "add") draft.rating = activeModalVehicle.value?.rating ?? null;
+});
 watch(selectedYear, (year) => { query.value = ""; statusFilter.value = "all"; void auditStore.load(year); });
 watch(() => catalog.modelYears, (years) => {
   if (!years.includes(selectedYear.value) && years.length) selectedYear.value = years.includes(2027) ? 2027 : (years[0] ?? 2027);
@@ -279,6 +288,7 @@ function openAdd() {
   editingEntry.value = null;
   draftVehicleId.value = availableVehicles.value[0]?.id ?? "";
   resetDraft();
+  draft.rating = activeModalVehicle.value?.rating ?? null;
   modalOpen.value = true;
 }
 function openEdit(entry: PageAuditEntry) {
@@ -289,6 +299,7 @@ function openEdit(entry: PageAuditEntry) {
     pageStatus: entry.pageStatus,
     checklist: { ...entry.checklist },
     awards: { ...entry.awards },
+    rating: entry.rating,
     authorNames: entry.authorNames,
     auditorInitials: entry.auditorInitials,
     auditedAt: entry.auditedAt,
@@ -298,7 +309,7 @@ function openEdit(entry: PageAuditEntry) {
   modalOpen.value = true;
 }
 function resetDraft() {
-  Object.assign(draft, { pageStatus: "", checklist: {}, awards: { tenBest: false, editorsChoice: false }, authorNames: "", auditorInitials: "", auditedAt: "", doubleCheckInfo: false, auditNotes: "" });
+  Object.assign(draft, { pageStatus: "", checklist: {}, awards: { tenBest: false, editorsChoice: false }, rating: null, authorNames: "", auditorInitials: "", auditedAt: "", doubleCheckInfo: false, auditNotes: "" });
 }
 function closeModal() { modalOpen.value = false; }
 async function saveEntry() {
@@ -350,6 +361,7 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .audit-table tbody tr:nth-child(even) td.vehicle-cell { background: #f7f8f6; }
 .audit-table .people-column, .audit-table td.people-cell { width: 130px; min-width: 130px; }
 .audit-table .checklist-summary-column, .audit-table td.checklist-summary-cell { width: 115px; min-width: 115px; }
+.audit-table .rating-column, .audit-table td.rating-cell { width: 64px; min-width: 64px; }
 .audit-table .awards-column, .audit-table td.awards-cell { width: 90px; min-width: 90px; }
 .audit-table .status-column, .audit-table td.status-cell { width: 115px; min-width: 115px; }
 .audit-table .check-heading, .audit-table .check-cell { width: 90px; min-width: 90px; }
