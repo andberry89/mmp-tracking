@@ -48,7 +48,7 @@
           <tbody>
             <tr v-for="entry in filteredEntries" :key="entry.id">
               <td class="vehicle-cell"><div class="vehicle-cell-content"><div class="vehicle-cell-text"><strong>{{ entry.make }} {{ entry.model }}</strong><span>{{ entry.segment || 'Segment not set' }}</span><a v-if="entry.publicUrl" class="vehicle-public-link" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer">{{ entry.publicUrl }} ↗</a></div><button v-if="canEdit" class="edit-icon-button" type="button" :aria-label="`Edit audit for ${entry.make} ${entry.model}`" :title="`Edit audit for ${entry.make} ${entry.model}`" @click="openEdit(entry)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.8 3.2a1.8 1.8 0 0 1 2.5 2.5l-8.9 8.9-3.2.7.7-3.2 8.9-8.9Z"/><path d="m12.6 4.4 3 3"/></svg></button></div></td>
-              <td class="people-cell"><strong>{{ entry.authorNames || '—' }}</strong><span>{{ entry.auditorInitials ? `Auditor ${entry.auditorInitials}` : '—' }}</span><span v-if="entry.auditedAt">Audited {{ formatDate(entry.auditedAt) }}</span></td>
+              <td class="people-cell"><strong>{{ entry.authorName || '—' }}</strong><span>{{ entry.auditorInitials ? `Auditor ${entry.auditorInitials}` : '—' }}</span><span v-if="entry.auditedAt">Audited {{ formatDate(entry.auditedAt) }}</span></td>
               <td class="checklist-summary-cell">
                 <strong>{{ checklistCounts(entry).passed }}/{{ checklistCounts(entry).total }} pass</strong>
                 <span><i class="summary-dot summary-dot--exception"></i>{{ checklistCounts(entry).exception }} review</span>
@@ -82,8 +82,14 @@
             <input v-model="draft.pageStatus" type="text" list="page-audit-status-options" placeholder="Choose or enter a status" />
             <datalist id="page-audit-status-options"><option v-for="status in workbookStatuses" :key="status" :value="status" /></datalist>
           </label>
-          <label class="field-label">Author(s)
-            <input v-model="draft.authorNames" type="text" placeholder="Author name(s)" />
+          <label class="field-label">Author
+            <select v-model="draft.authorSelection">
+              <option value="">Unassigned</option>
+              <option v-if="editingEntry && !editingEntry.authorId && editingEntry.authorName" :value="legacyAuthorSelection">{{ editingEntry.authorName }} · not linked</option>
+              <optgroup v-for="group in authorGroups" :key="group.id" :label="group.label">
+                <option v-for="author in group.authors" :key="author.id" :value="author.id">{{ author.label }}{{ author.active ? '' : ' · inactive' }}</option>
+              </optgroup>
+            </select>
           </label>
           <label class="field-label">Auditor initials
             <input v-model="draft.auditorInitials" type="text" placeholder="Initials" />
@@ -140,6 +146,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import BaseModal from "@/components/common/BaseModal.vue";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
+import { useAuthorsStore } from "@/stores/authors";
 import { useCatalogStore } from "@/stores/catalog";
 import { usePageAuditStore, type AuditChecklist, type PageAuditEntry, type PageAuditInput } from "@/stores/pageAudit";
 
@@ -200,7 +207,14 @@ const checks2027: CheckField[] = [
 ];
 
 const catalog = useCatalogStore();
+const authorsStore = useAuthorsStore();
 const auditStore = usePageAuditStore();
+const legacyAuthorSelection = "__legacy_author__";
+const authorGroups = computed(() => [
+  { id: "bg", label: "Buyer’s Guide", authors: authorsStore.groupedAuthors.bg },
+  { id: "cd", label: "Car and Driver", authors: authorsStore.groupedAuthors.cd },
+  { id: "freelance", label: "Freelancers", authors: authorsStore.groupedAuthors.freelance },
+].filter((group) => group.authors.length));
 const ratingOptions = Array.from({ length: 19 }, (_, index) => 1 + index * 0.5);
 const query = ref("");
 const statusFilter = ref("all");
@@ -214,7 +228,7 @@ const draft = reactive({
   checklist: {} as AuditChecklist,
   awards: { tenBest: false, editorsChoice: false },
   rating: null as number | null,
-  authorNames: "",
+  authorSelection: "",
   auditorInitials: "",
   auditedAt: "",
   doubleCheckInfo: false,
@@ -233,7 +247,9 @@ const filteredEntries = computed(() => auditStore.entries.filter((entry) => {
   return matchesQuery && matchesStatus;
 }).sort((a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model)));
 const availableVehicles = computed(() => catalog.modelYearVehicles
-  .filter((vehicle) => vehicle.modelYear === selectedYear.value && !auditStore.entries.some((entry) => entry.modelYearVehicleId === vehicle.id))
+  .filter((vehicle) => vehicle.modelYear === selectedYear.value
+    && !auditStore.deadModelYearVehicleIds.includes(vehicle.id)
+    && !auditStore.entries.some((entry) => entry.modelYearVehicleId === vehicle.id))
   .sort((a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model)));
 const activeModalVehicle = computed(() => modalMode.value === "edit"
   ? catalog.modelYearVehicles.find((vehicle) => vehicle.id === editingEntry.value?.modelYearVehicleId) ?? null
@@ -242,6 +258,7 @@ const canSave = computed(() => modalMode.value === "edit" || Boolean(draftVehicl
 
 onMounted(() => {
   if (!catalog.modelYearRecords.length) void catalog.loadCatalog();
+  if (!authorsStore.allAuthors.length) void authorsStore.loadAuthors();
   void auditStore.load(selectedYear.value);
   auditStore.subscribeToChanges();
 });
@@ -300,7 +317,7 @@ function openEdit(entry: PageAuditEntry) {
     checklist: { ...entry.checklist },
     awards: { ...entry.awards },
     rating: entry.rating,
-    authorNames: entry.authorNames,
+    authorSelection: entry.authorId ?? (entry.authorName ? legacyAuthorSelection : ""),
     auditorInitials: entry.auditorInitials,
     auditedAt: entry.auditedAt,
     doubleCheckInfo: entry.doubleCheckInfo,
@@ -309,13 +326,29 @@ function openEdit(entry: PageAuditEntry) {
   modalOpen.value = true;
 }
 function resetDraft() {
-  Object.assign(draft, { pageStatus: "", checklist: {}, awards: { tenBest: false, editorsChoice: false }, rating: null, authorNames: "", auditorInitials: "", auditedAt: "", doubleCheckInfo: false, auditNotes: "" });
+  Object.assign(draft, { pageStatus: "", checklist: {}, awards: { tenBest: false, editorsChoice: false }, rating: null, authorSelection: "", auditorInitials: "", auditedAt: "", doubleCheckInfo: false, auditNotes: "" });
 }
 function closeModal() { modalOpen.value = false; }
 async function saveEntry() {
   const vehicle = activeModalVehicle.value;
   if (!vehicle) return;
-  const input: PageAuditInput = { vehicle, ...draft, checklist: { ...draft.checklist } };
+  const authorId = draft.authorSelection && draft.authorSelection !== legacyAuthorSelection ? draft.authorSelection : null;
+  const authorName = draft.authorSelection === legacyAuthorSelection
+    ? editingEntry.value?.authorName ?? ""
+    : authorsStore.allAuthors.find((author) => author.id === authorId)?.label ?? "";
+  const input: PageAuditInput = {
+    vehicle,
+    pageStatus: draft.pageStatus,
+    checklist: { ...draft.checklist },
+    awards: { ...draft.awards },
+    rating: draft.rating,
+    authorId,
+    authorName,
+    auditorInitials: draft.auditorInitials,
+    auditedAt: draft.auditedAt,
+    doubleCheckInfo: draft.doubleCheckInfo,
+    auditNotes: draft.auditNotes,
+  };
   try {
     await auditStore.save(input, editingEntry.value ?? undefined);
     closeModal();

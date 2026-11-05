@@ -83,7 +83,9 @@ Editors may manually add vehicles to an existing model-year Changeover list at a
 
 When a Publication Tracking task is published or updated, sync the matching model-year Changeover row to **Published**. Page Audit uses the live URL from the shared model-year vehicle record. This status sync is one-way: an Editor may manually change the Changeover status, and that change does not change the Publication Tracking task. A date-stamped publication/update history could be added later if the team wants that context in Page Audit.
 
-When an Author is assigned or changed on a Publication Tracking task, the matching model-year Changeover row should receive the same assigned Author. Whether this assignment also updates Page Audit's author names is still to be decided: Page Audit stores author names as free text and may be recording the published page's authorship, which can differ from the current task assignment.
+Page Audit stores one linked Author, using the shared Authors catalog like Publication Tracking and Changeover. When historical audit data lists multiple authors, keep the first listed name and link it to the matching catalog Author. When an Author is assigned or changed on a Publication Tracking task, update the matching model-year Changeover row and Page Audit entry to the same Author.
+
+When a vehicle's Changeover status is set to **Dead**, keep its Changeover row, hide its Page Audit row from the active list, and retain its saved audit data. This is scoped to that model year. Annual Changeover preparation already excludes vehicles marked Dead in the source year.
 
 ### Annual list roll-forward
 

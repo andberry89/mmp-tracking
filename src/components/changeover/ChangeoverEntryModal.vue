@@ -43,6 +43,7 @@
           </select>
         </label>
       </div>
+      <p v-if="status === 'dead'" class="dead-status-note">This vehicle stays on Changeover and is hidden from the active Page Audit list. Its existing audit record is retained.</p>
 
       <label v-if="status === 'published'" class="entry-label">Published page URL
         <input v-model.trim="publicUrl" type="url" placeholder="https://…" />
@@ -189,6 +190,7 @@ function save() {
 .vehicle-summary { display: grid; gap: 4px; padding: 11px 12px; border-left: 3px solid var(--green-2); background: var(--white-soft); color: var(--gray-dark-5); }
 .vehicle-summary span, .form-hint { color: var(--gray-light-4); font-size: 0.8rem; }
 .form-hint, .form-error { margin: 0; }
+.dead-status-note { margin: -5px 0 0; padding: 9px 11px; border-left: 3px solid #c9483f; background: #fbf0ef; color: #74332e; font-size: .8rem; line-height: 1.4; }
 .form-error { color: var(--red-dark); font-size: 0.84rem; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 9px; }
 .primary-button, .secondary-button { min-height: 36px; padding: 0 12px; border-radius: 5px; cursor: pointer; font: 600 0.84rem "Asap", sans-serif; }
