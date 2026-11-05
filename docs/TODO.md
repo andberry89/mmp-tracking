@@ -17,13 +17,14 @@ This list is ordered by dependency. Email enhancements and other optional featur
 1. [x] **Complete the full codebase audit.** The audit and first cleanup pass are recorded in [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md). Follow-up data-integrity and scale fixes remain in the relevant workflow/reliability items below.
 
 2. **Finish the required cross-workflow data and feature work.** Stabilize schema and behavior before importing the final workbook:
-   - [x] Add the first Rankings view with a model-year selector, body-style filter, search, segment comparison, drag-and-drop ordering, unranked/future states, ratings, and award history. It is ready for the new database migration; bulk-import 2027 ranks, segment placements, ratings, and awards from the latest workbook rather than entering models one by one.
+   - [x] Add the first Rankings view with a model-year selector, body-style filter, search, segment comparison, drag-and-drop ordering, unranked/future states, ratings, and award history. The feature is merged. Before team use, apply migrations `202611050001` and `202611050002` in order, then bulk-import 2027 ranks, segment placements, ratings, and awards. Andrew can provide a complete award-winners list to use as seed/import data.
    - Give **Published & Updated** its own view, separate from Active Work. Keep its pagination and add date filters with useful presets (including the past 90 days) and a custom date-range selector.
    - [x] Support multiple segment assignments per model-year vehicle. Show all assigned segments in Publication Tracking, Changeover, Page Audit, and Published History. Keep an independent rank for each vehicle/segment placement.
    - [x] Store one shared 1–10 rating in half-point steps. Editors can update it in Catalog, Rankings, and Page Audit.
    - [x] Share 10Best and Editors' Choice award history across Catalog, Rankings, and Page Audit. Treat misaligned EC year labels in the source workbook as errors, not awards. Backfill older ranking years later if desired.
-   - When an MMP task's Author changes, update the matching Changeover assignment. Keep Page Audit author names separate unless the team decides they should represent the current assignment too.
-   - Define the workflow for marking a model Dead after publication: keep it in Changeover and remove it from Page Audit.
+   - [x] Use the shared Authors catalog for Page Audit and sync MMP task Author changes to the matching Changeover and Page Audit records. Historical multi-author audit values are reduced to the first listed Author.
+   - [x] When a Changeover entry is marked Dead, keep it on Changeover, hide it from the active Page Audit list, and retain its audit record. Annual preparation already excludes Dead vehicles from the following model year.
+   - Apply `supabase/migrations/202611050003_sync_authors_and_hide_dead_audits.sql` in Supabase to enable the task-to-Changeover Author sync.
 
 3. **Prepare the production environment before importing current data.**
    - Confirm the Netlify production URL and set Supabase Site URL and allowed redirects. The invitation-function origin allowlist is configured and deployed.

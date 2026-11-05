@@ -50,7 +50,7 @@ Supabase Auth, task persistence, and Realtime scaffolding are in place. The Cata
 
 ## Next product area
 
-- Rankings now has a first working UI and a database migration on the `codex/rankings` branch. Before team use, apply the migration, import/reconcile the 2027 ranking worksheet, and review the screen with real data.
+- Rankings has a first working UI and its database migrations are merged. Before team use, apply migrations `202611050001` and `202611050002` in order, import/reconcile the 2027 ranking worksheet, and review the screen with real data. Andrew can provide a complete award-winners list for the award seed/import.
 - It supports a model-year selector, body-style filter, search, multi-segment comparison, drag-and-drop ranking, future/unranked states, shared ratings, and shared award history.
 - Keep implementation order and remaining launch requirements in [TODO.md](TODO.md).
 

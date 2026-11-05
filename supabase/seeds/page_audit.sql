@@ -923,11 +923,22 @@ with source_rows(model_year, make_name, model_name, public_url, page_status, che
 (2029, 'Rivian', 'R3 / R3X', 'https://www.caranddriver.com/rivian/r3-2029', 'WWKSF-OPAI/News', '{"pricing_lead":"Yes, estimated","photos_button":"Yes","gallery_model_year":"2027","cd_rating":"Not Rated","hlv":"No","specs_glance":"No","video":"No","competitor_picture":"N/A","pricing_module":"Yes","price_type":"Estimated","recommended_trim":"No","zero_to_sixty":"No","zero_to_sixty_photo":"Yes","research_module":"Yes","epa_estimates":"No","carry_on_figures":"No","interior_photo":"Yes","spec_panel":"No","features_specs_button":"No"}'::jsonb, 'Drew Dorian', 'AB', null, ''),
 (2029, 'Porsche', 'Mission S', 'https://www.caranddriver.com/porsche/a74148090/mission-s-2029', 'WWKSF-OPAI/News', '{"pricing_lead":"Yes, estimated","photos_button":"Yes","gallery_model_year":"2029, mfr","gallery_count":"Single","cd_rating":"Not rated","hlv":"No","specs_glance":"No","video":"No","competitor_picture":"N/A","pricing_module":"Yes","price_type":"Estimated","recommended_trim":"N/A","key_features":"No","zero_to_sixty":"No","zero_to_sixty_photo":"No","research_module":"Yes","range_test":"N/A","epa_estimates":"No","hfe_numbers":"No","carry_on_figures":"No","interior_photo":"Yes","spec_panel":"No","features_specs_button":"No"}'::jsonb, 'Drew Dorian', 'AB', null, '')
 ), matched as materialized (
-  select s.*, v.id as model_year_vehicle_id
+  select s.*,
+         v.id as model_year_vehicle_id,
+         normalized.first_author_name,
+         author.id as author_id
   from source_rows s
   join public.makes mk on lower(mk.name) = lower(case when lower(s.make_name) = 'chevy' then 'Chevrolet' else s.make_name end)
   join public.models mo on mo.make_id = mk.id and lower(mo.name) = lower(s.model_name)
   join public.model_year_vehicles v on v.model_id = mo.id and v.model_year = s.model_year
+  cross join lateral (
+    select nullif(btrim(regexp_replace(
+      btrim(s.author_names),
+      '[[:space:]]*(;|,|/|&|[[:space:]]+and[[:space:]]+).*$', '', 'i'
+    )), '') as first_author_name
+  ) as normalized
+  left join public.authors author
+    on lower(btrim(author.label)) = lower(btrim(normalized.first_author_name))
 ), url_updates as (
   update public.model_year_vehicles v set public_url = m.public_url
     from matched m
@@ -936,9 +947,9 @@ with source_rows(model_year, make_name, model_name, public_url, page_status, che
   returning v.id
 ), inserted as (
   insert into public.page_audit_entries (
-    model_year_vehicle_id, page_status, checklist, author_names, auditor_initials, audited_at, audit_notes
+    model_year_vehicle_id, page_status, checklist, author_id, author_names, auditor_initials, audited_at, audit_notes
   )
-  select model_year_vehicle_id, page_status, checklist, author_names, auditor_initials,
+  select model_year_vehicle_id, page_status, checklist, author_id, coalesce(first_author_name, ''), auditor_initials,
          nullif(audited_at, '')::date, audit_notes
     from matched
   on conflict (model_year_vehicle_id) do nothing

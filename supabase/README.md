@@ -4,6 +4,14 @@ The initial schema is in `migrations/202610260001_initial_schema.sql`. It has
 been applied to the new Supabase project for this app. Keep future schema
 changes in versioned migrations.
 
+The Rankings migrations `202611050001_rankings_foundation.sql` and
+`202611050002_rankings_backfill.sql` have been merged. Apply them in that order.
+The workflow follow-up `202611050003_sync_authors_and_hide_dead_audits.sql`
+links Page Audit Authors, syncs task-author assignments to Changeover and Page
+Audit, and normalizes historical multi-author audit values to the first listed
+Author. The app also hides Dead Changeover vehicles from the active Page Audit
+list while preserving their audit records.
+
 For an existing project, run any newer migration files in `migrations/` in
 filename order. The catalog Realtime migration adds Makes, Models, Segments,
 Authors, and Model Years to the `supabase_realtime` publication. The next
