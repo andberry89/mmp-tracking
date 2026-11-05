@@ -17,11 +17,11 @@ This list is ordered by dependency. Email enhancements and other optional featur
 1. [x] **Complete the full codebase audit.** The audit and first cleanup pass are recorded in [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md). Follow-up data-integrity and scale fixes remain in the relevant workflow/reliability items below.
 
 2. **Finish the required cross-workflow data and feature work.** Stabilize schema and behavior before importing the final workbook:
-   - Build **Rankings** with a 2027 focus and year selector. Support body-style filters, search, comparing multiple segments, and drag-and-drop rank order within each segment.
+   - [x] Add the first Rankings view with a model-year selector, body-style filter, search, segment comparison, drag-and-drop ordering, unranked/future states, ratings, and award history. It is ready for the new database migration; bulk-import 2027 ranks, segment placements, ratings, and awards from the latest workbook rather than entering models one by one.
    - Give **Published & Updated** its own view, separate from Active Work. Keep its pagination and add date filters with useful presets (including the past 90 days) and a custom date-range selector.
-   - Support multiple segment assignments per model-year vehicle. Show all assigned segments in Publication Tracking, Changeover, and Page Audit. Keep an independent rank for each vehicle/segment placement.
-   - Store one shared 1–10 rating in half-point steps. Editors can update it wherever it appears in Catalog, Rankings, or Page Audit.
-   - Share 10Best and Editors' Choice award history across Catalog, Rankings, and Page Audit. Treat misaligned EC year labels in the source workbook as errors, not awards. Backfill older ranking years later if desired.
+   - [x] Support multiple segment assignments per model-year vehicle. Show all assigned segments in Publication Tracking, Changeover, Page Audit, and Published History. Keep an independent rank for each vehicle/segment placement.
+   - [x] Store one shared 1–10 rating in half-point steps. Editors can update it in Catalog, Rankings, and Page Audit.
+   - [x] Share 10Best and Editors' Choice award history across Catalog, Rankings, and Page Audit. Treat misaligned EC year labels in the source workbook as errors, not awards. Backfill older ranking years later if desired.
    - When an MMP task's Author changes, update the matching Changeover assignment. Keep Page Audit author names separate unless the team decides they should represent the current assignment too.
    - Define the workflow for marking a model Dead after publication: keep it in Changeover and remove it from Page Audit.
 
@@ -37,7 +37,7 @@ This list is ordered by dependency. Email enhancements and other optional featur
 
 6. **Complete reliability and performance work.** Realtime events now refresh only the affected task or model-year vehicle. Verify the applied migration for atomic task duplication and Changeover row/public-URL edits. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, access control, imports, and persistence.
 
-7. **Finish the visual and responsive pass.** Refine all screens against the tracking-page baseline, update the style guide, and check the Rankings nav breakpoint and multi-segment layouts. Review keyboard and screen-reader use, contrast, and reduced-motion behavior.
+7. **Finish the visual and responsive pass.** Refine all screens against the tracking-page baseline, update the style guide, and check the Rankings nav breakpoint and multi-segment layouts. Match Published & Updated task typography to Active Work; its text currently appears noticeably larger. Review keyboard and screen-reader use, contrast, and reduced-motion behavior.
 
 8. **Launch.** Run the release review, confirm backups and access controls, deploy the release, and verify the production workflows with the team.
 

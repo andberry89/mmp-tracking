@@ -192,7 +192,7 @@ const ranges = ref(defaultRanges);
 const sortedAuthors = computed(() => authorsStore.groupedAuthors);
 const activeAuthors = computed(() => authorsStore.activeGroupedAuthors);
 const activeTopLevel = computed(() => {
-  if (activeLabel.value === "MMPs" || activeLabel.value === "Changeover" || activeLabel.value === "Page Audit") return activeLabel.value;
+  if (activeLabel.value === "MMPs" || activeLabel.value === "Changeover" || activeLabel.value === "Page Audit" || activeLabel.value === "Rankings") return activeLabel.value;
   return "Catalog";
 });
 

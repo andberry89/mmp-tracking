@@ -2,7 +2,7 @@ export default {
   mounted(el, binding) {
     el.__ClickOutsideHandler__ = (event) => {
       if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event);
+        binding.value(event, el);
       }
     };
     setTimeout(() => {

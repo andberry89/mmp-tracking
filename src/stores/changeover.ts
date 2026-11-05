@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { useAuthorsStore } from "@/stores/authors";
 import { useCatalogStore, type ModelYearVehicleOption } from "@/stores/catalog";
+import { formatModelName } from "@/utils/format-model-name";
 import type { AuthorId } from "@/types";
 
 export type ChangeoverStatus =
@@ -85,7 +86,7 @@ type DbChangeoverRow = {
       make_id: string;
       makes: { name: string } | { name: string }[] | null;
     }[];
-    segments: { name: string } | { name: string }[] | null;
+    model_year_vehicle_segments: Array<{ segments: { name: string } | { name: string }[] | null }>;
   } | {
     id: string;
     model_id: string;
@@ -102,7 +103,7 @@ type DbChangeoverRow = {
       make_id: string;
       makes: { name: string } | { name: string }[] | null;
     }[];
-    segments: { name: string } | { name: string }[] | null;
+    model_year_vehicle_segments: Array<{ segments: { name: string } | { name: string }[] | null }>;
   }[];
   authors: { label: string } | { label: string }[] | null;
 };
@@ -165,7 +166,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
       const client = supabase;
       const rows = await fetchAllPages((from, to) => client
         .from("changeover_entries")
-        .select("id, model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, resource_url, authors(label), model_year_vehicles!inner(id, model_id, model_year, public_url, models!inner(id, name, make_id, makes!inner(name)), segments(name))")
+        .select("id, model_year_vehicle_id, status, assigned_author_id, notes, source_provenance, resource_url, authors(label), model_year_vehicles!inner(id, model_id, model_year, public_url, models!inner(id, name, make_id, makes!inner(name)), model_year_vehicle_segments(segments(name)))")
         .eq("model_year_vehicles.model_year", selectedYear.value)
         .order("id")
         .range(from, to));
@@ -419,7 +420,8 @@ function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
   const vehicle = one(row.model_year_vehicles);
   const model = vehicle ? one(vehicle.models) : null;
   const make = model ? one(model.makes) : null;
-  const segment = vehicle ? one(vehicle.segments) : null;
+  const segmentNames = vehicle?.model_year_vehicle_segments
+    .flatMap((assignment) => one(assignment.segments)?.name ?? []) ?? [];
   const author = one(row.authors);
   const sourceProvenance = row.source_provenance ?? [];
   const rawAuthor = sourceProvenance[0]?.raw_author?.trim() ?? "";
@@ -433,8 +435,8 @@ function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
     makeId: model?.make_id ?? "",
     modelYear: vehicle?.model_year ?? 0,
     make: make?.name ?? "",
-    model: model?.name ?? "",
-    segment: segment?.name ?? "",
+    model: model ? formatModelName(model.name) : "",
+    segment: segmentNames.join(", "),
     publicUrl: vehicle?.public_url ?? "",
     resourceUrl: row.resource_url ?? "",
     status: row.status,

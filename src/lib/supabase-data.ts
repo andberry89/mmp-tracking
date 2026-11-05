@@ -1,5 +1,6 @@
 import type { AuthorId, TaskDocument, TaskAsset } from "@/types";
 import { supabase } from "@/lib/supabase";
+import { formatModelName } from "@/utils/format-model-name";
 
 interface QueryResult<T> {
   data: T | null;
@@ -53,7 +54,8 @@ interface DbTask {
   model_year_vehicles: {
     id: string;
     model_year: number;
-    segments: { name: string } | null;
+    model_year_vehicle_segments?: Array<{ segments: { name: string } | { name: string }[] | null }>;
+    segments?: { name: string } | null;
     models: {
       name: string;
       makes: { name: string };
@@ -103,7 +105,7 @@ const taskColumns = [
   "published_at",
   "created_at",
   "updated_at",
-  "model_year_vehicles!inner(id, model_year, segments(name), models!inner(name, makes!inner(name)))",
+  "model_year_vehicles!inner(id, model_year, model_year_vehicle_segments(segments(name)), models!inner(name, makes!inner(name)))",
   "task_resources(id, kind, label, url, notes)",
 ].join(",");
 
@@ -201,6 +203,11 @@ export function mapTask(row: DbTask): TaskDocument {
     url: resource.url,
     notes: resource.notes,
   }));
+  const segments = row.model_year_vehicles.model_year_vehicle_segments
+    ? row.model_year_vehicles.model_year_vehicle_segments
+      .flatMap((assignment) => Array.isArray(assignment.segments) ? assignment.segments : assignment.segments ? [assignment.segments] : [])
+      .map((segment) => segment.name)
+    : row.model_year_vehicles.segments?.name ? [row.model_year_vehicles.segments.name] : [];
 
   return {
     id: row.id,
@@ -210,8 +217,8 @@ export function mapTask(row: DbTask): TaskDocument {
     highPriority: row.high_priority,
     vehicle: {
       make: row.model_year_vehicles.models.makes.name,
-      model: row.model_year_vehicles.models.name,
-      segment: row.model_year_vehicles.segments?.name ?? "",
+      model: formatModelName(row.model_year_vehicles.models.name),
+      segment: segments.join(", "),
       modelYear: row.model_year_vehicles.model_year,
     },
     authorId: row.author_id as AuthorId | null,

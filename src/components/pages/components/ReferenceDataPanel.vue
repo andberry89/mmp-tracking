@@ -42,7 +42,11 @@
           <label>Make<select v-model="makeId" required><option disabled value="">Select a make</option><option v-for="make in modelMakeOptions" :key="make.id" :value="make.id">{{ make.name }}{{ make.active ? '' : ' (Archived)' }}</option></select></label>
           <label>Model<input v-model.trim="name" required placeholder="Model name" /></label>
         </template>
-        <label v-else>{{ kind === 'make' ? 'Make' : 'Segment' }} name<input v-model.trim="name" required :placeholder="`Enter ${title.toLowerCase()} name`" /></label>
+        <template v-else-if="kind === 'segment'">
+          <label>Segment name<input v-model.trim="name" required :placeholder="`Enter ${title.toLowerCase()} name`" /></label>
+          <label>Body style<select v-model="bodyStyle" required><option v-for="option in bodyStyleOptions" :key="option.id" :value="option.id">{{ option.label }}</option></select></label>
+        </template>
+        <label v-else>Make name<input v-model.trim="name" required :placeholder="`Enter ${title.toLowerCase()} name`" /></label>
       </div>
       <div class="form-actions">
         <button type="button" class="button button--quiet" @click="closeForm">Cancel</button>
@@ -81,12 +85,13 @@
           </section>
 
           <section class="model-year-section">
-            <div class="model-year-heading"><div><h2>Add a vehicle year</h2><p>Set the Segment for a Make, Model, and Model Year combination.</p></div></div>
+            <div class="model-year-heading"><div><h2>Add a vehicle year</h2><p>Assign one or more Segments and a shared rating.</p></div></div>
             <form class="editor-form vehicle-year-form" @submit.prevent="saveVehicleYear">
               <label>Make<select v-model="vehicleMakeId" required @change="vehicleModelId = ''"><option disabled value="">Select a make</option><option v-for="make in vehicleMakeOptions" :key="make.id" :value="make.id">{{ make.name }}{{ make.active ? '' : ' (Archived)' }}</option></select></label>
               <label>Model<select v-model="vehicleModelId" required :disabled="!vehicleMakeId"><option disabled value="">Select a model</option><option v-for="model in modelsForVehicleMake" :key="model.id" :value="model.id">{{ model.name }}{{ model.active ? '' : ' (Archived)' }}</option></select></label>
               <label>Model Year<select v-model.number="vehicleYear" required><option disabled :value="null">Select a year</option><option v-for="year in catalogStore.modelYears" :key="year" :value="year">{{ year }}</option></select></label>
-              <label>Segment<select v-model="vehicleSegmentId"><option value="">No segment selected</option><option v-for="segment in vehicleSegmentOptions" :key="segment.id" :value="segment.id">{{ segment.name }}{{ segment.active ? '' : ' (Archived)' }}</option></select></label>
+              <fieldset class="segment-picker"><legend>Segments</legend><label v-for="segment in vehicleSegmentOptions" :key="segment.id"><input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />{{ segment.name }}<small>{{ bodyStyleLabel(segment.bodyStyle) }}</small></label></fieldset>
+              <label>Rating<select v-model="vehicleRating"><option value="">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="String(rating)">{{ rating.toFixed(1) }}</option></select></label>
               <div class="form-actions"><button type="submit" class="button button--primary" :disabled="savingVehicleYear || !catalogStore.modelYears.length">{{ savingVehicleYear ? 'Saving…' : 'Add vehicle year' }}</button></div>
             </form>
           </section>
@@ -130,7 +135,7 @@
         <article v-for="author in group.members" :key="author.id" class="record-row author-row">
           <div class="author-name"><span class="status-dot" :class="author.active ? 'status-dot--active' : 'status-dot--inactive'" role="img" :aria-label="author.active ? 'Active' : 'Archived'" /><strong :class="{ inactive: !author.active }">{{ author.label }}</strong></div>
           <div class="row-actions">
-            <details v-if="canEdit" class="author-actions-menu">
+            <details v-if="canEdit" class="author-actions-menu" v-click-outside="closePopover">
               <summary class="author-actions-menu__trigger" :aria-label="`Actions for ${author.label}`" title="Author actions">
                 <span class="sr-only">Author actions</span><span class="author-actions-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span>
               </summary>
@@ -168,11 +173,13 @@
         <div v-else-if="selectedModel" class="detail-content">
           <h3>Model years and Segments</h3>
           <article v-for="vehicle in vehicleYearsForModel(selectedModel.id)" :key="vehicle.id" class="detail-year-row">
-            <div><strong>{{ vehicle.modelYear }}</strong><span>{{ vehicle.segment || 'No Segment assigned' }}</span></div>
-            <button v-if="canEdit" type="button" class="button button--quiet" @click="startSegmentEdit(vehicle)">{{ editingVehicleYearId === vehicle.id ? 'Editing' : 'Edit Segment' }}</button>
+            <div><strong>{{ vehicle.modelYear }}</strong><span>{{ vehicle.segment || 'No Segment assigned' }}</span><span>Rating {{ vehicle.rating ?? '—' }}</span><span class="detail-awards"><img v-if="vehicle.awards.ten_best.includes(vehicle.modelYear)" :src="tenBestLogo" alt="10 Best" /><img v-if="vehicle.awards.editors_choice.includes(vehicle.modelYear)" :src="editorsChoiceLogo" alt="Editors’ Choice" /><small v-if="!vehicle.awards.ten_best.includes(vehicle.modelYear) && !vehicle.awards.editors_choice.includes(vehicle.modelYear)">No awards recorded for {{ vehicle.modelYear }}</small></span></div>
+            <button v-if="canEdit" type="button" class="button button--quiet" @click="startSegmentEdit(vehicle)">{{ editingVehicleYearId === vehicle.id ? 'Editing' : 'Edit Details' }}</button>
             <form v-if="canEdit && editingVehicleYearId === vehicle.id" class="detail-edit-form" @submit.prevent="saveVehicleYear">
-              <label>Segment<select v-model="vehicleSegmentId"><option value="">No segment selected</option><option v-for="segment in vehicleSegmentOptions" :key="segment.id" :value="segment.id">{{ segment.name }}{{ segment.active ? '' : ' (Archived)' }}</option></select></label>
-              <div class="form-actions"><button type="button" class="button button--quiet" @click="editingVehicleYearId = null">Cancel</button><button type="submit" class="button button--primary" :disabled="savingVehicleYear">Save Segment</button></div>
+              <fieldset class="segment-picker"><legend>Segments</legend><label v-for="segment in vehicleSegmentOptions" :key="segment.id"><input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />{{ segment.name }}<small>{{ bodyStyleLabel(segment.bodyStyle) }}</small></label></fieldset>
+              <label>Rating<select v-model="vehicleRating"><option value="">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="String(rating)">{{ rating.toFixed(1) }}</option></select></label>
+              <fieldset class="vehicle-award-picker"><legend>{{ vehicle.modelYear }} awards</legend><label><input v-model="vehicleAwards.ten_best" type="checkbox" />10 Best</label><label><input v-model="vehicleAwards.editorsChoice" type="checkbox" />Editors’ Choice</label></fieldset>
+              <div class="form-actions"><button type="button" class="button button--quiet" @click="editingVehicleYearId = null">Cancel</button><button type="submit" class="button button--primary" :disabled="savingVehicleYear">Save details</button></div>
             </form>
           </article>
           <p v-if="!vehicleYearsForModel(selectedModel.id).length" class="empty-state">No model years have been assigned yet.</p>
@@ -193,9 +200,11 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { useCatalogStore, type MakeOption, type ModelOption, type ModelYearVehicleOption, type SegmentOption } from "@/stores/catalog";
+import { bodyStyleOptions, useCatalogStore, type BodyStyle, type MakeOption, type ModelOption, type ModelYearVehicleOption, type SegmentOption } from "@/stores/catalog";
 import { useAuthorsStore } from "@/stores/authors";
 import type { Author, AuthorTeamSlug } from "@/types";
+import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
+import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
 
 const props = defineProps<{ kind: "make" | "model" | "segment" | "author"; title: string; description: string; canEdit?: boolean }>();
 const catalogStore = useCatalogStore();
@@ -205,11 +214,15 @@ const name = ref("");
 const firstName = ref("");
 const lastName = ref("");
 const team = ref<AuthorTeamSlug>("bg");
+const bodyStyle = ref<BodyStyle>("cars");
 const makeId = ref("");
 const vehicleMakeId = ref("");
 const vehicleModelId = ref("");
 const vehicleYear = ref<number | null>(null);
-const vehicleSegmentId = ref("");
+const vehicleSegmentIds = ref<string[]>([]);
+const vehicleRating = ref("");
+const vehicleAwards = ref({ ten_best: false, editorsChoice: false });
+const ratingOptions = Array.from({ length: 19 }, (_, index) => 1 + index * 0.5);
 const editingId = ref<string | null>(null);
 const editingVehicleYearId = ref<string | null>(null);
 const saving = ref(false);
@@ -282,8 +295,8 @@ const vehicleMakeOptions = computed(() => {
 const modelsForVehicleMake = computed(() => catalogStore.models.filter((item) => item.makeId === vehicleMakeId.value && item.active));
 const vehicleSegmentOptions = computed(() => {
   const active = catalogStore.activeSegments;
-  const selected = catalogStore.segments.find((item) => item.id === vehicleSegmentId.value);
-  return selected && !selected.active ? [selected, ...active] : active;
+  const selectedArchived = catalogStore.segments.filter((item) => vehicleSegmentIds.value.includes(item.id) && !item.active);
+  return [...selectedArchived, ...active.filter((item) => !selectedArchived.some((selected) => selected.id === item.id))];
 });
 
 function modelsForMake(makeId: string) {
@@ -293,27 +306,28 @@ function vehicleYearsForModel(modelId: string) {
   return catalogStore.modelYearVehicles.filter((item) => item.modelId === modelId).sort((a, b) => b.modelYear - a.modelYear);
 }
 function vehiclesForSegment(segmentId: string) {
-  return catalogStore.modelYearVehicles.filter((item) => item.segmentId === segmentId).sort((a, b) => b.modelYear - a.modelYear || a.make.localeCompare(b.make) || a.model.localeCompare(b.model));
+  return catalogStore.modelYearVehicles.filter((item) => item.segments.some((segment) => segment.id === segmentId)).sort((a, b) => b.modelYear - a.modelYear || a.make.localeCompare(b.make) || a.model.localeCompare(b.model));
 }
 
 function resetForm() {
-  editingId.value = null; name.value = ""; firstName.value = ""; lastName.value = ""; team.value = "bg"; makeId.value = ""; pageError.value = "";
+  editingId.value = null; name.value = ""; firstName.value = ""; lastName.value = ""; team.value = "bg"; bodyStyle.value = "cars"; makeId.value = ""; pageError.value = "";
 }
 function openAddForm() { resetForm(); formOpen.value = true; }
 function closeForm() { formOpen.value = false; resetForm(); }
 function closeDetails() { selectedMake.value = null; selectedModel.value = null; selectedSegment.value = null; editingVehicleYearId.value = null; }
 function editMake(item: MakeOption) { editingId.value = item.id; name.value = item.name; formOpen.value = true; }
-function editSegment(item: SegmentOption) { editingId.value = item.id; name.value = item.name; formOpen.value = true; }
+function editSegment(item: SegmentOption) { editingId.value = item.id; name.value = item.name; bodyStyle.value = item.bodyStyle ?? "cars"; formOpen.value = true; }
 function editModel(item: ModelOption) { editingId.value = item.id; name.value = item.name; makeId.value = item.makeId; formOpen.value = true; }
 function editAuthor(author: Author) { editingId.value = author.id; firstName.value = author.firstName; lastName.value = author.lastName; team.value = author.team.slug; formOpen.value = true; }
 function openVehicleModel(modelId: string) { selectedSegment.value = null; selectedModel.value = catalogStore.models.find((item) => item.id === modelId) ?? null; }
-function startSegmentEdit(item: ModelYearVehicleOption) { editingVehicleYearId.value = item.id; vehicleModelId.value = item.modelId; vehicleYear.value = item.modelYear; vehicleSegmentId.value = item.segmentId ?? ""; }
+function startSegmentEdit(item: ModelYearVehicleOption) { editingVehicleYearId.value = item.id; vehicleModelId.value = item.modelId; vehicleYear.value = item.modelYear; vehicleSegmentIds.value = item.segments.map((segment) => segment.id); vehicleRating.value = item.rating === null ? "" : String(item.rating); vehicleAwards.value = { ten_best: item.awards.ten_best.includes(item.modelYear), editorsChoice: item.awards.editors_choice.includes(item.modelYear) }; }
+function bodyStyleLabel(style: BodyStyle | null) { return bodyStyleOptions.find((item) => item.id === style)?.label ?? "Body style not set"; }
 
 async function saveRecord() {
   saving.value = true; pageError.value = "";
   try {
     if (props.kind === "make") await catalogStore.saveMake({ id: editingId.value ?? undefined, name: name.value });
-    else if (props.kind === "segment") await catalogStore.saveSegment({ id: editingId.value ?? undefined, name: name.value });
+    else if (props.kind === "segment") await catalogStore.saveSegment({ id: editingId.value ?? undefined, name: name.value, bodyStyle: bodyStyle.value });
     else if (props.kind === "model") await catalogStore.saveModel({ id: editingId.value ?? undefined, name: name.value, makeId: makeId.value });
     else await authorsStore.saveAuthor({ id: editingId.value ?? undefined, firstName: firstName.value, lastName: lastName.value, team: team.value });
     closeForm();
@@ -335,8 +349,14 @@ async function saveVehicleYear() {
   if (vehicleYear.value === null) return;
   savingVehicleYear.value = true; pageError.value = "";
   try {
-    await catalogStore.saveModelYearVehicle({ id: editingVehicleYearId.value ?? undefined, modelId: vehicleModelId.value, modelYear: vehicleYear.value, segmentId: vehicleSegmentId.value || null });
-    editingVehicleYearId.value = null; vehicleMakeId.value = ""; vehicleModelId.value = ""; vehicleYear.value = null; vehicleSegmentId.value = "";
+    await catalogStore.saveModelYearVehicle({ id: editingVehicleYearId.value ?? undefined, modelId: vehicleModelId.value, modelYear: vehicleYear.value, segmentIds: vehicleSegmentIds.value });
+    const vehicle = catalogStore.modelYearVehicles.find((item) => item.modelId === vehicleModelId.value && item.modelYear === vehicleYear.value);
+    if (vehicle) await catalogStore.saveModelYearRating(vehicle.id, vehicleRating.value ? Number(vehicleRating.value) : null);
+    if (vehicle && vehicleYear.value !== null) {
+      await catalogStore.saveModelYearAward(vehicle.id, vehicleYear.value, "ten_best", vehicleAwards.value.ten_best);
+      await catalogStore.saveModelYearAward(vehicle.id, vehicleYear.value, "editors_choice", vehicleAwards.value.editorsChoice);
+    }
+    editingVehicleYearId.value = null; vehicleMakeId.value = ""; vehicleModelId.value = ""; vehicleYear.value = null; vehicleSegmentIds.value = []; vehicleRating.value = ""; vehicleAwards.value = { ten_best: false, editorsChoice: false };
   } catch (reason) { pageError.value = reason instanceof Error ? reason.message : "Could not save this vehicle year."; }
   finally { savingVehicleYear.value = false; }
 }
@@ -348,6 +368,9 @@ async function runAction(action: () => Promise<void>) {
 function closeActionMenu(event: MouseEvent) {
   const menu = (event.currentTarget as HTMLElement).closest("details");
   if (menu instanceof HTMLDetailsElement) menu.open = false;
+}
+function closePopover(_event: Event, element?: HTMLElement) {
+  if (element instanceof HTMLDetailsElement) element.open = false;
 }
 </script>
 
@@ -429,6 +452,13 @@ function closeActionMenu(event: MouseEvent) {
 .year-chip small { color: var(--gray-light-4); font-size: 0.72rem; text-transform: capitalize; }
 .vehicle-year-form { margin: 14px 0 0; padding: 0; border: 0; box-shadow: none; }
 .vehicle-year-form .form-actions { flex: 0 0 auto; }
+.segment-picker, .vehicle-award-picker { display: flex; min-width: 240px; flex: 2 1 280px; flex-wrap: wrap; align-items: center; gap: 7px 13px; margin: 0; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; }
+.segment-picker legend, .vehicle-award-picker legend { padding: 0 4px; color: var(--gray-dark-4); font-size: .76rem; font-weight: 700; }
+.segment-picker label, .vehicle-award-picker label { display: inline-flex; flex: 0 1 auto; align-items: center; gap: 5px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 500; }
+.segment-picker label small { color: var(--gray-light-4); font-size: .68rem; }
+.detail-awards { display: flex; min-height: 24px; align-items: center; gap: 5px; }
+.detail-awards img { width: 22px; height: 22px; object-fit: contain; }
+.detail-awards small { color: var(--gray-light-4); font-size: .72rem; }
 .detail-backdrop { position: fixed; z-index: 1000; inset: 0; display: flex; justify-content: flex-end; background: rgb(20 27 22 / 32%); }
 .detail-panel { display: flex; width: min(480px, 100vw); height: 100%; flex-direction: column; overflow: auto; background: var(--white); box-shadow: -12px 0 40px rgb(0 0 0 / 12%); }
 .detail-enter-active, .detail-leave-active { transition: opacity 240ms ease; }

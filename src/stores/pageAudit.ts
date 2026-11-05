@@ -3,6 +3,7 @@ import { ref } from "vue";
 
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { useCatalogStore, type ModelYearVehicleOption } from "@/stores/catalog";
+import { formatModelName } from "@/utils/format-model-name";
 
 export type AuditChecklist = Record<string, string>;
 export interface AuditAwards { tenBest: boolean; editorsChoice: boolean }
@@ -14,6 +15,7 @@ export interface PageAuditEntry {
   make: string;
   model: string;
   segment: string;
+  rating: number | null;
   publicUrl: string;
   pageStatus: string;
   checklist: AuditChecklist;
@@ -30,6 +32,7 @@ export interface PageAuditInput {
   pageStatus: string;
   checklist: AuditChecklist;
   awards: AuditAwards;
+  rating: number | null;
   authorNames: string;
   auditorInitials: string;
   auditedAt: string;
@@ -51,13 +54,15 @@ type DbPageAuditEntry = {
   model_year_vehicles: {
     model_year: number;
     public_url: string | null;
+    rating: number | string | null;
     models: { name: string; makes: { name: string } | { name: string }[] | null } | { name: string; makes: { name: string } | { name: string }[] | null }[];
-    segments: { name: string } | { name: string }[] | null;
+    model_year_vehicle_segments: Array<{ segments: { name: string } | { name: string }[] | null }>;
   } | {
     model_year: number;
     public_url: string | null;
+    rating: number | string | null;
     models: { name: string; makes: { name: string } | { name: string }[] | null } | { name: string; makes: { name: string } | { name: string }[] | null }[];
-    segments: { name: string } | { name: string }[] | null;
+    model_year_vehicle_segments: Array<{ segments: { name: string } | { name: string }[] | null }>;
   }[];
 };
 
@@ -84,7 +89,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
       const client = supabase;
       const rows = await fetchAllPages((from, to) => client
         .from("page_audit_entries")
-        .select("id, model_year_vehicle_id, page_status, checklist, awards, author_names, auditor_initials, audited_at, double_check_info, audit_notes, model_year_vehicles!inner(model_year, public_url, models!inner(name, makes!inner(name)), segments(name))")
+        .select("id, model_year_vehicle_id, page_status, checklist, awards, author_names, auditor_initials, audited_at, double_check_info, audit_notes, model_year_vehicles!inner(model_year, public_url, rating, models!inner(name, makes!inner(name)), model_year_vehicle_segments(segments(name)))")
         .eq("model_year_vehicles.model_year", selectedYear.value)
         .order("id")
         .range(from, to));
@@ -114,6 +119,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
       if (!supabase || !isSupabaseConfigured) {
         throw new Error("Page Audit changes require the configured Supabase database.");
       }
+      await catalog.saveModelYearRating(input.vehicle.id, input.rating);
       const result = entry
         ? await supabase.from("page_audit_entries").update(payload).eq("id", entry.id)
         : await supabase.from("page_audit_entries").insert(payload);
@@ -133,6 +139,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
       pageStatus: "",
       checklist: {},
       awards: { tenBest: false, editorsChoice: false },
+      rating: vehicle.rating,
       authorNames: "",
       auditorInitials: "",
       auditedAt: "",
@@ -146,6 +153,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
     if (!supabase || !isSupabaseConfigured || realtimeChannel) return;
     realtimeChannel = supabase.channel("page-audit-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "page_audit_entries" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicle_awards" }, () => void load())
       .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicles" }, () => void load())
       .subscribe();
   }
@@ -162,14 +170,16 @@ function mapRow(row: DbPageAuditEntry): PageAuditEntry {
   const vehicle = one(row.model_year_vehicles);
   const model = vehicle ? one(vehicle.models) : null;
   const make = model ? one(model.makes) : null;
-  const segment = vehicle ? one(vehicle.segments) : null;
+  const segmentNames = vehicle?.model_year_vehicle_segments
+    .flatMap((assignment) => one(assignment.segments)?.name ?? []) ?? [];
   return {
     id: row.id,
     modelYearVehicleId: row.model_year_vehicle_id,
     modelYear: vehicle?.model_year ?? 0,
     make: make?.name ?? "",
-    model: model?.name ?? "",
-    segment: segment?.name ?? "",
+    model: model ? formatModelName(model.name) : "",
+    segment: segmentNames.join(", "),
+    rating: vehicle?.rating === null || vehicle?.rating === undefined ? null : Number(vehicle.rating),
     publicUrl: vehicle?.public_url ?? "",
     pageStatus: row.page_status ?? "",
     checklist: row.checklist ?? {},

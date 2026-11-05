@@ -68,6 +68,21 @@ matching app update. It adds Editor-checked database functions that save the
 Changeover row and shared URL in one transaction and duplicate a task together
 with its material resources.
 
+The Rankings branch adds `migrations/202611050001_rankings_foundation.sql`.
+Apply it after the existing migrations and before deploying that branch. It
+adds body-style categories, multiple Segment placements per model year, shared
+half-step ratings, year-stamped 10 Best / Editors' Choice awards, Ranking order
+updates, and multi-Segment display in Published & Updated. The migration
+backfills existing vehicle-year Segment assignments and Page Audit awards but
+does not import 2027 ranking positions; import those from the latest reviewed
+workbook separately.
+
+Then run `migrations/202611050002_rankings_backfill.sql`.
+It assigns body styles to older Segment names and copies valid 1–10 half-step
+C/D ratings from existing Page Audit checklist answers into the shared vehicle
+rating. Existing shared ratings are kept. This prepares the Rankings screen
+without asking Editors to re-enter ratings one at a time.
+
 The invitation Edge Function uses the Supabase project's injected
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` environment
 variables. The repository's `config.toml` keeps JWT verification enabled; the
