@@ -1,0 +1,45 @@
+{
+  "version": "5",
+  "redirects": {
+    "https://esm.sh/@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2.119.0"
+  },
+  "remote": {
+    "https://esm.sh/@supabase/supabase-js@2.119.0": "5b053344a262b305cfd47fdd75b3d244e47983d70fd7f7e68dc4dbbb98bc90bc"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@eslint/js@^9.35.0",
+        "npm:@supabase/supabase-js@^2.118.0",
+        "npm:@tailwindcss/postcss@^4.1.13",
+        "npm:@tailwindcss/vite@^4.1.13",
+        "npm:@types/node@^24.5.1",
+        "npm:@typescript-eslint/eslint-plugin@^8.44.0",
+        "npm:@typescript-eslint/parser@^8.44.0",
+        "npm:@vitejs/plugin-vue@6",
+        "npm:@vue/tsconfig@~0.8.1",
+        "npm:autoprefixer@^10.4.21",
+        "npm:baseline-browser-mapping@^2.8.31",
+        "npm:date-fns@^4.1.0",
+        "npm:dateformat@^5.0.3",
+        "npm:eslint-plugin-vue@10.2",
+        "npm:eslint@^9.35.0",
+        "npm:floating-vue@^5.2.2",
+        "npm:globals@^16.2.0",
+        "npm:pinia@^3.0.4",
+        "npm:postcss@^8.5.6",
+        "npm:sass-loader@^16.0.5",
+        "npm:sass@^1.89.2",
+        "npm:tailwindcss@^4.1.13",
+        "npm:typescript@^5.9.2",
+        "npm:vite-plugin-vue-devtools@^7.7.7",
+        "npm:vite-svg-loader@^5.1.0",
+        "npm:vite@7",
+        "npm:vue-final-modal@^4.5.5",
+        "npm:vue-tsc@^3.0.7",
+        "npm:vue3-popper@^1.5.0",
+        "npm:vue@^3.5.21"
+      ]
+    }
+  }
+}

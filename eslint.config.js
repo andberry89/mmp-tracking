@@ -36,6 +36,18 @@ export default defineConfig([
     rules: tsPlugin.configs.recommended.rules,
   },
   {
+    name: "supabase/functions",
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: {
+      globals: { Deno: "readonly" },
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: "module",
+        project: false,
+      },
+    },
+  },
+  {
     name: "app/vue-typescript",
     files: ["**/*.vue"],
     languageOptions: {

@@ -57,12 +57,40 @@ The 2026-10-23 section below is a historical audit of the original prototype. It
 
 - `src/test/` contains demo fixtures, not an automated test suite; `package.json` has no test command or test-runner dependency.
 - Publication Tracking currently reloads the full task collection after each Realtime event for tasks, resources, or model-year vehicles. Server-side search and pagination should be evaluated against the expected production volume and simultaneous editing load.
-- Production hosting, Supabase exports/backups, the latest workbook import, and the expected workload still require owner decisions or verification; these remain tracked in `docs/TODO.md`.
+- Netlify is selected and the first deploy is working. The production URL/CORS configuration, off-site exports, latest workbook import, and expected workload still require verification; these remain tracked in `docs/TODO.md`.
 
 ### Security review — 2026-11-02
 
 **Good controls found in the repository:** app tables have RLS enabled; the current access migration requires an active allowlisted account, and Editor writes are gated by role policies. Viewers cannot read the separate resource-password table. User administration runs through Editor-checked RPCs, and the invitation Edge Function verifies its JWT, active allowlist entry, and Editor role before using the server-side service-role key. The browser uses only the public Supabase key.
 
-**Before launch, verify or decide:** disable public sign-ups if the app is invitation-only; review Auth redirect allowlists, password and session rules, and available abuse/rate controls; consider rate limiting invitation sends; restrict invitation-function CORS to the deployed app origin once hosting is selected; and decide whether storing press-site passwords as database text protected by RLS is sufficient for the team. Repository inspection cannot confirm the live Supabase Dashboard settings or run the Supabase Security Advisor against the hosted project.
+**Before launch, verify or decide:** disable public sign-ups if the app is invitation-only; review Auth redirect allowlists, password and session rules, and available abuse/rate controls; consider rate limiting invitation sends; set the invitation-function origin allowlist to the deployed app URL; and decide whether storing press-site passwords as database text protected by RLS is sufficient for the team. Repository inspection cannot confirm the live Supabase Dashboard settings or run the Supabase Security Advisor against the hosted project.
 
 No application tests or type-check were run during this follow-up review. The changed files were checked with `git diff --check`.
+
+## Current codebase audit — 2026-11-04
+
+### Repairs made
+
+- Fixed the existing `vue-tsc` errors in User Access, Changeover, Page Audit, and Catalog code, including unsafe array indexing, possibly-null Supabase references in fetch callbacks, and a widened model-year state literal.
+- Removed three unused variables/imports and configured ESLint to parse the Deno invitation function without incorrectly requiring it to belong to the browser TypeScript project.
+- Added explicit 1,000-row range paging to task loading. The browser still loads the full task collection, so this prevents silent truncation but does not solve client-side scaling or history pagination.
+
+### Findings to address
+
+1. **Changeover row and public URL writes are now transactional.** The new `save_changeover_entry` RPC writes both records together. It preserves the existing behavior of clearing the shared URL when the status is not Published; confirm that this remains right for cases such as Dead after publication.
+2. **Task duplication is now transactional.** The new `duplicate_mmp_task` RPC creates the task and copies its material resources as one database operation. Migration `202611040001_atomic_workflow_writes.sql` has been applied to the hosted project.
+3. **Realtime refreshes are now scoped and serialized.** Task and resource events refetch only their task; vehicle events refetch tasks for that vehicle. A queue prevents out-of-order refreshes, and stale queued work is ignored after sign-out. Refresh errors are shown without clearing the visible task list. Automated collaboration tests remain part of reliability work.
+4. **Task data remains fully client-resident.** The new fetch paging retrieves every task in batches, but filtering and Published & Updated pagination still operate after the full collection is loaded. Move these queries to server-side pagination/filtering when the team reaches the performance work.
+5. **Authorization and function boundaries look sound in repository code.** App tables enable RLS, Editor mutations use role checks, and resource secrets are separated from Viewer-readable resources. The invitation Edge Function validates the caller and recipient before using its service-role key. Wildcard CORS has been replaced by an exact origin allowlist; Andrew set `APP_ALLOWED_ORIGINS` to the production site and deployed the updated function on 2026-11-04. The live Supabase settings cannot be independently inspected from this repository.
+6. **Database response types rely on handwritten casts.** `supabase-data.ts` uses a custom `QueryClient` interface and casts response rows to local types. Generated Supabase database types would reduce the chance that schema changes silently drift from the app.
+7. **No automated test suite exists.** `src/test/` holds demo fixtures, and there is no test script or runner. Critical workflows currently rely on manual review.
+8. **The handoff document has stale sections.** It still describes migrations as unapplied, lists authentication and drag-and-drop as future capabilities, and says ESLint runs with `--fix`. Keep its implementation snapshot aligned with the app and use `TODO.md` for remaining work.
+9. **Lint has substantial formatting noise.** `npm run lint -- --quiet` passes, but full ESLint reports 1,244 warnings, mostly Vue template formatting rules. These warnings do not currently block the quiet lint command; reduce the baseline gradually rather than applying a broad formatter pass.
+
+### Static checks
+
+- `npm run type-check` passes.
+- `npm run lint -- --quiet` passes. Full lint reports 1,244 warnings and no errors.
+- `deno check supabase/functions/send-user-invitation/index.ts` passes.
+- `git diff --check` passes.
+- No application tests or production build were run. Andrew applied the migration, set `APP_ALLOWED_ORIGINS`, and deployed the updated Edge Function on 2026-11-04. The hosted Supabase configuration was not independently inspected during this audit.

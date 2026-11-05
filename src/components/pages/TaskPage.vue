@@ -3,6 +3,8 @@
     :documents="documents"
     :active-authors-by-team="activeAuthorsByTeam"
     :can-edit="canEdit"
+    :search-query="searchQuery"
+    :author-id="authorId"
   />
 </template>
 
@@ -18,5 +20,7 @@ defineProps<{
   authors: GroupedAuthors;
   activeAuthorsByTeam?: AuthorsByTeamGroup[];
   canEdit?: boolean;
+  searchQuery?: string;
+  authorId?: string | null;
 }>();
 </script>

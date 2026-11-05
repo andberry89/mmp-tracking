@@ -220,7 +220,7 @@ async function sendInvitation(user: ManagedUser) {
 
 function suggestDisplayName(email: string) {
   const match = email.trim().match(/^([a-z][a-z'-]*)\.([a-z][a-z'-]*)@hearst\.com$/i);
-  if (!match) return "";
+  if (!match?.[1] || !match[2]) return "";
   const titleCase = (part: string) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
   return `${titleCase(match[1])} ${titleCase(match[2])}`;
 }

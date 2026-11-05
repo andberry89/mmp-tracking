@@ -22,6 +22,8 @@
           :authors="authors"
           :activeAuthorsByTeam="activeAuthorsByTeam"
           :can-edit="canEdit"
+          :search-query="activeLabel === 'MMPs' ? searchQuery : ''"
+          :author-id="activeLabel === 'MMPs' ? selectedAuthorId : null"
         />
       </div>
     </Transition>
@@ -44,16 +46,14 @@ import { TaskPage, MakePage, ModelPage, SegmentPage, AuthorPage, ChangeoverPage,
 import PageHeader from "@/components/pages/components/PageHeader.vue";
 import CatalogNav from "@/components/pages/components/CatalogNav.vue";
 
-import { getRangeDates, getDocumentAuthor } from "@/utils/";
+import { getDocumentAuthor } from "@/utils/";
 import { getHeaderConfig } from "@/config/headerConfigs";
-import { isWithinInterval } from "date-fns";
 
 import type { GroupedAuthors, TaskDocument, AuthorsByTeamGroup } from "@/types";
 
 // Props ------------------------------------
 const props = defineProps<{
   authors: GroupedAuthors;
-  ranges: Array<{ id: string; label: string }>;
   activeLabel: string;
   canEdit?: boolean;
 }>();
@@ -69,7 +69,6 @@ const documentsStore = useDocumentsStore();
 const searchQuery = ref("");
 
 const selectedAuthorId = ref<string | null>(null);
-const selectedRangeId = ref<string | null>(null);
 
 // Computed --------------------------------
 
@@ -77,17 +76,7 @@ const selectedRangeId = ref<string | null>(null);
 const filteredDocuments = computed(() => {
   let docs: TaskDocument[] = documentsStore.documents;
 
-  // 1. Range Filtering
-  const range = getRangeDates(selectedRangeId.value);
-  if (range) {
-    const { start, end } = range;
-    docs = docs.filter((doc) => {
-      if (!doc.publishedDate) return false;
-      return isWithinInterval(new Date(doc.publishedDate), { start, end });
-    });
-  }
-
-  // 2. Author Filtering
+  // Author filtering applies to both Active Work and Published & Updated.
   if (selectedAuthorId.value) {
     docs = docs.filter((doc) => {
       const docAuthor = getDocumentAuthor(doc);
@@ -95,7 +84,7 @@ const filteredDocuments = computed(() => {
     });
   }
 
-  // 3. Search Filtering (MMPs only)
+  // Search applies to both Publication Tracking views.
   if (props.activeLabel === "MMPs" && searchQuery.value.trim()) {
     const query = searchQuery.value.trim().toLowerCase();
     docs = docs.filter((doc) => {
@@ -121,9 +110,7 @@ const filteredDocuments = computed(() => {
 const headerProps = computed(() =>
   getHeaderConfig({
     authors: props.authors,
-    ranges: props.ranges,
     setAuthor: (id: string) => (selectedAuthorId.value = id),
-    setRange: (id: string) => (selectedRangeId.value = id),
   })
 );
 
@@ -189,7 +176,6 @@ watch(
   () => props.activeLabel,
   () => {
     selectedAuthorId.value = null;
-    selectedRangeId.value = null;
   }
 );
 

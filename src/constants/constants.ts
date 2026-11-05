@@ -3,6 +3,7 @@ export const ranges = [
   { label: "Last Month", id: "last_month" },
   { label: "This Week", id: "this_week" },
   { label: "This Month", id: "this_month" },
+  { label: "Past 90 Days", id: "past_90_days" },
 ];
 
 export const teams = [

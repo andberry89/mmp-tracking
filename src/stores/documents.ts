@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 import { applyTaskRules } from "@/utils/apply-task-rules";
 import { sortDocuments } from "@/utils/sort-functions";
 import { testDocuments } from "@/test";
-import { fetchTasks } from "@/lib/supabase-data";
+import { fetchTaskById, fetchTasks, fetchTasksForVehicle } from "@/lib/supabase-data";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 import type { NewTaskInput, TaskDocument, TaskStatus, TaskAsset, TaskResourceInput, Author, TaskVehicle } from "@/types";
@@ -19,6 +19,8 @@ export const useDocumentsStore = defineStore("documents", () => {
   const hasLoaded = ref(false);
   const isSaving = ref(false);
   let realtimeChannel: ReturnType<NonNullable<typeof supabase>["channel"]> | null = null;
+  let realtimeGeneration = 0;
+  let realtimeRefreshQueue: Promise<void> = Promise.resolve();
 
   // ------------------------------
   // GETTERS
@@ -47,6 +49,17 @@ export const useDocumentsStore = defineStore("documents", () => {
 
   function insertDocument(doc: TaskDocument) {
     documents.value.unshift(applyTaskRules(doc));
+  }
+
+  function upsertDocument(doc: TaskDocument) {
+    const index = documents.value.findIndex((current) => current.id === doc.id);
+    const normalized = applyTaskRules(doc);
+    if (index === -1) documents.value.unshift(normalized);
+    else documents.value.splice(index, 1, normalized);
+  }
+
+  function removeDocument(id: string) {
+    documents.value = documents.value.filter((doc) => doc.id !== id);
   }
 
   async function createDocument(input: NewTaskInput): Promise<boolean> {
@@ -227,36 +240,76 @@ export const useDocumentsStore = defineStore("documents", () => {
   function subscribeToChanges() {
     if (!supabase || !isSupabaseConfigured) return;
     if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
+    const generation = ++realtimeGeneration;
 
     realtimeChannel = supabase
       .channel("mmp-tracking-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "mmp_tasks" }, () => {
-        void loadDocuments();
+      .on("postgres_changes", { event: "*", schema: "public", table: "mmp_tasks" }, (payload) => {
+        const taskId = payload.eventType === "DELETE" ? payload.old.id : payload.new.id;
+        if (typeof taskId !== "string") return;
+        queueRealtimeRefresh(async () => {
+          if (payload.eventType === "DELETE") {
+            removeDocument(taskId);
+            return;
+          }
+          const latest = await fetchTaskById(taskId);
+          if (generation !== realtimeGeneration) return;
+          if (latest && isActiveTask(latest)) upsertDocument(latest);
+          else removeDocument(taskId);
+        }, generation);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "task_resources" }, () => {
-        void loadDocuments();
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_resources" }, (payload) => {
+        const taskId = payload.eventType === "DELETE" ? payload.old.task_id : payload.new.task_id;
+        if (typeof taskId !== "string") return;
+        queueRealtimeRefresh(async () => {
+          const latest = await fetchTaskById(taskId);
+          if (generation !== realtimeGeneration) return;
+          if (latest && isActiveTask(latest)) upsertDocument(latest);
+          else removeDocument(taskId);
+        }, generation);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicles" }, () => {
-        void loadDocuments();
+      .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicles" }, (payload) => {
+        const vehicleId = payload.eventType === "DELETE" ? payload.old.id : payload.new.id;
+        if (typeof vehicleId !== "string") return;
+        queueRealtimeRefresh(async () => {
+          const latest = await fetchTasksForVehicle(vehicleId);
+          if (generation !== realtimeGeneration) return;
+          const activeLatest = latest.filter(isActiveTask);
+          const latestIds = new Set(activeLatest.map((doc) => doc.id));
+          documents.value = documents.value.filter((doc) =>
+            doc.modelYearVehicleId !== vehicleId || latestIds.has(doc.id)
+          );
+          activeLatest.forEach(upsertDocument);
+        }, generation);
       })
       .subscribe();
   }
 
   function stopRealtime() {
+    realtimeGeneration += 1;
     if (!supabase || !realtimeChannel) return;
     void supabase.removeChannel(realtimeChannel);
     realtimeChannel = null;
   }
 
+  function queueRealtimeRefresh(refresh: () => Promise<void>, generation: number) {
+    realtimeRefreshQueue = realtimeRefreshQueue
+      .then(async () => {
+        if (generation === realtimeGeneration) await refresh();
+      })
+      .catch((reason: unknown) => {
+        if (generation !== realtimeGeneration) return;
+        error.value = reason instanceof Error ? reason.message : "Unable to refresh the changed task.";
+      });
+  }
+
   // ------------------------------
   // ACTIONS — Updates
   // ------------------------------
-  async function updateDocument(id: string, payload: Partial<TaskDocument>) {
+  async function updateDocument(id: string, payload: Partial<TaskDocument>, baseDocument?: TaskDocument) {
     error.value = null;
     const idx = documents.value.findIndex((doc) => doc.id === id);
-    if (idx === -1) return;
-
-    const current = documents.value[idx];
+    const current = idx === -1 ? baseDocument : documents.value[idx];
     if (!current) return;
 
     const merged: TaskDocument = {
@@ -310,7 +363,8 @@ export const useDocumentsStore = defineStore("documents", () => {
       merged.publishedDate = merged.embargoDate || new Date().toISOString();
     }
 
-    documents.value[idx] = applyTaskRules(merged);
+    if (isActiveTask(merged)) upsertDocument(merged);
+    else removeDocument(id);
   }
 
   async function deleteDocument(id: string) {
@@ -321,12 +375,12 @@ export const useDocumentsStore = defineStore("documents", () => {
         return;
       }
     }
-    documents.value = documents.value.filter((doc) => doc.id !== id);
+    removeDocument(id);
     error.value = null;
   }
 
-  async function duplicateDocument(id: string) {
-    const original = documents.value.find((doc) => doc.id === id);
+  async function duplicateDocument(id: string, baseDocument?: TaskDocument) {
+    const original = documents.value.find((doc) => doc.id === id) ?? baseDocument;
     if (!original) return null;
 
     const newDoc: TaskDocument = {
@@ -339,50 +393,20 @@ export const useDocumentsStore = defineStore("documents", () => {
     };
 
     if (isSupabaseConfigured && supabase) {
-      if (!original.modelYearVehicleId) {
-        error.value = "This task is missing its shared model-year vehicle record.";
+      const { data: newTaskId, error: duplicateError } = await supabase.rpc("duplicate_mmp_task", {
+        p_task_id: id,
+      });
+      if (duplicateError || !newTaskId) {
+        error.value = duplicateError?.message ?? "Could not duplicate this task.";
         return null;
       }
 
-      const { data, error: insertError } = await supabase
-        .from("mmp_tasks")
-        .insert({
-          model_year_vehicle_id: original.modelYearVehicleId,
-          author_id: original.authorId,
-          status: "pending",
-          task_kind: "new_mmp",
-          high_priority: original.highPriority,
-          deadline: original.deadline || null,
-          notes: original.notes,
-          embargo_at: toTimestamp(original.embargoDate),
-          embargo_notes: original.embargoNotes,
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !data) {
-        error.value = insertError?.message ?? "Could not duplicate this task.";
-        return null;
-      }
-
-      newDoc.id = data.id;
-      newDoc.assets = [];
-      const materials = original.assets.filter((asset) => asset.kind !== "imeet");
-      if (materials.length) {
-        const { error: resourceError } = await supabase.from("task_resources").insert(
-          materials.map((asset) => ({
-            task_id: newDoc.id,
-            kind: "material" as const,
-            label: asset.label || asset.notes,
-            url: asset.url,
-            notes: asset.notes,
-          }))
-        );
-        if (resourceError) error.value = resourceError.message;
-      }
-
-      void loadDocuments();
-      return newDoc;
+      newDoc.id = newTaskId as string;
+      newDoc.assets = original.assets
+        .filter((asset) => asset.kind === "material")
+        .map(({ kind, label, url, notes }) => ({ kind, label, url, notes }));
+      await loadDocuments();
+      return documents.value.find((document) => document.id === newDoc.id) ?? newDoc;
     }
 
     insertDocument(newDoc);
@@ -392,8 +416,8 @@ export const useDocumentsStore = defineStore("documents", () => {
   // ------------------------------
   // ACTIONS — Asset Management
   // ------------------------------
-  async function addAssetToDocument(id: string, asset: TaskResourceInput): Promise<boolean> {
-    const doc = getDocumentById(id).value;
+  async function addAssetToDocument(id: string, asset: TaskResourceInput, baseDocument?: TaskDocument): Promise<boolean> {
+    const doc = getDocumentById(id).value ?? baseDocument;
     if (!doc) return false;
     if (asset.password && (!isSupabaseConfigured || !supabase)) {
       error.value = "Password storage requires the Supabase connection to be configured.";
@@ -435,16 +459,16 @@ export const useDocumentsStore = defineStore("documents", () => {
           return false;
         }
       }
-      await updateDocument(id, { assets: [...doc.assets, data as TaskAsset] });
+      await updateDocument(id, { assets: [...doc.assets, data as TaskAsset] }, doc);
       return !error.value;
     }
 
-    await updateDocument(id, { assets: [...doc.assets, safeAsset] });
+    await updateDocument(id, { assets: [...doc.assets, safeAsset] }, doc);
     return !error.value;
   }
 
-  async function deleteAssetFromDocument(id: string, index: number) {
-    const doc = getDocumentById(id).value;
+  async function deleteAssetFromDocument(id: string, index: number, baseDocument?: TaskDocument) {
+    const doc = getDocumentById(id).value ?? baseDocument;
     if (!doc) return;
 
     const newAssets = [...doc.assets];
@@ -461,7 +485,7 @@ export const useDocumentsStore = defineStore("documents", () => {
         return;
       }
     }
-    await updateDocument(id, { assets: newAssets });
+    await updateDocument(id, { assets: newAssets }, doc);
   }
 
   // ------------------------------
@@ -471,10 +495,10 @@ export const useDocumentsStore = defineStore("documents", () => {
     updateDocument(id, { status });
   }
 
-  function updateAuthor(id: string, author: Author | null) {
+  function updateAuthor(id: string, author: Author | null, baseDocument?: TaskDocument) {
     updateDocument(id, {
       authorId: author ? author.id : null,
-    });
+    }, baseDocument);
   }
 
   function updateVehicle(id: string, vehicle: Partial<TaskVehicle>) {
@@ -542,4 +566,8 @@ function toTimestamp(value: string | undefined) {
   if (!value) return null;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function isActiveTask(document: TaskDocument) {
+  return document.status !== "published" && document.status !== "updated";
 }

@@ -45,7 +45,6 @@
 
     <main id="content">
       <MainContent
-        :ranges="ranges"
         :authors="sortedAuthors"
         :activeLabel="activeLabel"
         :can-edit="canEdit"
@@ -80,6 +79,7 @@ import { useDocumentsStore } from "@/stores/documents";
 import { useAuthorsStore } from "@/stores/authors";
 import { useCatalogStore } from "@/stores/catalog";
 import { useChangeoverStore } from "@/stores/changeover";
+import { usePublicationHistoryStore } from "@/stores/publicationHistory";
 
 // ----------------------------------
 // STORE
@@ -89,6 +89,7 @@ const documentsStore = useDocumentsStore();
 const authStore = useAuthStore();
 const catalogStore = useCatalogStore();
 const changeoverStore = useChangeoverStore();
+const publicationHistoryStore = usePublicationHistoryStore();
 
 const canEdit = computed(() => !isSupabaseConfigured || authStore.isEditor);
 const userAccessOpen = ref(false);
@@ -155,6 +156,7 @@ async function loadWorkspaceData() {
     ]);
     await changeoverStore.load();
     documentsStore.subscribeToChanges();
+    publicationHistoryStore.subscribeToChanges();
     catalogStore.subscribeToChanges();
     changeoverStore.subscribeToChanges();
     loadedWorkspaceUserId = userId;
@@ -170,6 +172,7 @@ async function loadWorkspaceData() {
 async function handleSignOut() {
   loadedWorkspaceUserId = null;
   documentsStore.stopRealtime();
+  publicationHistoryStore.clear();
   catalogStore.stopRealtime();
   changeoverStore.stopRealtime();
   documentsStore.clearDocuments();
