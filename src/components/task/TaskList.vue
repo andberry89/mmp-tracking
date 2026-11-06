@@ -120,6 +120,29 @@
         <span class="history-results-count">{{ historyTotalCount }} tasks</span>
       </div>
 
+      <section class="history-summary" aria-label="Published and updated totals for the selected date range" aria-live="polite">
+        <div class="history-summary__heading">
+          <div><span>{{ historyRangeLabel }}</span><h2>Publication summary</h2></div>
+          <span v-if="historyStore.isLoadingStats" class="history-summary__loading">Updating totals…</span>
+        </div>
+        <div class="history-summary__cards">
+          <article v-for="summary in historySummary" :key="summary.status" class="history-summary-card" :class="`history-summary-card--${summary.status}`">
+            <header class="history-summary-card__header">
+              <h3><span class="history-status-dot" aria-hidden="true"></span>{{ summary.label }}</h3>
+              <strong>{{ summary.count }}</strong>
+            </header>
+            <p>{{ summary.count === 1 ? 'task' : 'tasks' }} in this range</p>
+            <div class="history-summary-card__years">
+              <span class="history-summary-card__years-label">By model year</span>
+              <div v-if="summary.years.length" class="history-year-list">
+                <span v-for="item in summary.years" :key="item.year" class="history-year-item"><span>{{ item.year }}</span><strong>{{ item.count }}</strong></span>
+              </div>
+              <span v-else class="history-summary-card__empty">No {{ summary.label.toLowerCase() }} tasks in this range.</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <div v-if="canEdit" class="history-return-dropzones" aria-label="Move a task back to Active Work">
         <span>Move back to Active Work:</span>
         <button
@@ -145,7 +168,7 @@
         <span class="task-loading-spinner" aria-hidden="true"></span><span>Loading published history…</span>
       </div>
       <p v-else-if="!historyTotalCount && !draggedTaskId" class="history-empty">No published or updated tasks in this date range.</p>
-      <div class="task-workboard-scroll" role="region" tabindex="0" aria-label="Published and updated tasks">
+      <div class="task-workboard-scroll task-workflow font-[400] text-[12px] leading-[1.2] font-[Asap,sans-serif]" role="region" tabindex="0" aria-label="Published and updated tasks">
         <TaskItem
           v-for="doc in historyTasks"
           :key="doc.id"
@@ -384,6 +407,29 @@ const historyTasks = computed(() => {
 });
 const pageRangeStart = computed(() => (currentPublishedPage.value - 1) * pageSize + 1);
 const pageRangeEnd = computed(() => Math.min(currentPublishedPage.value * pageSize, historyTotalCount.value));
+const historySummary = computed(() => ([
+  { status: "published", label: "Published" },
+  { status: "updated", label: "Updated" },
+] as const).map(({ status, label }) => {
+  const rows = historyStore.stats
+    .filter((stat) => stat.status === status)
+    .sort((a, b) => b.modelYear - a.modelYear);
+  return {
+    status,
+    label,
+    count: rows.reduce((total, row) => total + row.count, 0),
+    years: rows.map((row) => ({ year: row.modelYear, count: row.count })),
+  };
+}));
+const historyRangeLabel = computed(() => {
+  if (selectedHistoryRange.value === "all") return "All dates";
+  if (selectedHistoryRange.value === "custom") {
+    const start = customDateStart.value || "Any start";
+    const end = customDateEnd.value || "Any end";
+    return `${start} – ${end}`;
+  }
+  return publishedDateRanges.find((range) => range.id === selectedHistoryRange.value)?.label ?? "Selected date range";
+});
 const allVisibleTasks = computed(() => [...(props.documents ?? documentsStore.documents), ...historyStore.entries]);
 const draggedTask = computed(() => allVisibleTasks.value.find((doc) => doc.id === draggedTaskId.value) ?? null);
 
@@ -403,6 +449,16 @@ watch([taskView, selectedHistoryRange, customDateStart, customDateEnd, () => pro
   currentPublishedPage.value = 1;
   void loadHistoryPage();
 }, { immediate: true });
+watch([taskView, selectedHistoryRange, customDateStart, customDateEnd], () => {
+  if (taskView.value !== "history") return;
+  const range = historyDateRange.value;
+  void historyStore.loadStats(range.startAt, range.endAt);
+});
+watch(() => props.documents ?? documentsStore.documents, () => {
+  if (isSupabaseConfigured || taskView.value !== "history") return;
+  const range = historyDateRange.value;
+  void historyStore.loadStats(range.startAt, range.endAt);
+}, { deep: true });
 watch(currentPublishedPage, () => {
   void loadHistoryPage();
 });
@@ -629,6 +685,26 @@ const headers = [
 .history-custom-range { display: flex; flex-wrap: wrap; gap: 10px; }
 .history-custom-range input { min-width: 140px; }
 .history-results-count { margin-left: auto; padding-bottom: 9px; color: var(--gray-light-4); font-size: 0.8rem; }
+.history-summary { display: grid; gap: 10px; margin: 8px 0 14px; }
+.history-summary__heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.history-summary__heading > div { display: grid; gap: 2px; }
+.history-summary__heading > div > span, .history-summary__loading { color: var(--gray-light-4); font-size: 0.68rem; }
+.history-summary__heading h2 { margin: 0; color: var(--gray-dark-4); font: 700 0.96rem/1.2 "Monda", sans-serif; }
+.history-summary__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.history-summary-card { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 11px 13px; border: 1px solid var(--color-border); border-left: 3px solid var(--history-status-color); border-radius: 7px; background: color-mix(in srgb, var(--white) 94%, transparent); box-shadow: var(--color-surface-shadow); }
+.history-summary-card--published { --history-status-color: var(--color-body-published); }
+.history-summary-card--updated { --history-status-color: var(--color-body-updated); }
+.history-summary-card__header { display: contents; }
+.history-summary-card__header h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--gray-dark-4); font: 700 0.82rem "Asap", sans-serif; }
+.history-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--history-status-color); }
+.history-summary-card__header > strong { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--gray-dark-4); font: 700 1.45rem/1 "Monda", sans-serif; }
+.history-summary-card > p { margin: 0; color: var(--gray-light-4); font-size: 0.7rem; }
+.history-summary-card__years { display: grid; grid-column: 1 / -1; gap: 5px; margin-top: 5px; padding-top: 7px; border-top: 1px solid var(--color-divider); }
+.history-summary-card__years-label { color: var(--gray-light-4); font-size: 0.66rem; font-weight: 600; }
+.history-year-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.history-year-item { display: inline-flex; align-items: center; gap: 6px; padding: 3px 7px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--white); color: var(--gray-dark-3); font-size: 0.68rem; }
+.history-year-item strong { color: var(--gray-dark-4); font-size: 0.7rem; }
+.history-summary-card__empty { color: var(--gray-light-3); font-size: 0.68rem; }
 .history-return-dropzones { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding: 9px 10px; border: 1px dashed var(--color-border); border-radius: 6px; color: var(--gray-light-4); font-size: 0.78rem; }
 .history-return-dropzones button { min-height: 30px; padding: 0 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font: 600 0.74rem "Asap", sans-serif; }
 .history-return-dropzones button.history-return-dropzone--active { border-color: var(--green-2); background: var(--color-green-soft); }
@@ -671,6 +747,11 @@ const headers = [
 
   .history-pagination { align-items: flex-start; flex-direction: column; }
   .history-results-count { width: 100%; margin-left: 0; padding-bottom: 0; }
+}
+
+@media (max-width: 640px) {
+  .history-summary__cards { grid-template-columns: minmax(0, 1fr); }
+  .history-summary__heading { align-items: flex-start; flex-direction: column; }
 }
 
 :deep(.task-mobile-label) { display: none; }
