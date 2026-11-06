@@ -18,6 +18,7 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
   const entries = ref<TaskDocument[]>([]);
   const totalCount = ref(0);
   const isLoading = ref(false);
+  const isLoadingStats = ref(false);
   const error = ref<string | null>(null);
   const stats = ref<Array<{ status: "published" | "updated"; modelYear: number; count: number }>>([]);
   let realtimeChannel: ReturnType<NonNullable<typeof supabase>["channel"]> | null = null;
@@ -70,13 +71,24 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
   async function loadStats(startAt: string | null, endAt: string | null) {
     statsRange = { startAt, endAt };
     const requestId = ++statsRequestId;
+    isLoadingStats.value = true;
     if (!isSupabaseConfigured) {
       const documentsStore = useDocumentsStore();
-      stats.value = documentsStore.documents
+      const matching = documentsStore.documents
         .filter((doc) => (doc.status === "published" || doc.status === "updated")
           && (!startAt || doc.publishedDate >= startAt)
-          && (!endAt || doc.publishedDate <= endAt))
-        .map((doc) => ({ status: doc.status as "published" | "updated", modelYear: doc.vehicle.modelYear, count: 1 }));
+          && (!endAt || doc.publishedDate <= endAt));
+      const counts = new Map<string, { status: "published" | "updated"; modelYear: number; count: number }>();
+      matching.forEach((doc) => {
+        const status = doc.status as "published" | "updated";
+        const modelYear = doc.vehicle.modelYear;
+        const key = `${status}:${modelYear}`;
+        const existing = counts.get(key);
+        if (existing) existing.count += 1;
+        else counts.set(key, { status, modelYear, count: 1 });
+      });
+      stats.value = [...counts.values()];
+      isLoadingStats.value = false;
       return;
     }
     try {
@@ -84,6 +96,8 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
       if (requestId === statsRequestId) stats.value = result;
     } catch (reason) {
       if (requestId === statsRequestId) error.value = reason instanceof Error ? reason.message : "Unable to load publication totals.";
+    } finally {
+      if (requestId === statsRequestId) isLoadingStats.value = false;
     }
   }
 
@@ -117,6 +131,7 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
     entries.value = [];
     totalCount.value = 0;
     stats.value = [];
+    isLoadingStats.value = false;
     error.value = null;
     latestQuery = null;
     pageRequestId += 1;
@@ -124,5 +139,5 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
     isLoading.value = false;
   }
 
-  return { entries, totalCount, isLoading, error, stats, loadPage, loadStats, subscribeToChanges, stopRealtime, clear };
+  return { entries, totalCount, isLoading, isLoadingStats, error, stats, loadPage, loadStats, subscribeToChanges, stopRealtime, clear };
 });

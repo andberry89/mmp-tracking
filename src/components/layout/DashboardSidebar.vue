@@ -38,43 +38,14 @@
       </div>
     </div>
 
-    <h3 class="text-base font-bold color-[var(--color-sidebar-text-header)] uppercase mb-[15px]">
-      Published & Updates
-    </h3>
-    <DropdownMenu :options="ranges" :label="'Show'" @update:selected="selectedPublishedRange = $event || null" />
-    <div class="pl-[5px] font-[Asap,sans-serif]">
-      <div
-        class="font-[400] text-[12px] leading-[1.2] font-[Monda,sans-serif] text-[var(--color-sidebar-text)] py-[6px]"
-        v-for="(stat, statIdx) in updatedAndPublished"
-        :key="'pubstat-' + statIdx"
-      >
-        <span
-          :class="[
-            'inline-block w-[6px] h-[6px] rounded-full mr-[5px]',
-            `bg-[var(--color-body-${stat.value})]`,
-          ]"
-        ></span>
-        <span class="font-bold">{{ stat.label }}: </span>
-        <span>{{ stat.count }}</span>
-        <div
-          class="text-[12px] text-[var(--color-sidebar-text-subtext)] pl-5 flex flex-col gap-1 mt-1"
-        >
-          <span v-for="[year, count] in stat.countByYear" :key="year">
-            {{ year }}: {{ count }}
-          </span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import { useDocumentsStore } from "@/stores/documents";
-import { usePublicationHistoryStore } from "@/stores/publicationHistory";
-import { isSupabaseConfigured } from "@/lib/supabase";
 import { teams, statuses } from "@/constants/constants";
-import { getDocumentAuthor, getRangeDates } from "@/utils/";
+import { getDocumentAuthor } from "@/utils/";
 
 import type { TaskStatus } from "@/types";
 
@@ -86,7 +57,6 @@ interface Author {
 
 interface Props {
   authors: Record<string, Author[]>;
-  ranges: { id: string; label: string }[];
 }
 
 // Props
@@ -94,8 +64,6 @@ const props = defineProps<Props>();
 
 // Store
 const documentsStore = useDocumentsStore();
-const historyStore = usePublicationHistoryStore();
-const selectedPublishedRange = ref<string | null>(null);
 
 // Color Maps
 // Must match lowercase TaskStatus values
@@ -137,43 +105,6 @@ const quickStats = computed(() => {
     });
 });
 
-// Published + Updated
-const publishKeys: TaskStatus[] = ["published", "updated"];
-
-const updatedAndPublished = computed(() => {
-  return statuses
-    .filter((status) => publishKeys.includes(status.value as TaskStatus))
-    .map((status) => {
-      const countByYearMap: Record<string, number> = {};
-      let count = 0;
-      historyStore.stats.forEach((stat) => {
-        if (stat.status !== status.value) return;
-        count += stat.count;
-        const year = String(stat.modelYear);
-        countByYearMap[year] = (countByYearMap[year] || 0) + stat.count;
-      });
-
-      const countByYear = Object.entries(countByYearMap).sort(([a], [b]) => Number(b) - Number(a));
-
-      return {
-        ...status,
-        count,
-        countByYear,
-      };
-    });
-});
-
-watch(selectedPublishedRange, (rangeId) => {
-  const range = getRangeDates(rangeId);
-  void historyStore.loadStats(range?.start.toISOString() ?? null, range?.end.toISOString() ?? null);
-}, { immediate: true });
-watch(() => documentsStore.documents, () => {
-  if (!isSupabaseConfigured) {
-    const range = getRangeDates(selectedPublishedRange.value);
-    void historyStore.loadStats(range?.start.toISOString() ?? null, range?.end.toISOString() ?? null);
-  }
-}, { deep: true });
-
 // Tasks assigned per author
 function assigned(author: Author) {
   return assignedCounts.value[author.id] ?? 0;
@@ -184,8 +115,6 @@ function authorsForSidebar(team: (typeof teams)[number]) {
   return team.slug === "bg" ? members : members.filter((author) => assigned(author) > 0);
 }
 
-// Available to template
-const { ranges } = props;
 </script>
 
 <style lang="scss" scoped>

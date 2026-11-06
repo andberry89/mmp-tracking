@@ -40,7 +40,7 @@
     </header>
 
     <aside id="sidebar">
-      <DashboardSidebar :ranges="ranges" :authors="activeAuthors" />
+      <DashboardSidebar :authors="activeAuthors" />
     </aside>
 
     <main id="content">
@@ -72,8 +72,6 @@ import UserAccessModal from "@/components/admin/UserAccessModal.vue";
 import UserSettingsModal from "@/components/admin/UserSettingsModal.vue";
 import { useAuthStore } from "@/stores/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
-
-import { ranges as defaultRanges } from "@/constants";
 
 import { useDocumentsStore } from "@/stores/documents";
 import { useAuthorsStore } from "@/stores/authors";
@@ -184,7 +182,6 @@ async function handleSignOut() {
 // ----------------------------------
 const activeLabel = ref("MMPs");
 const activeCatalogLabel = ref("Makes");
-const ranges = ref(defaultRanges);
 
 // ----------------------------------
 // COMPUTED
