@@ -6,7 +6,7 @@ This list is ordered by dependency. Email enhancements and other optional featur
 
 - Responsive and accessibility pass accepted for the current app. Recheck affected breakpoints after adding Rankings and multi-segment labels.
 - Basic security review completed. The anonymous `SECURITY DEFINER` permissions were removed; the remaining authenticated-function findings are intentional and authorization-checked. Leaked-password protection is unavailable on the current Supabase Free plan.
-- Netlify selected; the first production deploy is working. Final Supabase production URLs and invitation-function CORS still need configuration against the chosen site URL.
+- Netlify production deploy is working. Production `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured across deploy contexts. Supabase Site URL and redirect allowlist now include the production Netlify origin; the invitation-function origin allowlist is set and deployed.
 - Editor/Viewer access, user management, account settings, and in-app invitation flow are implemented. End-to-end invitation setup still needs a release check.
 - Resource passwords are stored separately and restricted to Editors by RLS.
 - Browser title and favicon updated to MMP Tracking.
@@ -28,10 +28,10 @@ This list is ordered by dependency. Email enhancements and other optional featur
    - [x] Apply `supabase/migrations/202611050003_sync_authors_and_hide_dead_audits.sql` in Supabase to enable the task-to-Changeover Author sync.
 
 3. **Prepare the production environment before importing current data.**
-   - Confirm the Netlify production URL and set Supabase Site URL and allowed redirects. The invitation-function origin allowlist is configured and deployed.
-   - Establish and verify off-site database exports before applying data migrations or importing the final workbook.
-   - Confirm the intended 30-day sign-in behavior against the current Supabase plan and implement the supported option.
-   - Verify Auth, RLS, Realtime, Editor/Viewer access, and the in-app invitation flow with a test account.
+   - [x] Confirm the Netlify production URL and set Supabase Site URL and allowed redirects. The invitation-function origin allowlist is configured and deployed.
+   - Establish and verify off-site database exports before applying data migrations or importing the final workbook. Supabase Free does not include automatic daily backups; choose a secure off-site destination and verify a restore.
+   - [x] Add an app-side sign-out after 30 days. Supabase Free cannot enforce this server-side; consider a Pro upgrade if server-enforced session limits become necessary.
+   - Verify Auth, RLS, Realtime, Editor/Viewer access, and the in-app invitation flow with a test account. Live checks so far confirm email sign-in, required email confirmation, and disabled public sign-ups.
 
 4. **Import and reconcile the current workbook.** When Andrew provides the latest workbook, update Catalog, Publication Tracking tasks and history, current Changeover lists, and current Page Audits. Reconcile uncertain dates, vehicle matches, ratings, award history, and author values before applying the import. The 2027 Rankings data should be imported after its schema is stable.
 

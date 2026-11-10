@@ -4,6 +4,10 @@ import type { Session } from "@supabase/supabase-js";
 
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
+const SESSION_STARTED_AT_KEY = "mmp-tracking.session-started-at";
+const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
 export type AppRole = "editor" | "viewer";
 
 interface UserProfile {
@@ -24,6 +28,58 @@ export const useAuthStore = defineStore("auth", () => {
   const isEditor = computed(() => profile.value?.role === "editor");
 
   let authSubscription: { unsubscribe: () => void } | null = null;
+  let sessionExpiryTimer: number | null = null;
+
+  function clearSessionExpiryTimer() {
+    if (sessionExpiryTimer !== null) window.clearTimeout(sessionExpiryTimer);
+    sessionExpiryTimer = null;
+  }
+
+  function sessionStartedAt() {
+    const savedValue = Number(window.localStorage.getItem(SESSION_STARTED_AT_KEY));
+    if (Number.isFinite(savedValue) && savedValue > 0 && savedValue <= Date.now()) return savedValue;
+
+    const startedAt = Date.now();
+    window.localStorage.setItem(SESSION_STARTED_AT_KEY, String(startedAt));
+    return startedAt;
+  }
+
+  async function expireSession() {
+    clearSessionExpiryTimer();
+    if (!supabase) return;
+
+    const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+    if (signOutError) {
+      error.value = `Your sign-in period has ended, but sign-out failed: ${signOutError.message}`;
+      return;
+    }
+
+    window.localStorage.removeItem(SESSION_STARTED_AT_KEY);
+    session.value = null;
+    profile.value = null;
+    error.value = "Your 30-day sign-in period ended. Please sign in again.";
+  }
+
+  function enforceSessionAge(nextSession: Session | null, resetAge = false) {
+    clearSessionExpiryTimer();
+    if (!nextSession) {
+      window.localStorage.removeItem(SESSION_STARTED_AT_KEY);
+      return false;
+    }
+
+    if (resetAge) window.localStorage.setItem(SESSION_STARTED_AT_KEY, String(Date.now()));
+    const remainingMs = SESSION_MAX_AGE_MS - (Date.now() - sessionStartedAt());
+    if (remainingMs <= 0) {
+      void expireSession();
+      return false;
+    }
+
+    sessionExpiryTimer = window.setTimeout(
+      () => enforceSessionAge(session.value),
+      Math.min(remainingMs, MAX_TIMEOUT_MS),
+    );
+    return true;
+  }
 
   async function loadProfile(userId: string) {
     if (!supabase) return;
@@ -51,12 +107,14 @@ export const useAuthStore = defineStore("auth", () => {
       if (sessionError) throw sessionError;
 
       session.value = data.session;
-      if (data.session) await loadProfile(data.session.user.id);
+      const sessionIsValid = enforceSessionAge(data.session);
+      if (data.session && sessionIsValid) await loadProfile(data.session.user.id);
 
       if (!authSubscription) {
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-          session.value = nextSession;
-          if (!nextSession) {
+        const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+          const sessionIsValid = enforceSessionAge(nextSession, event === "SIGNED_IN");
+          session.value = sessionIsValid ? nextSession : null;
+          if (!nextSession || !sessionIsValid) {
             profile.value = null;
             return;
           }
@@ -91,6 +149,7 @@ export const useAuthStore = defineStore("auth", () => {
       if (signInError) throw signInError;
 
       session.value = data.session;
+      enforceSessionAge(data.session, true);
       if (data.session) await loadProfile(data.session.user.id);
       if (!profile.value) throw new Error("This account has no app role. Ask an Editor to provision it.");
       return true;
@@ -110,6 +169,8 @@ export const useAuthStore = defineStore("auth", () => {
         return;
       }
     }
+    clearSessionExpiryTimer();
+    window.localStorage.removeItem(SESSION_STARTED_AT_KEY);
     session.value = null;
     profile.value = null;
   }
