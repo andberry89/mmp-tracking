@@ -242,7 +242,7 @@ async function generateRecoveryCode(user: ManagedUser) {
       body: { email: user.email },
     });
     if (generateError) throw generateError;
-    if (typeof data?.code !== "string" || !/^\d{6}$/.test(data.code)) {
+    if (typeof data?.code !== "string" || !/^\d{6,10}$/.test(data.code)) {
       throw new Error("The recovery service returned an invalid code.");
     }
     recoveryCode.value = { email: user.email, code: data.code };
