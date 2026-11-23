@@ -2,3 +2,6 @@ project_id = "iuydzdxlmctkvqqofjnj"
 
 [functions.send-user-invitation]
 verify_jwt = true
+
+[functions.generate-password-recovery-code]
+verify_jwt = true

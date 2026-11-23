@@ -16,8 +16,8 @@
 
       <section class="password-section">
         <h3>Password</h3>
-        <p>We’ll email you a secure link to reset your password.</p>
-        <button class="secondary-button" type="button" :disabled="sendingReset" @click="sendReset">{{ sendingReset ? 'Sending…' : 'Email password reset link' }}</button>
+        <p>We’ll email you a recovery code. Enter it from the sign-in screen to choose a new password.</p>
+        <button class="secondary-button" type="button" :disabled="sendingReset" @click="sendReset">{{ sendingReset ? 'Sending…' : 'Email password reset code' }}</button>
       </section>
     </section>
 
@@ -72,7 +72,7 @@ async function sendReset() {
   error.value = "";
   notice.value = "";
   if (await authStore.sendPasswordReset(email.value)) {
-    notice.value = `Password reset link sent to ${email.value}.`;
+    notice.value = `If an account exists for ${email.value}, a recovery code will arrive shortly. Sign out and enter it from the sign-in screen.`;
   } else {
     error.value = authStore.error || "Unable to send a password reset link.";
   }

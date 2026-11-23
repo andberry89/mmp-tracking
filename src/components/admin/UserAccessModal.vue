@@ -24,6 +24,12 @@
 
       <p v-if="error" class="message message--error" role="alert">{{ error }}</p>
       <p v-if="notice" class="message message--success" role="status">{{ notice }}</p>
+      <section v-if="recoveryCode" class="recovery-code-panel" aria-live="polite">
+        <p>One-time recovery code for <strong>{{ recoveryCode.email }}</strong>. Give it directly to them through a private channel. Generating another code will invalidate this one.</p>
+        <code>{{ recoveryCode.code }}</code>
+        <button class="save-button" type="button" @click="copyRecoveryCode">Copy code</button>
+        <button class="text-button" type="button" @click="recoveryCode = null">Hide code</button>
+      </section>
 
       <div v-if="loading" class="loading-state"><span class="spinner" aria-hidden="true"></span>Loading approved users…</div>
       <div v-else-if="!users.length" class="empty-state">No approved users yet.</div>
@@ -42,6 +48,7 @@
               <td data-label="Access"><select v-model="user.active" :disabled="savingEmail === user.email"><option :value="true">Active</option><option :value="false">Inactive</option></select></td>
               <td class="actions-cell" data-label="Actions">
                 <button v-if="!user.has_account && user.active" class="save-button" type="button" :disabled="savingEmail === user.email || invitingEmail === user.email" @click="sendInvitation(user)">{{ invitingEmail === user.email ? 'Sending…' : 'Send invite' }}</button>
+                <button v-if="user.has_account && user.active" class="save-button" type="button" :disabled="savingEmail === user.email || invitingEmail === user.email || generatingRecoveryEmail === user.email" @click="generateRecoveryCode(user)">{{ generatingRecoveryEmail === user.email ? 'Generating…' : 'Reset code' }}</button>
                 <button class="save-button" type="button" :disabled="savingEmail === user.email || invitingEmail === user.email" @click="saveUser(user)">{{ savingEmail === user.email ? 'Saving…' : 'Save' }}</button>
               </td>
             </tr>
@@ -98,12 +105,18 @@ const saving = ref(false);
 const adding = ref(false);
 const savingEmail = ref("");
 const invitingEmail = ref("");
+const generatingRecoveryEmail = ref("");
+const recoveryCode = ref<{ email: string; code: string } | null>(null);
 const error = ref("");
 const notice = ref("");
 
 watch(() => props.modelValue, (open) => {
-  if (!open) return;
+  if (!open) {
+    recoveryCode.value = null;
+    return;
+  }
   notice.value = "";
+  recoveryCode.value = null;
   void loadUsers();
 });
 
@@ -218,6 +231,39 @@ async function sendInvitation(user: ManagedUser) {
   }
 }
 
+async function generateRecoveryCode(user: ManagedUser) {
+  if (!supabase) return;
+  generatingRecoveryEmail.value = user.email;
+  recoveryCode.value = null;
+  error.value = "";
+  notice.value = "";
+  try {
+    const { data, error: generateError } = await supabase.functions.invoke("generate-password-recovery-code", {
+      body: { email: user.email },
+    });
+    if (generateError) throw generateError;
+    if (typeof data?.code !== "string" || !/^\d{6}$/.test(data.code)) {
+      throw new Error("The recovery service returned an invalid code.");
+    }
+    recoveryCode.value = { email: user.email, code: data.code };
+    notice.value = "Recovery code created. It will be hidden when this panel closes.";
+  } catch (reason) {
+    error.value = await errorMessage(reason, `Could not generate a recovery code for ${user.email}.`);
+  } finally {
+    generatingRecoveryEmail.value = "";
+  }
+}
+
+async function copyRecoveryCode() {
+  if (!recoveryCode.value) return;
+  try {
+    await navigator.clipboard.writeText(recoveryCode.value.code);
+    notice.value = "Code copied. Share it directly with the user through a private channel.";
+  } catch {
+    error.value = "Could not copy the code. Select and copy it directly.";
+  }
+}
+
 function suggestDisplayName(email: string) {
   const match = email.trim().match(/^([a-z][a-z'-]*)\.([a-z][a-z'-]*)@hearst\.com$/i);
   if (!match?.[1] || !match[2]) return "";
@@ -287,6 +333,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .message { margin: 0; padding: 9px 11px; border-radius: 5px; font-size: .82rem; }
 .message--error { background: #fff1ef; color: #8d3930; }
 .message--success { background: #f2f8ef; color: #42663b; }
+.recovery-code-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px; border: 1px solid #c8dbbd; border-radius: 7px; background: #f6faf3; }
+.recovery-code-panel p { flex: 1 1 100%; margin: 0; color: #42663b; font-size: .8rem; line-height: 1.45; }
+.recovery-code-panel code { padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-5); font: 700 1.1rem/1.2 monospace; letter-spacing: .15em; }
+.text-button { min-height: 32px; padding: 0 8px; border: 0; background: transparent; color: var(--gray-dark-3); font: 600 .78rem "Asap", sans-serif; cursor: pointer; }
 .modal-footer { display: flex; justify-content: flex-end; }
 @media (max-width: 950px) { .add-user { grid-template-columns: repeat(2, minmax(0, 1fr)); } .add-user .primary-button { justify-self: start; } }
 @media (max-width: 700px) {
