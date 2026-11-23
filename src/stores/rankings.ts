@@ -54,6 +54,7 @@ export const useRankingsStore = defineStore("rankings", () => {
   const error = ref<string | null>(null);
   let realtimeChannel: ReturnType<NonNullable<typeof supabase>["channel"]> | null = null;
   let requestId = 0;
+  let realtimeReloadTimer: ReturnType<typeof setTimeout> | null = null;
 
   const years = computed(() => catalog.modelYears);
   const bodyStyles = computed(() => [...new Set(entries.value.map((entry) => entry.bodyStyle).filter((style): style is BodyStyle => Boolean(style)))]);
@@ -73,8 +74,9 @@ export const useRankingsStore = defineStore("rankings", () => {
 
       const [rankingResult, awardResult] = await Promise.all([
         supabase.from("model_year_vehicle_segments")
-          .select("model_year_vehicle_id, model_year, segment_id, rank_position, entry_state, segments!inner(id, name, body_style), model_year_vehicles!inner(rating, public_url, models!inner(name, makes!inner(name)))")
+          .select("model_year_vehicle_id, model_year, segment_id, rank_position, entry_state, is_on_rankings_list, segments!inner(id, name, body_style), model_year_vehicles!inner(rating, public_url, models!inner(name, makes!inner(name)))")
           .eq("model_year", year)
+          .eq("is_on_rankings_list", true)
           .order("segment_id")
           .order("rank_position", { ascending: true, nullsFirst: false }),
         supabase.from("model_year_vehicle_awards")
@@ -163,7 +165,8 @@ export const useRankingsStore = defineStore("rankings", () => {
         const { error: saveError } = await supabase.from("model_year_vehicle_segments")
           .update({ entry_state: state, rank_position: null })
           .eq("model_year_vehicle_id", vehicleId)
-          .eq("segment_id", segmentId);
+          .eq("segment_id", segmentId)
+          .eq("is_on_rankings_list", true);
         if (saveError) throw saveError;
       }
       entry.state = state;
@@ -198,21 +201,27 @@ export const useRankingsStore = defineStore("rankings", () => {
     if (!supabase || !isSupabaseConfigured || realtimeChannel) return;
     realtimeChannel = supabase.channel("rankings-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicle_segments" }, (payload) => {
-        const row = (payload.eventType === "DELETE" ? payload.old : payload.new) as { model_year_vehicle_id?: string; model_year?: number; segment_id?: string; rank_position?: number | null; entry_state?: RankingEntry["state"] };
+        const row = (payload.eventType === "DELETE" ? payload.old : payload.new) as { model_year_vehicle_id?: string; model_year?: number; segment_id?: string; rank_position?: number | null; entry_state?: RankingEntry["state"]; is_on_rankings_list?: boolean };
         if (payload.eventType === "DELETE") {
           entries.value = entries.value.filter((item) => !(item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id));
           return;
         }
         if (row.model_year !== selectedYear.value) return;
-        if (payload.eventType === "INSERT") {
-          void load(selectedYear.value ?? undefined);
+        const entry = entries.value.find((item) => item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id);
+        if (!row.is_on_rankings_list) {
+          entries.value = entries.value.filter((item) => !(item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id));
           return;
         }
-        const entry = entries.value.find((item) => item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id);
-        if (entry) {
-          entry.rankPosition = row.rank_position ?? null;
-          entry.state = row.entry_state ?? "unranked";
+        if (!entry) {
+          if (realtimeReloadTimer) clearTimeout(realtimeReloadTimer);
+          realtimeReloadTimer = setTimeout(() => {
+            realtimeReloadTimer = null;
+            void load(selectedYear.value ?? undefined);
+          }, 150);
+          return;
         }
+        entry.rankPosition = row.rank_position ?? null;
+        entry.state = row.entry_state ?? "unranked";
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicle_awards" }, (payload) => {
         const row = (payload.eventType === "DELETE" ? payload.old : payload.new) as { model_year_vehicle_id?: string; award_year?: number; award_type?: RankingAward };
@@ -233,6 +242,8 @@ export const useRankingsStore = defineStore("rankings", () => {
 
   function stopRealtime() {
     requestId += 1;
+    if (realtimeReloadTimer) clearTimeout(realtimeReloadTimer);
+    realtimeReloadTimer = null;
     if (supabase && realtimeChannel) void supabase.removeChannel(realtimeChannel);
     realtimeChannel = null;
   }

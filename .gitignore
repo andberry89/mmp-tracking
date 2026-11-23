@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Historical audit seed data contains internal staff and audit records.
+/supabase/seeds/historical_page_audits/
+/supabase/seeds/workbook_refresh/

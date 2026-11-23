@@ -126,6 +126,8 @@ Each model-year vehicle has one shared rating from 1 through 10 in half-point in
 
 Each Segment has a broad body-style/category assignment, initially Cars, SUVs, Vans, or Pickup Trucks. A model-year vehicle may be assigned to more than one segment, including multiple segments within the same body style, and has an independent rank within each segment. Store segment membership separately from the single model-year vehicle identity so the same catalog vehicle can appear in multiple ranked lists. Drag-and-drop reorders entries within a segment and updates that segment's rank positions; its star rating remains independent of rank. Publication Tracking, Changeover, and Page Audit display all the vehicle's assigned segment names.
 
+Shared segment membership does not automatically mean the vehicle is listed on that year's Rankings page. Annual Rankings membership is a separate flag on the model-year/segment assignment. This lets Catalog, Changeover, and Page Audit retain all shared segment data while the Rankings page matches the selected workbook's lists. The 2027 workbook import marks only its listed placements as included.
+
 Provide vehicle search, body-style filtering, and a comparison view that lets Editors select multiple segments. Viewers can search and compare but cannot change ratings, awards, or rank order.
 
 

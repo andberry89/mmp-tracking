@@ -164,7 +164,7 @@ const visibleGroups = computed(() => allGroups.value.filter((group) => {
   if (bodyStyleFilter.value !== "all" && group.bodyStyle !== bodyStyleFilter.value) return false;
   if (selectedSegments.value.length && !selectedSegments.value.includes(group.id)) return false;
   if (!queryValue.value) return true;
-  return group.name.toLowerCase().includes(queryValue.value)
+  return groupMatchesSearch(group)
     || [...group.ranked, ...group.unranked].some((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
 }));
 
@@ -193,6 +193,9 @@ function selectYear(event: Event) {
 }
 function clearFilters() { searchQuery.value = ""; bodyStyleFilter.value = "all"; selectedSegments.value = []; }
 function bodyStyleLabel(style: BodyStyle | null) { return bodyStyleOptions.find((item) => item.id === style)?.label ?? "Uncategorized"; }
+function groupMatchesSearch(group: (typeof allGroups.value)[number]) {
+  return Boolean(queryValue.value && group.name.toLowerCase().includes(queryValue.value));
+}
 function openComparePicker() { draftSelectedSegments.value = [...selectedSegments.value]; compareQuery.value = ""; compareModalOpen.value = true; }
 function applySegmentComparison() { selectedSegments.value = [...draftSelectedSegments.value]; compareModalOpen.value = false; }
 function closePopover(_event: Event, element?: HTMLElement) { if (element instanceof HTMLDetailsElement) element.open = false; }
@@ -200,11 +203,11 @@ function latestAwardYear(years: number[]) { return years.length ? Math.max(...ye
 function formatAwardYears(years: number[]) { return years.length ? years.slice().sort(descendingNumbers).join(", ") : "No wins recorded"; }
 function descendingNumbers(a: number, b: number) { return b - a; }
 function visibleRanked(group: (typeof allGroups.value)[number]) {
-  if (!queryValue.value) return group.ranked;
+  if (!queryValue.value || groupMatchesSearch(group)) return group.ranked;
   return group.ranked.filter((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
 }
 function visibleUnranked(group: (typeof allGroups.value)[number]) {
-  if (!queryValue.value) return group.unranked;
+  if (!queryValue.value || groupMatchesSearch(group)) return group.unranked;
   return group.unranked.filter((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
 }
 function awardSummary(entry: RankingEntry) {
