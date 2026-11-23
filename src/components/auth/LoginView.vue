@@ -2,21 +2,22 @@
   <main class="login-shell">
     <form class="login-card" @submit.prevent="recoveryMode ? handleVerifyCode() : handleSignIn()">
       <h1>{{ recoveryMode ? "Enter your recovery code" : "MMP Tracking" }}</h1>
-      <p>{{ recoveryMode ? "Enter the 6-digit code from your password reset email or Editor." : "Sign in with your team account." }}</p>
+      <p>{{ recoveryMode ? "Enter the 6–10 digit code from your password reset email or Editor." : "Sign in with your team account." }}</p>
 
       <template v-if="recoveryMode">
         <label for="email">Email</label>
         <input id="email" v-model.trim="email" type="email" autocomplete="username" required />
 
-        <label for="recovery-code">6-digit code</label>
+        <label for="recovery-code">Recovery code</label>
         <input
           id="recovery-code"
           v-model.trim="recoveryCode"
           type="text"
           inputmode="numeric"
           autocomplete="one-time-code"
-          pattern="[0-9]{6}"
-          maxlength="6"
+          pattern="[0-9]{6,10}"
+          minlength="6"
+          maxlength="10"
           required
         />
       </template>
