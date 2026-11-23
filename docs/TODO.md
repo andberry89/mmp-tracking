@@ -1,61 +1,42 @@
 # To Do
 
-This list is ordered by dependency. Email enhancements and other optional features remain deferred until after launch.
+Status reconciled with project work through November 23, 2026. Email enhancements and optional features remain deferred until after launch.
 
-## Completed or accepted
+## Completed
 
-- Responsive and accessibility pass accepted for the current app. Recheck affected breakpoints after adding Rankings and multi-segment labels.
-- Basic security review completed. The anonymous `SECURITY DEFINER` permissions were removed; the remaining authenticated-function findings are intentional and authorization-checked. Leaked-password protection is unavailable on the current Supabase Free plan.
-- Netlify production deploy is working. Production `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured across deploy contexts. Supabase Site URL and redirect allowlist now include the production Netlify origin; the invitation-function origin allowlist is set and deployed.
-- Editor/Viewer access, user management, account settings, and in-app invitation flow are implemented. End-to-end invitation setup still needs a release check.
-- Resource passwords are stored separately and restricted to Editors by RLS.
-- Browser title and favicon updated to MMP Tracking.
-- MMP Published & Updated pagination, MMP status drag-and-drop, Changeover, Page Audit, and annual Changeover preparation are implemented.
+- Responsive and accessibility pass accepted for the current app. Recheck affected layouts when new UI is added.
+- First full codebase audit and cleanup pass completed; findings are in [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md).
+- Basic Supabase security review completed. Public `SECURITY DEFINER` access was removed; remaining authenticated functions are authorization-checked. Leaked-password protection is unavailable on the current Supabase Free plan.
+- Netlify production hosting and Supabase production URL/redirect configuration are in place.
+- Editor/Viewer access, account settings, user management, invitations, and Editor-generated one-time password recovery codes are implemented. Joey used the recovery code flow to set his password and access the app.
+- Editor-only resource passwords and the 30-day client-side sign-out are implemented. Realtime updates are scoped to the affected task or model-year vehicle.
+- Browser title/favicon, MMP drag-and-drop, Published & Updated view/pagination/summary cards, Changeover, Page Audit, annual Changeover preparation, and Rankings are implemented.
+- Latest workbook refresh is complete for 2027 Changeover, 2026–2029 Page Audits, Active Work, and Published & Updated.
+- Historical Page Audits for 2017–2025 were seeded and checked; no mismatches were reported.
+- 2027 Rankings placements were imported and reconciled with the workbook: zero extra or missing placements. The five additional historical awards were reviewed and intentionally kept.
+- Page Audit's C/D rating now uses the shared model-year rating, so editors enter it once. It remains part of the checklist score and is displayed in the Rating column.
 
-## Remaining before launch — in order
+## Current priorities
 
-1. [x] **Complete the full codebase audit.** The audit and first cleanup pass are recorded in [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md). Follow-up data-integrity and scale fixes remain in the relevant workflow/reliability items below.
+1. **Import 2026 and older Rank-in-Segment sheets.** Preserve the workbook's rank order, shared ratings, and year-specific awards; verify each imported year against its source sheet. The 2027 import is complete.
+2. **Add Editor controls for annual Rankings membership.** Let Editors include or remove a model-year vehicle/segment placement from a year's Rankings list without changing shared Catalog, Changeover, or Page Audit segment membership.
 
-2. **Finish the required cross-workflow data and feature work.** Stabilize schema and behavior before importing the final workbook:
-   - [x] Add the first Rankings view with a model-year selector, body-style filter, search, segment comparison, drag-and-drop ordering, unranked/future states, ratings, and award history. The feature is merged. Before team use, apply migrations `202611050001` and `202611050002` in order, then bulk-import 2027 ranks, segment placements, ratings, and awards. Andrew can provide a complete award-winners list to use as seed/import data.
-   - [x] Give **Published & Updated** its own view, separate from Active Work, with pagination, useful date presets (including the past 90 days), and a custom date-range selector.
-   - [x] Add Published/Updated totals and a model-year breakdown to that view, filtered by its selected date range; remove the duplicate Published & Updates section from the sidebar.
-   - [x] Support multiple segment assignments per model-year vehicle. Show all assigned segments in Publication Tracking, Changeover, Page Audit, and Published History. Keep an independent rank for each vehicle/segment placement.
-   - [x] Store one shared 1–10 rating in half-point steps. Editors can update it in Catalog, Rankings, and Page Audit.
-   - [ ] Remove the duplicate C/D Rating checklist input from the Page Audit modal and use the shared model-year rating so editors enter it once.
-   - [x] Share 10Best and Editors' Choice award history across Catalog, Rankings, and Page Audit. Treat misaligned EC year labels in the source workbook as errors, not awards. Backfill older ranking years later if desired.
-   - [ ] Add an Editor control to include or remove a model-year vehicle/segment assignment from an annual Rankings list without changing its shared Catalog, Changeover, or Page Audit segment membership.
-   - [x] Use the shared Authors catalog for Page Audit and sync MMP task Author changes to the matching Changeover and Page Audit records. Historical multi-author audit values are reduced to the first listed Author.
-   - [x] When a Changeover entry is marked Dead, keep it on Changeover, hide it from the active Page Audit list, and retain its audit record. Annual preparation already excludes Dead vehicles from the following model year.
-   - [x] Apply `supabase/migrations/202611050003_sync_authors_and_hide_dead_audits.sql` in Supabase to enable the task-to-Changeover Author sync.
+## Remaining before launch
 
-3. **Prepare the production environment before importing current data.**
-   - [x] Confirm the Netlify production URL and set Supabase Site URL and allowed redirects. The invitation-function origin allowlist is configured and deployed.
-   - Establish and verify off-site database exports before applying data migrations or importing the final workbook. Supabase Free does not include automatic daily backups; choose a secure off-site destination and verify a restore.
-   - [x] Add an app-side sign-out after 30 days. Supabase Free cannot enforce this server-side; consider a Pro upgrade if server-enforced session limits become necessary.
-   - Verify Auth, RLS, Realtime, Editor/Viewer access, and the in-app invitation flow with a test account. Live checks so far confirm email sign-in, required email confirmation, and disabled public sign-ups.
-
-4. **Import and reconcile the current workbook.** When Andrew provides the latest workbook, update Catalog, Publication Tracking tasks and history, current Changeover lists, and current Page Audits. Reconcile uncertain dates, vehicle matches, ratings, award history, and author values before applying the import. The 2027 Rankings data should be imported after its schema is stable.
-
-5. **Import historical Page Audits.** Map older checklist formats and seed 2017–2025 as archive history after the current-year data and shared rating/award structure are settled.
-
-6. **Complete reliability and performance work.** Realtime events now refresh only the affected task or model-year vehicle. Verify the applied migration for atomic task duplication and Changeover row/public-URL edits. Review dependency advisories, expected users/data volume, load time, search/update latency, and simultaneous editing behavior. Build automated tests for publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, access control, imports, and persistence.
-
-7. **Finish the visual and responsive pass.** Refine all screens against the tracking-page baseline, update the style guide, and check the Rankings nav breakpoint and multi-segment layouts.
-   - [x] Match Published & Updated task typography to Active Work.
-   - Review keyboard and screen-reader use, contrast, and reduced-motion behavior.
-
-8. **Launch.** Run the release review, confirm backups and access controls, deploy the release, and verify the production workflows with the team.
+- **Backups:** choose a secure off-site destination, export the database, and verify that a restore works before relying on Supabase as the only production store.
+- **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; review dependency advisories, expected workload, load/search/update speed, and simultaneous editing behavior.
+- **Automated tests:** cover publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, role access, imports, and persistence.
+- **Final visual and accessibility pass:** check remaining pages, keyboard and screen-reader operation, contrast, and reduced motion. The current responsiveness pass was accepted.
+- **Release review:** verify backups and access controls, then confirm the production workflows with the team.
 
 ## Additional ideas — timing TBD
 
-- Temporary MMP event tags for grouping work around events such as the New York Auto Show or Pebble Beach; clear the tag when a task is published.
+- Temporary MMP event tags for grouping work around events such as the New York Auto Show or Pebble Beach; clear a task's tag when it is published.
 - Editor profile pictures with upload size/type restrictions and cropping.
 
 ## Back burner — reassess after launch
 
 - Publication history enhancements, update/version history, and links between later updates and existing MMPs.
 - Click an author to see their assigned tasks.
-- Page Audit conditional fields, evidence attachments, repeat-audit records, and change history. Also clean up the Edit Page Audit modal: change “How Many Galleries” guidance to “Single/Dual,” decide whether selected fields should use dropdowns or radio buttons, and consider conditional answer colors matching the table.
-- Assignment notifications, email templates, and other email improvements.
-- Revisit account claim and sign-up: simplify the invitation/password setup flow so users do not need to follow multiple email links, and investigate company email filtering that blocks password-reset links.
+- Page Audit conditional fields, evidence attachments, repeat-audit records, and change history. Also revisit the Edit Page Audit modal's field controls and conditional answer colors.
+- Assignment notifications, custom Auth email templates, and other email improvements. The Editor-generated recovery-code path currently handles account recovery without a provider.

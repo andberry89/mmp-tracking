@@ -118,11 +118,11 @@ The checklist summary reports pass, review, and needs-work counts separately; it
 
 ## 4. Rankings and Rank-in-segment
 
-The Rank-in-segment workbook organizes vehicles into broad body-style sections and finer segments. The app will use **Rankings** as the top navigation label, provide a year selector, and focus initially on 2027. Backfilling older ranking years may be considered later. Treat EC labels shifted into the wrong award-year columns in the source as mistakes rather than historical awards.
+The Rank-in-segment workbook organizes vehicles into broad body-style sections and finer segments. The app uses **Rankings** as the top navigation label and provides a year selector. The 2027 lists are imported; backfilling 2026 and older ranking years is a current priority. Treat EC labels shifted into the wrong award-year columns in the source as mistakes rather than historical awards.
 
-Each model-year vehicle has one shared rating from 1 through 10 in half-point increments. Editors can change it wherever it appears in Catalog, Rankings, or Page Audit; all views must read and update the same canonical value. The current Page Audit C/D Rating checklist value is separate and must be connected to the shared rating rather than kept as a competing copy.
+Each model-year vehicle has one shared rating from 1 through 10 in half-point increments. Editors can change it wherever it appears in Catalog, Rankings, or Page Audit; all views read and update the same canonical value. Page Audit has no separate C/D Rating checklist input; its checklist summary evaluates the shared rating so editors enter it only once.
 
-10Best and Editors' Choice awards are shared data across Catalog, Rankings, and Page Audit, with award-year history preserved. The current Page Audit award flags are stored separately and must be connected to the shared award data.
+10Best and Editors' Choice awards are shared data across Catalog, Rankings, and Page Audit, with award-year history preserved. Page Audit award flags synchronize with the shared award records.
 
 Each Segment has a broad body-style/category assignment, initially Cars, SUVs, Vans, or Pickup Trucks. A model-year vehicle may be assigned to more than one segment, including multiple segments within the same body style, and has an independent rank within each segment. Store segment membership separately from the single model-year vehicle identity so the same catalog vehicle can appear in multiple ranked lists. Drag-and-drop reorders entries within a segment and updates that segment's rank positions; its star rating remains independent of rank. Publication Tracking, Changeover, and Page Audit display all the vehicle's assigned segment names.
 
