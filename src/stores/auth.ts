@@ -197,6 +197,33 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function verifyPasswordResetCode(email: string, token: string) {
+    if (!supabase) {
+      error.value = "Supabase is not configured.";
+      return false;
+    }
+
+    isLoading.value = true;
+    error.value = null;
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: token.trim(),
+        type: "recovery",
+      });
+      if (verifyError) throw verifyError;
+      session.value = data.session;
+      enforceSessionAge(data.session, true);
+      needsPasswordSetup.value = true;
+      return true;
+    } catch (reason) {
+      error.value = reason instanceof Error ? reason.message : "That recovery code is invalid or expired.";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   async function sendPasswordReset(email: string) {
     if (!supabase) {
       error.value = "Supabase is not configured.";
@@ -256,6 +283,7 @@ export const useAuthStore = defineStore("auth", () => {
     signIn,
     setInitialPassword,
     sendPasswordReset,
+    verifyPasswordResetCode,
     updateDisplayName,
     signOut,
   };

@@ -104,23 +104,30 @@ comma-separated `APP_ALLOWED_ORIGINS` Edge Function secret before deploying the
 updated function; do not use a wildcard. For example:
 `supabase secrets set APP_ALLOWED_ORIGINS=https://your-site.netlify.app`.
 
+The `generate-password-recovery-code` Edge Function lets active Editors create
+a one-time recovery code for an active approved account. It does not send an
+email; share the code directly with the account owner through a private channel.
+The recipient enters it from the sign-in screen and chooses a password. Deploy
+the function with `supabase functions deploy generate-password-recovery-code`.
+The function verifies both the caller's active Editor role and the recipient's
+active approved access, and returns only the OTP, never the recovery link.
+
 ## Auth email templates
 
 The branded invitation and password reset templates are in `templates/invite.html`
-and `templates/recovery.html`. In the Supabase Dashboard, open **Authentication →
-Email Templates**, select **Invite user** and **Reset password**, set their
-subjects to **You're invited to MMP Tracking** and **Reset your MMP Tracking
-password**, and paste the matching HTML file into each template's body. Keep
-`{{ .ConfirmationURL }}` intact; the app relies on that URL to return invitees
-and password-reset users to the configured Site URL.
+and `templates/recovery.html`. The invitation template uses `{{ .ConfirmationURL }}`.
+The recovery template uses `{{ .Token }}` so people enter a six-digit code in the
+app rather than following a link that an email security scanner could consume.
+After configuring custom SMTP or a Send Email Auth Hook, paste these templates
+into the matching Supabase Auth email templates.
 
 This project is on Supabase Free and was created after the June 3, 2026 policy
 change. With Supabase's default SMTP, Auth templates are read-only for new Free
-projects, so the app currently uses Supabase's default invitation and recovery
-emails. The branded templates above are optional drafts for a future custom
-SMTP setup. The default mail service only sends to addresses on the Supabase
-organization and is currently limited to two emails per hour; invitation and
-password-reset emails to other addresses may be rejected or rate-limited.
+projects, so the recovery-code flow requires a custom email setup before it can
+be used in production. Configure custom SMTP or a Send Email Auth Hook and make
+sure the Reset password message includes `{{ .Token }}`. The default mail service
+only sends to addresses on the Supabase organization and is currently limited
+to two emails per hour; messages may be rejected or rate-limited.
 
 ## Configure a project
 

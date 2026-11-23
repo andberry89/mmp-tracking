@@ -1,38 +1,67 @@
 <template>
   <main class="login-shell">
-    <form class="login-card" @submit.prevent="handleSignIn">
-      <h1>MMP Tracking</h1>
-      <p>Sign in with your team account.</p>
+    <form class="login-card" @submit.prevent="recoveryMode ? handleVerifyCode() : handleSignIn()">
+      <h1>{{ recoveryMode ? "Enter your recovery code" : "MMP Tracking" }}</h1>
+      <p>{{ recoveryMode ? "Enter the 6-digit code from your password reset email or Editor." : "Sign in with your team account." }}</p>
 
-      <label for="email">Email</label>
-      <input id="email" v-model.trim="email" type="email" autocomplete="username" required />
+      <template v-if="recoveryMode">
+        <label for="email">Email</label>
+        <input id="email" v-model.trim="email" type="email" autocomplete="username" required />
 
-      <label for="password">Password</label>
-      <input
-        id="password"
-        v-model="password"
-        type="password"
-        autocomplete="current-password"
-        required
-      />
+        <label for="recovery-code">6-digit code</label>
+        <input
+          id="recovery-code"
+          v-model.trim="recoveryCode"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          required
+        />
+      </template>
+
+      <template v-else>
+        <label for="email">Email</label>
+        <input id="email" v-model.trim="email" type="email" autocomplete="username" required />
+
+        <label for="password">Password</label>
+        <input
+          id="password"
+          v-model="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+      </template>
 
       <p v-if="auth.error" class="login-error" role="alert">{{ auth.error }}</p>
-      <p v-if="resetSent" class="login-success" role="status">
-        If there is an account for that email, a password setup link will arrive shortly.
+      <p v-if="resetRequestSent" class="login-success" role="status">
+        If there is an account for that email, a recovery code will arrive shortly.
       </p>
       <p v-if="resetHint" class="login-hint" role="status">{{ resetHint }}</p>
 
       <button type="submit" :disabled="auth.isLoading">
-        {{ auth.isLoading ? "Signing in…" : "Sign in" }}
+        {{ auth.isLoading ? (recoveryMode ? "Checking code…" : "Signing in…") : (recoveryMode ? "Continue" : "Sign in") }}
       </button>
       <button
+        v-if="!recoveryMode"
         type="button"
         class="reset-button"
         :disabled="auth.isLoading"
         @click="handlePasswordReset"
       >
-        {{ isSendingReset ? "Sending link…" : "Forgot or need to set your password?" }}
+        {{ isSendingReset ? "Sending code…" : "Forgot or need to set your password?" }}
       </button>
+      <button
+        v-if="!recoveryMode"
+        type="button"
+        class="reset-button"
+        @click="startRecoveryCodeEntry"
+      >
+        I already have a recovery code
+      </button>
+      <button v-else type="button" class="reset-button" @click="returnToSignIn">Back to sign in</button>
       <small>Accounts are provisioned by an Editor. There is no public sign-up.</small>
     </form>
   </main>
@@ -46,17 +75,38 @@ const emit = defineEmits<{ (event: "signed-in"): void }>();
 const auth = useAuthStore();
 const email = ref("");
 const password = ref("");
-const resetSent = ref(false);
+const recoveryCode = ref("");
+const recoveryMode = ref(false);
+const resetRequestSent = ref(false);
 const resetHint = ref("");
 const isSendingReset = ref(false);
 
 watch(email, () => {
-  resetSent.value = false;
+  resetRequestSent.value = false;
   resetHint.value = "";
 });
 
 async function handleSignIn() {
   if (await auth.signIn(email.value, password.value)) emit("signed-in");
+}
+
+async function handleVerifyCode() {
+  await auth.verifyPasswordResetCode(email.value, recoveryCode.value);
+}
+
+function returnToSignIn() {
+  recoveryMode.value = false;
+  resetRequestSent.value = false;
+  recoveryCode.value = "";
+  resetHint.value = "";
+  auth.error = null;
+}
+
+function startRecoveryCodeEntry() {
+  recoveryMode.value = true;
+  recoveryCode.value = "";
+  resetRequestSent.value = false;
+  resetHint.value = "";
 }
 
 async function handlePasswordReset() {
@@ -68,7 +118,8 @@ async function handlePasswordReset() {
 
   isSendingReset.value = true;
   try {
-    resetSent.value = await auth.sendPasswordReset(email.value);
+    resetRequestSent.value = await auth.sendPasswordReset(email.value);
+    recoveryMode.value = resetRequestSent.value;
   } finally {
     isSendingReset.value = false;
   }
