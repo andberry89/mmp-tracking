@@ -22,7 +22,9 @@ This list is ordered by dependency. Email enhancements and other optional featur
    - [x] Add Published/Updated totals and a model-year breakdown to that view, filtered by its selected date range; remove the duplicate Published & Updates section from the sidebar.
    - [x] Support multiple segment assignments per model-year vehicle. Show all assigned segments in Publication Tracking, Changeover, Page Audit, and Published History. Keep an independent rank for each vehicle/segment placement.
    - [x] Store one shared 1–10 rating in half-point steps. Editors can update it in Catalog, Rankings, and Page Audit.
+   - [ ] Remove the duplicate C/D Rating checklist input from the Page Audit modal and use the shared model-year rating so editors enter it once.
    - [x] Share 10Best and Editors' Choice award history across Catalog, Rankings, and Page Audit. Treat misaligned EC year labels in the source workbook as errors, not awards. Backfill older ranking years later if desired.
+   - [ ] Add an Editor control to include or remove a model-year vehicle/segment assignment from an annual Rankings list without changing its shared Catalog, Changeover, or Page Audit segment membership.
    - [x] Use the shared Authors catalog for Page Audit and sync MMP task Author changes to the matching Changeover and Page Audit records. Historical multi-author audit values are reduced to the first listed Author.
    - [x] When a Changeover entry is marked Dead, keep it on Changeover, hide it from the active Page Audit list, and retain its audit record. Annual preparation already excludes Dead vehicles from the following model year.
    - [x] Apply `supabase/migrations/202611050003_sync_authors_and_hide_dead_audits.sql` in Supabase to enable the task-to-Changeover Author sync.
@@ -56,3 +58,4 @@ This list is ordered by dependency. Email enhancements and other optional featur
 - Click an author to see their assigned tasks.
 - Page Audit conditional fields, evidence attachments, repeat-audit records, and change history. Also clean up the Edit Page Audit modal: change “How Many Galleries” guidance to “Single/Dual,” decide whether selected fields should use dropdowns or radio buttons, and consider conditional answer colors matching the table.
 - Assignment notifications, email templates, and other email improvements.
+- Revisit account claim and sign-up: simplify the invitation/password setup flow so users do not need to follow multiple email links, and investigate company email filtering that blocks password-reset links.
