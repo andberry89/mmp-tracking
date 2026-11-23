@@ -54,7 +54,7 @@
                 <span><i class="summary-dot summary-dot--exception"></i>{{ checklistCounts(entry).exception }} review</span>
                 <span><i class="summary-dot summary-dot--attention"></i>{{ checklistCounts(entry).attention }} needs work</span>
               </td>
-              <td class="rating-cell">{{ entry.rating ?? '—' }}</td>
+              <td class="rating-cell" :class="`rating-cell--${sharedRatingResult(entry)}`">{{ entry.rating ?? '—' }}</td>
               <td class="awards-cell"><div class="award-list"><img v-if="entry.awards.tenBest" class="award-icon" :src="tenBestLogo" alt="10 Best" /><img v-if="entry.awards.editorsChoice" class="award-icon" :src="editorsChoiceLogo" alt="Editors’ Choice" /><span v-if="!entry.awards.tenBest && !entry.awards.editorsChoice" class="muted">—</span></div></td>
               <td class="status-cell"><span>{{ entry.pageStatus || '—' }}</span><strong v-if="entry.doubleCheckInfo" class="status-review">Needs Review</strong></td>
               <td v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-cell" :class="`check-cell--${checkResult(check, entry.checklist[check.key])}`">{{ entry.checklist[check.key] || '—' }}</td>
@@ -104,9 +104,9 @@
           <span><strong>Double-check info later</strong><small>Use when the page was published before official information was available.</small></span>
         </label>
 
-        <section class="awards-form-section" aria-label="Awards">
-          <div class="section-heading"><h3>Awards</h3><span>Tracked separately from checklist scoring.</span></div>
-          <label class="field-label">Shared rating
+        <section class="awards-form-section" aria-label="Rating and awards">
+          <div class="section-heading"><h3>Rating &amp; awards</h3><span>The rating is shared with Rankings and Catalog; awards are tracked separately.</span></div>
+          <label class="field-label">Shared C/D rating
             <select v-model="draft.rating"><option :value="null">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select>
           </label>
           <div class="award-options">
@@ -164,7 +164,6 @@ const checks2026: CheckField[] = [
   { key: "photos_button", label: "View Photos Button", guidance: "Yes/No", criterion: "yes" },
   { key: "gallery_model_year", label: "Gallery Model Year", placeholder: "Model year or N/A", guidance: "Current model year", criterion: "model_year" },
   { key: "gallery_count", label: "How Many Galleries?", placeholder: "Single / Dual", guidance: "Dual", criterion: "dual" },
-  { key: "cd_rating", label: "C/D Rating?", placeholder: "Rating from 0 to 10", guidance: "Any number from 0 to 10, inclusive", criterion: "rating" },
   { key: "hlv", label: "H/L/V", guidance: "Yes/No", criterion: "yes" },
   { key: "specs_glance", label: "Specs At a Glance box visible?", guidance: "Yes/No", criterion: "yes" },
   { key: "video", label: "Video", guidance: "Yes/No", criterion: "yes" },
@@ -185,7 +184,7 @@ const checks2026: CheckField[] = [
 ];
 
 const checks2027: CheckField[] = [
-  ...checks2026.slice(0, 5),
+  ...checks2026.slice(0, 4),
   { key: "hlv", label: "H/L/V", guidance: "Yes/No", criterion: "yes" },
   { key: "specs_glance", label: "Specs at a Glance?", guidance: "Yes/No", criterion: "yes" },
   { key: "video", label: "Video", guidance: "Yes/No", criterion: "yes" },
@@ -205,6 +204,13 @@ const checks2027: CheckField[] = [
   { key: "spec_panel", label: "Spec Panel", guidance: "Yes/No/N/A", criterion: "yes" },
   { key: "features_specs_button", label: "More Features and Specs button?", guidance: "Yes/No", criterion: "yes" },
 ];
+
+const sharedRatingCheck: CheckField = {
+  key: "cd_rating",
+  label: "C/D Rating",
+  placeholder: "Shared rating",
+  criterion: "rating",
+};
 
 const catalog = useCatalogStore();
 const authorsStore = useAuthorsStore();
@@ -290,10 +296,17 @@ function checkResult(check: CheckField, value: string | undefined): "passed" | "
   return answer.toLowerCase() === expected ? "passed" : "attention";
 }
 function checklistCounts(entry: PageAuditEntry) {
-  return checksForYear(selectedYear.value).reduce((counts, check) => {
-    counts[checkResult(check, entry.checklist[check.key])] += 1;
-    return counts;
-  }, { passed: 0, exception: 0, attention: 0, total: checksForYear(selectedYear.value).length });
+  const checks = checksForYear(selectedYear.value);
+  const counts = checks.reduce((result, check) => {
+    result[checkResult(check, entry.checklist[check.key])] += 1;
+    return result;
+  }, { passed: 0, exception: 0, attention: 0, total: checks.length });
+  counts[sharedRatingResult(entry)] += 1;
+  counts.total += 1;
+  return counts;
+}
+function sharedRatingResult(entry: PageAuditEntry): "passed" | "exception" | "attention" {
+  return checkResult(sharedRatingCheck, entry.rating === null ? undefined : String(entry.rating));
 }
 function clearFilters() { query.value = ""; statusFilter.value = "all"; }
 function formatDate(value: string) {
@@ -336,10 +349,12 @@ async function saveEntry() {
   const authorName = draft.authorSelection === legacyAuthorSelection
     ? editingEntry.value?.authorName ?? ""
     : authorsStore.allAuthors.find((author) => author.id === authorId)?.label ?? "";
+  const checklist = { ...draft.checklist };
+  delete checklist.cd_rating;
   const input: PageAuditInput = {
     vehicle,
     pageStatus: draft.pageStatus,
-    checklist: { ...draft.checklist },
+    checklist,
     awards: { ...draft.awards },
     rating: draft.rating,
     authorId,
@@ -406,6 +421,8 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .audit-table tbody tr td.check-cell--passed { background: #e5f1e2; box-shadow: inset 3px 0 #78aa6b; color: #345e2d; }
 .audit-table tbody tr td.check-cell--exception { background: #fff1d2; box-shadow: inset 3px 0 #e0b04b; color: #74530b; }
 .audit-table tbody tr td.check-cell--attention { background: #f8e3e1; box-shadow: inset 3px 0 #c9483f; color: #7d302b; }
+.audit-table tbody tr td.rating-cell--passed { background: #e5f1e2; box-shadow: inset 3px 0 #78aa6b; color: #345e2d; }
+.audit-table tbody tr td.rating-cell--attention { background: #f8e3e1; box-shadow: inset 3px 0 #c9483f; color: #7d302b; }
 .vehicle-cell-content { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .vehicle-cell-text { min-width: 0; }
 .vehicle-cell strong, .vehicle-cell span, .people-cell strong, .people-cell span { display: block; }
