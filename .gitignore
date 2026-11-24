@@ -33,3 +33,5 @@ coverage
 /supabase/seeds/historical_page_audits/
 /supabase/seeds/workbook_refresh/
 /supabase/seeds/awards_source_truth/
+# Local Supabase CLI project metadata (link, service versions, and pooler URL).
+/supabase/.temp/

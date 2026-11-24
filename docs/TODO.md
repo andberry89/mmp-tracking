@@ -21,6 +21,7 @@ Status reconciled with project work through November 24, 2026. Email enhancement
 - Catalog model-year segment choices are grouped by body style and sorted alphabetically; selected and archived segments are easier to scan in both add and edit forms.
 - A persistent header Refresh action reloads shared Catalog, author, and MMP data plus Changeover, Page Audit, Rankings, and Published & Updated data while preserving the selected year and publication filters.
 - Errors across the app use a shared high-contrast alert with a warning icon; compact forms and popovers use the same visual treatment at a smaller size.
+- Encrypted daily Supabase database exports are installed in OneDrive. A disposable local restore drill succeeded: all 16 public application tables and 29 RLS policies restored with foreign-key checks enabled. Auth accounts and Storage objects are outside the CLI export and require separate recovery. OneDrive currently blocks automatic retention cleanup in the background job, so old archives need manual removal.
 
 ## Current priorities
 
@@ -28,7 +29,6 @@ No current-priority items remain.
 
 ## Remaining before launch
 
-- **Backups:** choose a secure off-site destination, export the database, and verify that a restore works before relying on Supabase as the only production store.
 - **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; ensure real-time changes do not move another user's scroll position or discard unsaved edits, including when two Editors change the same record; review dependency advisories, expected workload, and load/search/update speed.
 - **Page Audit and Rankings exports:** add CSV or Excel export options.
 - **Automated tests:** cover publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, role access, imports, and persistence.
