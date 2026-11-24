@@ -6,6 +6,9 @@ changes in versioned migrations.
 
 The Rankings migrations `202611050001_rankings_foundation.sql` and
 `202611050002_rankings_backfill.sql` have been merged. Apply them in that order.
+Apply `202611240001_rankings_placements.sql` before deploying the annual Rankings
+membership update. It separates a vehicle's shared Catalog segments from the
+year-specific Rankings lists and carries existing included placements forward.
 The workflow follow-up `202611050003_sync_authors_and_hide_dead_audits.sql`
 links Page Audit Authors, syncs task-author assignments to Changeover and Page
 Audit, and normalizes historical multi-author audit values to the first listed
