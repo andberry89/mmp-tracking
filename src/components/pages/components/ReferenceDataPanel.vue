@@ -90,7 +90,21 @@
               <label>Make<select v-model="vehicleMakeId" required @change="vehicleModelId = ''"><option disabled value="">Select a make</option><option v-for="make in vehicleMakeOptions" :key="make.id" :value="make.id">{{ make.name }}{{ make.active ? '' : ' (Archived)' }}</option></select></label>
               <label>Model<select v-model="vehicleModelId" required :disabled="!vehicleMakeId"><option disabled value="">Select a model</option><option v-for="model in modelsForVehicleMake" :key="model.id" :value="model.id">{{ model.name }}{{ model.active ? '' : ' (Archived)' }}</option></select></label>
               <label>Model Year<select v-model.number="vehicleYear" required><option disabled :value="null">Select a year</option><option v-for="year in catalogStore.modelYears" :key="year" :value="year">{{ year }}</option></select></label>
-              <fieldset class="segment-picker"><legend>Segments</legend><label v-for="segment in vehicleSegmentOptions" :key="segment.id"><input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />{{ segment.name }}<small>{{ bodyStyleLabel(segment.bodyStyle) }}</small></label></fieldset>
+              <fieldset class="segment-picker">
+                <legend>Segments <span>{{ vehicleSegmentIds.length }} selected</span></legend>
+                <div class="segment-picker__groups">
+                  <section v-for="group in vehicleSegmentGroups" :key="group.key" class="segment-picker__group">
+                    <h4>{{ group.label }}</h4>
+                    <div class="segment-picker__options">
+                      <label v-for="segment in group.segments" :key="segment.id" class="segment-option" :class="{ 'segment-option--selected': vehicleSegmentIds.includes(segment.id), 'segment-option--archived': !segment.active }">
+                        <input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />
+                        <span>{{ segment.name }}<small v-if="!segment.active">Archived</small></span>
+                      </label>
+                    </div>
+                  </section>
+                  <p v-if="!vehicleSegmentGroups.length" class="segment-picker__empty">No active segments available.</p>
+                </div>
+              </fieldset>
               <label>Rating<select v-model="vehicleRating"><option value="">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="String(rating)">{{ rating.toFixed(1) }}</option></select></label>
               <div class="form-actions"><button type="submit" class="button button--primary" :disabled="savingVehicleYear || !catalogStore.modelYears.length">{{ savingVehicleYear ? 'Saving…' : 'Add vehicle year' }}</button></div>
             </form>
@@ -176,7 +190,21 @@
             <div><strong>{{ vehicle.modelYear }}</strong><span>{{ vehicle.segment || 'No Segment assigned' }}</span><span>Rating {{ vehicle.rating ?? '—' }}</span><span class="detail-awards"><img v-if="vehicle.awards.ten_best.includes(vehicle.modelYear)" :src="tenBestLogo" alt="10 Best" /><img v-if="vehicle.awards.editors_choice.includes(vehicle.modelYear)" :src="editorsChoiceLogo" alt="Editors’ Choice" /><img v-if="vehicle.awards.ev_of_the_year.includes(vehicle.modelYear)" :src="evOfTheYearLogo" alt="EV of the Year" /><small v-if="!vehicle.awards.ten_best.includes(vehicle.modelYear) && !vehicle.awards.editors_choice.includes(vehicle.modelYear) && !vehicle.awards.ev_of_the_year.includes(vehicle.modelYear)">No awards recorded for {{ vehicle.modelYear }}</small></span></div>
             <button v-if="canEdit" type="button" class="button button--quiet" @click="startSegmentEdit(vehicle)">{{ editingVehicleYearId === vehicle.id ? 'Editing' : 'Edit Details' }}</button>
             <form v-if="canEdit && editingVehicleYearId === vehicle.id" class="detail-edit-form" @submit.prevent="saveVehicleYear">
-              <fieldset class="segment-picker"><legend>Segments</legend><label v-for="segment in vehicleSegmentOptions" :key="segment.id"><input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />{{ segment.name }}<small>{{ bodyStyleLabel(segment.bodyStyle) }}</small></label></fieldset>
+              <fieldset class="segment-picker">
+                <legend>Segments <span>{{ vehicleSegmentIds.length }} selected</span></legend>
+                <div class="segment-picker__groups">
+                  <section v-for="group in vehicleSegmentGroups" :key="group.key" class="segment-picker__group">
+                    <h4>{{ group.label }}</h4>
+                    <div class="segment-picker__options">
+                      <label v-for="segment in group.segments" :key="segment.id" class="segment-option" :class="{ 'segment-option--selected': vehicleSegmentIds.includes(segment.id), 'segment-option--archived': !segment.active }">
+                        <input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />
+                        <span>{{ segment.name }}<small v-if="!segment.active">Archived</small></span>
+                      </label>
+                    </div>
+                  </section>
+                  <p v-if="!vehicleSegmentGroups.length" class="segment-picker__empty">No active segments available.</p>
+                </div>
+              </fieldset>
               <label>Rating<select v-model="vehicleRating"><option value="">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="String(rating)">{{ rating.toFixed(1) }}</option></select></label>
               <fieldset class="vehicle-award-picker"><legend>{{ vehicle.modelYear }} awards</legend><label><input v-model="vehicleAwards.ten_best" type="checkbox" />10 Best</label><label><input v-model="vehicleAwards.editorsChoice" type="checkbox" />Editors’ Choice</label><label><input v-model="vehicleAwards.evOfTheYear" type="checkbox" />EV of the Year</label></fieldset>
               <div class="form-actions"><button type="button" class="button button--quiet" @click="editingVehicleYearId = null">Cancel</button><button type="submit" class="button button--primary" :disabled="savingVehicleYear">Save details</button></div>
@@ -299,6 +327,15 @@ const vehicleSegmentOptions = computed(() => {
   const selectedArchived = catalogStore.segments.filter((item) => vehicleSegmentIds.value.includes(item.id) && !item.active);
   return [...selectedArchived, ...active.filter((item) => !selectedArchived.some((selected) => selected.id === item.id))];
 });
+const vehicleSegmentGroups = computed(() => {
+  const groups = bodyStyleOptions.map(({ id, label }) => ({
+    key: id,
+    label,
+    segments: vehicleSegmentOptions.value.filter((segment) => segment.bodyStyle === id).sort((a, b) => a.name.localeCompare(b.name)),
+  })).filter((group) => group.segments.length);
+  const unassigned = vehicleSegmentOptions.value.filter((segment) => !segment.bodyStyle).sort((a, b) => a.name.localeCompare(b.name));
+  return [...groups, ...(unassigned.length ? [{ key: "unassigned", label: "Body style not set", segments: unassigned }] : [])];
+});
 
 function modelsForMake(makeId: string) {
   return catalogStore.models.filter((model) => model.makeId === makeId).sort((a, b) => a.name.localeCompare(b.name));
@@ -322,7 +359,6 @@ function editModel(item: ModelOption) { editingId.value = item.id; name.value = 
 function editAuthor(author: Author) { editingId.value = author.id; firstName.value = author.firstName; lastName.value = author.lastName; team.value = author.team.slug; formOpen.value = true; }
 function openVehicleModel(modelId: string) { selectedSegment.value = null; selectedModel.value = catalogStore.models.find((item) => item.id === modelId) ?? null; }
 function startSegmentEdit(item: ModelYearVehicleOption) { editingVehicleYearId.value = item.id; vehicleModelId.value = item.modelId; vehicleYear.value = item.modelYear; vehicleSegmentIds.value = item.segments.map((segment) => segment.id); vehicleRating.value = item.rating === null ? "" : String(item.rating); vehicleAwards.value = { ten_best: item.awards.ten_best.includes(item.modelYear), editorsChoice: item.awards.editors_choice.includes(item.modelYear), evOfTheYear: item.awards.ev_of_the_year.includes(item.modelYear) }; }
-function bodyStyleLabel(style: BodyStyle | null) { return bodyStyleOptions.find((item) => item.id === style)?.label ?? "Body style not set"; }
 
 async function saveRecord() {
   saving.value = true; pageError.value = "";
@@ -454,10 +490,26 @@ function closePopover(_event: Event, element?: HTMLElement) {
 .year-chip small { color: var(--gray-light-4); font-size: 0.72rem; text-transform: capitalize; }
 .vehicle-year-form { margin: 14px 0 0; padding: 0; border: 0; box-shadow: none; }
 .vehicle-year-form .form-actions { flex: 0 0 auto; }
-.segment-picker, .vehicle-award-picker { display: flex; min-width: 240px; flex: 2 1 280px; flex-wrap: wrap; align-items: center; gap: 7px 13px; margin: 0; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; }
+.segment-picker { min-width: 0; flex: 1 1 100%; margin: 0; padding: 10px 12px 12px; border: 1px solid var(--color-border); border-radius: 6px; }
+.vehicle-award-picker { display: flex; min-width: 240px; flex: 2 1 280px; flex-wrap: wrap; align-items: center; gap: 7px 13px; margin: 0; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; }
 .segment-picker legend, .vehicle-award-picker legend { padding: 0 4px; color: var(--gray-dark-4); font-size: .76rem; font-weight: 700; }
-.segment-picker label, .vehicle-award-picker label { display: inline-flex; flex: 0 1 auto; align-items: center; gap: 5px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 500; }
-.segment-picker label small { color: var(--gray-light-4); font-size: .68rem; }
+.segment-picker legend span { margin-left: 5px; color: var(--gray-light-4); font-size: .7rem; font-weight: 500; }
+.segment-picker__groups { display: grid; gap: 12px; }
+.segment-picker__group { display: grid; gap: 6px; }
+.segment-picker__group h4 { margin: 0; color: var(--gray-light-4); font-size: .67rem; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+.segment-picker__options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 5px; }
+.segment-option { display: flex; min-width: 0; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid var(--color-divider); border-radius: 5px; background: var(--white); color: var(--gray-dark-3); font-size: .76rem; font-weight: 500; cursor: pointer; }
+.editor-form .segment-picker label.segment-option, .detail-edit-form .segment-picker label.segment-option { display: flex; flex: 0 1 auto; align-items: center; gap: 7px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 500; }
+.editor-form .segment-picker label.segment-option--selected, .detail-edit-form .segment-picker label.segment-option--selected { border-color: #9ac684; background: #f2f8ef; color: #345e2d; }
+.editor-form .segment-picker label.segment-option--archived, .detail-edit-form .segment-picker label.segment-option--archived { color: var(--gray-light-4); }
+.segment-option:hover { border-color: var(--green-2); background: #f8fbf6; }
+.segment-option--selected { border-color: #9ac684; background: #f2f8ef; color: #345e2d; }
+.segment-option--archived { color: var(--gray-light-4); }
+.segment-option input, .editor-form__fields .segment-option input, .detail-edit-form .segment-option input { width: 15px; height: 15px; flex: 0 0 15px; padding: 0; border: 0; background: transparent; accent-color: var(--green-2); }
+.segment-option span { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 5px; }
+.segment-option small { color: var(--gray-light-4); font-size: .65rem; white-space: nowrap; }
+.segment-picker__empty { margin: 0; color: var(--gray-light-4); font-size: .78rem; }
+.vehicle-award-picker label { display: inline-flex; flex: 0 1 auto; align-items: center; gap: 5px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 500; }
 .detail-awards { display: flex; min-height: 24px; align-items: center; gap: 5px; }
 .detail-awards img { width: 22px; height: 22px; object-fit: contain; }
 .detail-awards small { color: var(--gray-light-4); font-size: .72rem; }
