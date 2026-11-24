@@ -47,7 +47,7 @@ export interface ModelYearVehicleOption {
   segment: string;
   segments: SegmentOption[];
   rating: number | null;
-  awards: { ten_best: number[]; editors_choice: number[] };
+  awards: { ten_best: number[]; editors_choice: number[]; ev_of_the_year: number[] };
   publicUrl?: string;
 }
 
@@ -56,6 +56,8 @@ export interface ModelYearOption {
   state: "draft" | "active" | "prior";
   isDefault: boolean;
 }
+
+export type VehicleAwardType = "ten_best" | "editors_choice" | "ev_of_the_year";
 
 type CatalogRow = { id: string; name: string; active: boolean };
 type SegmentRow = CatalogRow & { body_style: BodyStyle | null };
@@ -84,7 +86,7 @@ type ModelYearVehicleRow = {
     makes: { name: string; active: boolean } | { name: string; active: boolean }[] | null;
   }[];
   model_year_vehicle_segments: Array<{ segments: SegmentRow | SegmentRow[] | null }>;
-  model_year_vehicle_awards: Array<{ award_year: number; award_type: "ten_best" | "editors_choice" }>;
+  model_year_vehicle_awards: Array<{ award_year: number; award_type: VehicleAwardType }>;
 };
 
 export const useCatalogStore = defineStore("catalog", () => {
@@ -169,7 +171,7 @@ export const useCatalogStore = defineStore("catalog", () => {
         const vehicleSegments = row.model_year_vehicle_segments
           .flatMap((assignment) => Array.isArray(assignment.segments) ? assignment.segments : assignment.segments ? [assignment.segments] : [])
           .map((segment) => ({ id: segment.id, name: segment.name, active: segment.active, bodyStyle: segment.body_style }));
-        const awards = { ten_best: [] as number[], editors_choice: [] as number[] };
+        const awards = { ten_best: [] as number[], editors_choice: [] as number[], ev_of_the_year: [] as number[] };
         row.model_year_vehicle_awards.forEach((award) => awards[award.award_type].push(award.award_year));
         return {
           id: row.id,
@@ -280,7 +282,7 @@ export const useCatalogStore = defineStore("catalog", () => {
         segment: selectedSegments.map((segment) => segment.name).join(", "),
         segments: selectedSegments,
         rating: existing?.rating ?? null,
-        awards: existing?.awards ?? { ten_best: [], editors_choice: [] },
+        awards: existing?.awards ?? { ten_best: [], editors_choice: [], ev_of_the_year: [] },
       };
       const index = modelYearVehicles.value.findIndex((item) => item.id === row.id);
       if (index === -1) modelYearVehicles.value.push(row);
@@ -333,7 +335,33 @@ export const useCatalogStore = defineStore("catalog", () => {
     vehicle.rating = rating;
   }
 
-  async function saveModelYearAward(vehicleId: string, awardYear: number, awardType: "ten_best" | "editors_choice", awarded: boolean) {
+  async function saveModelYearPublicUrl(vehicleId: string, publicUrl: string) {
+    const normalizedUrl = publicUrl.trim();
+    if (normalizedUrl) {
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(normalizedUrl);
+      } catch {
+        throw new Error("Enter a valid published page URL.");
+      }
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        throw new Error("Published page URLs must start with http:// or https://.");
+      }
+    }
+    const vehicle = modelYearVehicles.value.find((item) => item.id === vehicleId);
+    if (!vehicle) throw new Error("Choose a valid model year vehicle.");
+    if (!supabase || !isSupabaseConfigured) {
+      vehicle.publicUrl = normalizedUrl;
+      return;
+    }
+    const { error: urlError } = await supabase.from("model_year_vehicles")
+      .update({ public_url: normalizedUrl || null })
+      .eq("id", vehicleId);
+    if (urlError) throw urlError;
+    vehicle.publicUrl = normalizedUrl;
+  }
+
+  async function saveModelYearAward(vehicleId: string, awardYear: number, awardType: VehicleAwardType, awarded: boolean) {
     if (!Number.isInteger(awardYear) || awardYear < 1900 || awardYear > 2200) throw new Error("Enter a valid award year.");
     const vehicle = modelYearVehicles.value.find((item) => item.id === vehicleId);
     if (!vehicle) throw new Error("Choose a valid model year vehicle.");
@@ -414,7 +442,7 @@ export const useCatalogStore = defineStore("catalog", () => {
           segment: segment.name,
           segments: [segment],
           rating: null,
-          awards: { ten_best: [], editors_choice: [] },
+          awards: { ten_best: [], editors_choice: [], ev_of_the_year: [] },
         });
       }
     }
@@ -431,7 +459,7 @@ export const useCatalogStore = defineStore("catalog", () => {
   return {
     makes, models, segments, modelYears, modelYearRecords, modelYearVehicles,
     activeMakes, activeModels, activeSegments, activeModelYearVehicles, modelsForMake,
-    isLoading, error, loadCatalog, saveMake, saveModel, saveSegment, saveModelYear, saveModelYearVehicle, saveModelYearRating, saveModelYearAward,
+    isLoading, error, loadCatalog, saveMake, saveModel, saveSegment, saveModelYear, saveModelYearVehicle, saveModelYearRating, saveModelYearPublicUrl, saveModelYearAward,
     subscribeToChanges, stopRealtime,
   };
 });

@@ -2,9 +2,9 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { formatModelName } from "@/utils/format-model-name";
-import { useCatalogStore, type BodyStyle, type ModelYearVehicleOption } from "@/stores/catalog";
+import { useCatalogStore, type BodyStyle, type ModelYearVehicleOption, type VehicleAwardType } from "@/stores/catalog";
 
-export type RankingAward = "ten_best" | "editors_choice";
+export type RankingAward = VehicleAwardType;
 
 export interface RankingEntry {
   vehicleId: string;
@@ -18,7 +18,7 @@ export interface RankingEntry {
   state: "ranked" | "unranked" | "future";
   rating: number | null;
   publicUrl: string;
-  awards: { ten_best: number[]; editors_choice: number[] };
+  awards: Record<RankingAward, number[]>;
 }
 
 interface RankingRow {
@@ -88,9 +88,9 @@ export const useRankingsStore = defineStore("rankings", () => {
       if (currentRequest !== requestId) return;
 
       const awardRows = (awardResult.data ?? []) as unknown as AwardRow[];
-      const awardsByVehicle = new Map<string, { ten_best: number[]; editors_choice: number[] }>();
+      const awardsByVehicle = new Map<string, Record<RankingAward, number[]>>();
       for (const award of awardRows) {
-        const awards = awardsByVehicle.get(award.model_year_vehicle_id) ?? { ten_best: [], editors_choice: [] };
+        const awards = awardsByVehicle.get(award.model_year_vehicle_id) ?? { ten_best: [], editors_choice: [], ev_of_the_year: [] };
         awards[award.award_type].push(award.award_year);
         awardsByVehicle.set(award.model_year_vehicle_id, awards);
       }
@@ -251,7 +251,7 @@ export const useRankingsStore = defineStore("rankings", () => {
   return { entries, years, bodyStyles, selectedYear, isLoading, isSaving, error, load, saveRating, saveRankOrder, setEntryState, setAward, subscribeToChanges, stopRealtime };
 });
 
-function mapRow(row: RankingRow, awards?: { ten_best: number[]; editors_choice: number[] }): RankingEntry {
+function mapRow(row: RankingRow, awards?: Record<RankingAward, number[]>): RankingEntry {
   const segment = one(row.segments);
   const vehicle = one(row.model_year_vehicles);
   const model = vehicle ? one(vehicle.models) : null;
@@ -268,7 +268,7 @@ function mapRow(row: RankingRow, awards?: { ten_best: number[]; editors_choice: 
     state: row.entry_state,
     rating: vehicle?.rating === null || vehicle?.rating === undefined ? null : Number(vehicle.rating),
     publicUrl: vehicle?.public_url ?? "",
-    awards: awards ?? { ten_best: [], editors_choice: [] },
+    awards: awards ?? { ten_best: [], editors_choice: [], ev_of_the_year: [] },
   };
 }
 
@@ -285,7 +285,7 @@ function mapDemoEntry(vehicle: ModelYearVehicleOption, segmentId: string, segmen
     state: "unranked",
     rating: vehicle.rating,
     publicUrl: vehicle.publicUrl ?? "",
-    awards: { ten_best: [], editors_choice: [] },
+    awards: { ten_best: [], editors_choice: [], ev_of_the_year: [] },
   };
 }
 

@@ -55,7 +55,7 @@
                 <span><i class="summary-dot summary-dot--attention"></i>{{ checklistCounts(entry).attention }} needs work</span>
               </td>
               <td class="rating-cell" :class="`rating-cell--${sharedRatingResult(entry)}`">{{ entry.rating ?? '—' }}</td>
-              <td class="awards-cell"><div class="award-list"><img v-if="entry.awards.tenBest" class="award-icon" :src="tenBestLogo" alt="10 Best" /><img v-if="entry.awards.editorsChoice" class="award-icon" :src="editorsChoiceLogo" alt="Editors’ Choice" /><span v-if="!entry.awards.tenBest && !entry.awards.editorsChoice" class="muted">—</span></div></td>
+              <td class="awards-cell"><div class="award-list"><img v-if="entry.awards.tenBest" class="award-icon" :src="tenBestLogo" alt="10 Best" /><img v-if="entry.awards.editorsChoice" class="award-icon" :src="editorsChoiceLogo" alt="Editors’ Choice" /><img v-if="entry.awards.evOfTheYear" class="award-icon" :src="evOfTheYearLogo" alt="EV of the Year" /><span v-if="!entry.awards.tenBest && !entry.awards.editorsChoice && !entry.awards.evOfTheYear" class="muted">—</span></div></td>
               <td class="status-cell"><span>{{ entry.pageStatus || '—' }}</span><strong v-if="entry.doubleCheckInfo" class="status-review">Needs Review</strong></td>
               <td v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-cell" :class="`check-cell--${checkResult(check, entry.checklist[check.key])}`">{{ entry.checklist[check.key] || '—' }}</td>
               <td class="audit-notes-cell">{{ entry.auditNotes || '—' }}</td>
@@ -76,6 +76,11 @@
           </label>
         </div>
         <div v-else-if="editingEntry" class="modal-vehicle-heading"><strong>{{ editingEntry.make }} {{ editingEntry.model }}</strong><span>{{ selectedYear }} · {{ editingEntry.segment || 'Segment not set' }}</span></div>
+
+        <label class="field-label">Published page URL
+          <small class="field-hint">Shared with Changeover and Rankings. Leave blank until the page is published.</small>
+          <input v-model.trim="draft.publicUrl" type="url" placeholder="https://…" />
+        </label>
 
         <div class="form-grid form-grid--meta">
           <label class="field-label">Status
@@ -112,6 +117,7 @@
           <div class="award-options">
             <label><input v-model="draft.awards.tenBest" type="checkbox" /> 10 Best</label>
             <label><input v-model="draft.awards.editorsChoice" type="checkbox" /> Editors’ Choice</label>
+            <label><input v-model="draft.awards.evOfTheYear" type="checkbox" /> EV of the Year</label>
           </div>
         </section>
 
@@ -146,6 +152,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import BaseModal from "@/components/common/BaseModal.vue";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
+import evOfTheYearLogo from "@/assets/awards/ev-of-the-year.svg?url";
 import { useAuthorsStore } from "@/stores/authors";
 import { useCatalogStore } from "@/stores/catalog";
 import { usePageAuditStore, type AuditChecklist, type PageAuditEntry, type PageAuditInput } from "@/stores/pageAudit";
@@ -231,8 +238,9 @@ const editingEntry = ref<PageAuditEntry | null>(null);
 const draftVehicleId = ref("");
 const draft = reactive({
   pageStatus: "",
+  publicUrl: "",
   checklist: {} as AuditChecklist,
-  awards: { tenBest: false, editorsChoice: false },
+  awards: { tenBest: false, editorsChoice: false, evOfTheYear: false },
   rating: null as number | null,
   authorSelection: "",
   auditorInitials: "",
@@ -270,7 +278,10 @@ onMounted(() => {
 });
 onBeforeUnmount(() => auditStore.stopRealtime());
 watch(draftVehicleId, () => {
-  if (modalMode.value === "add") draft.rating = activeModalVehicle.value?.rating ?? null;
+  if (modalMode.value === "add") {
+    draft.rating = activeModalVehicle.value?.rating ?? null;
+    draft.publicUrl = activeModalVehicle.value?.publicUrl ?? "";
+  }
 });
 watch(selectedYear, (year) => { query.value = ""; statusFilter.value = "all"; void auditStore.load(year); });
 watch(() => catalog.modelYears, (years) => {
@@ -319,6 +330,7 @@ function openAdd() {
   draftVehicleId.value = availableVehicles.value[0]?.id ?? "";
   resetDraft();
   draft.rating = activeModalVehicle.value?.rating ?? null;
+  draft.publicUrl = activeModalVehicle.value?.publicUrl ?? "";
   modalOpen.value = true;
 }
 function openEdit(entry: PageAuditEntry) {
@@ -327,6 +339,7 @@ function openEdit(entry: PageAuditEntry) {
   draftVehicleId.value = entry.modelYearVehicleId;
   Object.assign(draft, {
     pageStatus: entry.pageStatus,
+    publicUrl: entry.publicUrl,
     checklist: { ...entry.checklist },
     awards: { ...entry.awards },
     rating: entry.rating,
@@ -339,7 +352,7 @@ function openEdit(entry: PageAuditEntry) {
   modalOpen.value = true;
 }
 function resetDraft() {
-  Object.assign(draft, { pageStatus: "", checklist: {}, awards: { tenBest: false, editorsChoice: false }, rating: null, authorSelection: "", auditorInitials: "", auditedAt: "", doubleCheckInfo: false, auditNotes: "" });
+  Object.assign(draft, { pageStatus: "", publicUrl: "", checklist: {}, awards: { tenBest: false, editorsChoice: false, evOfTheYear: false }, rating: null, authorSelection: "", auditorInitials: "", auditedAt: "", doubleCheckInfo: false, auditNotes: "" });
 }
 function closeModal() { modalOpen.value = false; }
 async function saveEntry() {
@@ -354,6 +367,7 @@ async function saveEntry() {
   const input: PageAuditInput = {
     vehicle,
     pageStatus: draft.pageStatus,
+    publicUrl: draft.publicUrl,
     checklist,
     awards: { ...draft.awards },
     rating: draft.rating,
@@ -432,7 +446,7 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .checklist-summary-cell > strong { display: block; margin-bottom: 5px; color: #345e2d; font-weight: 700; }
 .checklist-summary-cell > span { display: block; margin-top: 3px; white-space: nowrap; }
 .award-list { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.award-icon { display: block; width: 27px; height: 27px; object-fit: contain; }
+.award-icon { display: block; width: 22px; height: 22px; object-fit: contain; }
 .awards-form-section { display: grid; gap: 10px; }
 .award-options { display: flex; flex-wrap: wrap; gap: 16px; }
 .award-options label { display: inline-flex; align-items: center; gap: 7px; color: var(--gray-dark-3); font-size: .8rem; }

@@ -6,7 +6,7 @@ import { useCatalogStore, type ModelYearVehicleOption } from "@/stores/catalog";
 import { formatModelName } from "@/utils/format-model-name";
 
 export type AuditChecklist = Record<string, string>;
-export interface AuditAwards { tenBest: boolean; editorsChoice: boolean }
+export interface AuditAwards { tenBest: boolean; editorsChoice: boolean; evOfTheYear: boolean }
 
 export interface PageAuditEntry {
   id: string;
@@ -31,6 +31,7 @@ export interface PageAuditEntry {
 export interface PageAuditInput {
   vehicle: ModelYearVehicleOption;
   pageStatus: string;
+  publicUrl: string;
   checklist: AuditChecklist;
   awards: AuditAwards;
   rating: number | null;
@@ -146,6 +147,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
         throw new Error("A vehicle marked Dead in Changeover cannot be added to Page Audit.");
       }
       await catalog.saveModelYearRating(input.vehicle.id, input.rating);
+      await catalog.saveModelYearPublicUrl(input.vehicle.id, input.publicUrl);
       const result = entry
         ? await supabase.from("page_audit_entries").update(payload).eq("id", entry.id)
         : await supabase.from("page_audit_entries").insert(payload);
@@ -163,8 +165,9 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
     const empty: PageAuditInput = {
       vehicle,
       pageStatus: "",
+      publicUrl: vehicle.publicUrl ?? "",
       checklist: {},
-      awards: { tenBest: false, editorsChoice: false },
+      awards: { tenBest: false, editorsChoice: false, evOfTheYear: false },
       rating: vehicle.rating,
       authorId: null,
       authorName: "",
@@ -213,7 +216,7 @@ function mapRow(row: DbPageAuditEntry): PageAuditEntry {
     publicUrl: vehicle?.public_url ?? "",
     pageStatus: row.page_status ?? "",
     checklist: row.checklist ?? {},
-    awards: { tenBest: Boolean(row.awards?.tenBest), editorsChoice: Boolean(row.awards?.editorsChoice) },
+    awards: { tenBest: Boolean(row.awards?.tenBest), editorsChoice: Boolean(row.awards?.editorsChoice), evOfTheYear: Boolean(row.awards?.evOfTheYear) },
     auditorInitials: row.auditor_initials ?? "",
     auditedAt: row.audited_at ?? "",
     doubleCheckInfo: row.double_check_info,

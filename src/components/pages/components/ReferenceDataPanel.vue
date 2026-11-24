@@ -173,12 +173,12 @@
         <div v-else-if="selectedModel" class="detail-content">
           <h3>Model years and Segments</h3>
           <article v-for="vehicle in vehicleYearsForModel(selectedModel.id)" :key="vehicle.id" class="detail-year-row">
-            <div><strong>{{ vehicle.modelYear }}</strong><span>{{ vehicle.segment || 'No Segment assigned' }}</span><span>Rating {{ vehicle.rating ?? '—' }}</span><span class="detail-awards"><img v-if="vehicle.awards.ten_best.includes(vehicle.modelYear)" :src="tenBestLogo" alt="10 Best" /><img v-if="vehicle.awards.editors_choice.includes(vehicle.modelYear)" :src="editorsChoiceLogo" alt="Editors’ Choice" /><small v-if="!vehicle.awards.ten_best.includes(vehicle.modelYear) && !vehicle.awards.editors_choice.includes(vehicle.modelYear)">No awards recorded for {{ vehicle.modelYear }}</small></span></div>
+            <div><strong>{{ vehicle.modelYear }}</strong><span>{{ vehicle.segment || 'No Segment assigned' }}</span><span>Rating {{ vehicle.rating ?? '—' }}</span><span class="detail-awards"><img v-if="vehicle.awards.ten_best.includes(vehicle.modelYear)" :src="tenBestLogo" alt="10 Best" /><img v-if="vehicle.awards.editors_choice.includes(vehicle.modelYear)" :src="editorsChoiceLogo" alt="Editors’ Choice" /><img v-if="vehicle.awards.ev_of_the_year.includes(vehicle.modelYear)" :src="evOfTheYearLogo" alt="EV of the Year" /><small v-if="!vehicle.awards.ten_best.includes(vehicle.modelYear) && !vehicle.awards.editors_choice.includes(vehicle.modelYear) && !vehicle.awards.ev_of_the_year.includes(vehicle.modelYear)">No awards recorded for {{ vehicle.modelYear }}</small></span></div>
             <button v-if="canEdit" type="button" class="button button--quiet" @click="startSegmentEdit(vehicle)">{{ editingVehicleYearId === vehicle.id ? 'Editing' : 'Edit Details' }}</button>
             <form v-if="canEdit && editingVehicleYearId === vehicle.id" class="detail-edit-form" @submit.prevent="saveVehicleYear">
               <fieldset class="segment-picker"><legend>Segments</legend><label v-for="segment in vehicleSegmentOptions" :key="segment.id"><input v-model="vehicleSegmentIds" type="checkbox" :value="segment.id" />{{ segment.name }}<small>{{ bodyStyleLabel(segment.bodyStyle) }}</small></label></fieldset>
               <label>Rating<select v-model="vehicleRating"><option value="">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="String(rating)">{{ rating.toFixed(1) }}</option></select></label>
-              <fieldset class="vehicle-award-picker"><legend>{{ vehicle.modelYear }} awards</legend><label><input v-model="vehicleAwards.ten_best" type="checkbox" />10 Best</label><label><input v-model="vehicleAwards.editorsChoice" type="checkbox" />Editors’ Choice</label></fieldset>
+              <fieldset class="vehicle-award-picker"><legend>{{ vehicle.modelYear }} awards</legend><label><input v-model="vehicleAwards.ten_best" type="checkbox" />10 Best</label><label><input v-model="vehicleAwards.editorsChoice" type="checkbox" />Editors’ Choice</label><label><input v-model="vehicleAwards.evOfTheYear" type="checkbox" />EV of the Year</label></fieldset>
               <div class="form-actions"><button type="button" class="button button--quiet" @click="editingVehicleYearId = null">Cancel</button><button type="submit" class="button button--primary" :disabled="savingVehicleYear">Save details</button></div>
             </form>
           </article>
@@ -205,6 +205,7 @@ import { useAuthorsStore } from "@/stores/authors";
 import type { Author, AuthorTeamSlug } from "@/types";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
+import evOfTheYearLogo from "@/assets/awards/ev-of-the-year.svg?url";
 
 const props = defineProps<{ kind: "make" | "model" | "segment" | "author"; title: string; description: string; canEdit?: boolean }>();
 const catalogStore = useCatalogStore();
@@ -221,7 +222,7 @@ const vehicleModelId = ref("");
 const vehicleYear = ref<number | null>(null);
 const vehicleSegmentIds = ref<string[]>([]);
 const vehicleRating = ref("");
-const vehicleAwards = ref({ ten_best: false, editorsChoice: false });
+const vehicleAwards = ref({ ten_best: false, editorsChoice: false, evOfTheYear: false });
 const ratingOptions = Array.from({ length: 19 }, (_, index) => 1 + index * 0.5);
 const editingId = ref<string | null>(null);
 const editingVehicleYearId = ref<string | null>(null);
@@ -320,7 +321,7 @@ function editSegment(item: SegmentOption) { editingId.value = item.id; name.valu
 function editModel(item: ModelOption) { editingId.value = item.id; name.value = item.name; makeId.value = item.makeId; formOpen.value = true; }
 function editAuthor(author: Author) { editingId.value = author.id; firstName.value = author.firstName; lastName.value = author.lastName; team.value = author.team.slug; formOpen.value = true; }
 function openVehicleModel(modelId: string) { selectedSegment.value = null; selectedModel.value = catalogStore.models.find((item) => item.id === modelId) ?? null; }
-function startSegmentEdit(item: ModelYearVehicleOption) { editingVehicleYearId.value = item.id; vehicleModelId.value = item.modelId; vehicleYear.value = item.modelYear; vehicleSegmentIds.value = item.segments.map((segment) => segment.id); vehicleRating.value = item.rating === null ? "" : String(item.rating); vehicleAwards.value = { ten_best: item.awards.ten_best.includes(item.modelYear), editorsChoice: item.awards.editors_choice.includes(item.modelYear) }; }
+function startSegmentEdit(item: ModelYearVehicleOption) { editingVehicleYearId.value = item.id; vehicleModelId.value = item.modelId; vehicleYear.value = item.modelYear; vehicleSegmentIds.value = item.segments.map((segment) => segment.id); vehicleRating.value = item.rating === null ? "" : String(item.rating); vehicleAwards.value = { ten_best: item.awards.ten_best.includes(item.modelYear), editorsChoice: item.awards.editors_choice.includes(item.modelYear), evOfTheYear: item.awards.ev_of_the_year.includes(item.modelYear) }; }
 function bodyStyleLabel(style: BodyStyle | null) { return bodyStyleOptions.find((item) => item.id === style)?.label ?? "Body style not set"; }
 
 async function saveRecord() {
@@ -355,8 +356,9 @@ async function saveVehicleYear() {
     if (vehicle && vehicleYear.value !== null) {
       await catalogStore.saveModelYearAward(vehicle.id, vehicleYear.value, "ten_best", vehicleAwards.value.ten_best);
       await catalogStore.saveModelYearAward(vehicle.id, vehicleYear.value, "editors_choice", vehicleAwards.value.editorsChoice);
+      await catalogStore.saveModelYearAward(vehicle.id, vehicleYear.value, "ev_of_the_year", vehicleAwards.value.evOfTheYear);
     }
-    editingVehicleYearId.value = null; vehicleMakeId.value = ""; vehicleModelId.value = ""; vehicleYear.value = null; vehicleSegmentIds.value = []; vehicleRating.value = ""; vehicleAwards.value = { ten_best: false, editorsChoice: false };
+    editingVehicleYearId.value = null; vehicleMakeId.value = ""; vehicleModelId.value = ""; vehicleYear.value = null; vehicleSegmentIds.value = []; vehicleRating.value = ""; vehicleAwards.value = { ten_best: false, editorsChoice: false, evOfTheYear: false };
   } catch (reason) { pageError.value = reason instanceof Error ? reason.message : "Could not save this vehicle year."; }
   finally { savingVehicleYear.value = false; }
 }
