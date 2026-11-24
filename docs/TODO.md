@@ -13,13 +13,16 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - Browser title/favicon, MMP drag-and-drop, Published & Updated view/pagination/summary cards, Changeover, Page Audit, annual Changeover preparation, and Rankings are implemented.
 - Latest workbook refresh is complete for 2027 Changeover, 2026–2029 Page Audits, Active Work, and Published & Updated.
 - Historical Page Audits for 2017–2025 were seeded and checked; no mismatches were reported.
-- 2020–2027 Rankings placements were imported and reconciled with the workbook: zero extra or missing placements, and zero rank or rating mismatches. The five additional 2027 historical awards were reviewed and intentionally kept pending the source-of-truth award refresh.
+- 2020–2027 Rankings placements were imported and reconciled with the workbook: zero extra or missing placements, and zero rank or rating mismatches. 10Best, Editors’ Choice, and EV of the Year histories were refreshed from the supplied source-of-truth files and all 12 Catalog-matched batches verified with no missing or extra award records.
 - Page Audit's C/D rating now uses the shared model-year rating, so editors enter it once. It remains part of the checklist score and is displayed in the Rating column.
 
 ## Current priorities
 
-1. **Clarify annual Rankings membership.** Add Editor controls to include/remove a model-year vehicle/segment placement from a year's Rankings list without changing shared Catalog, Changeover, or Page Audit membership. Explain that a year such as 2028 can appear in the selector from Catalog data while its Rankings list remains empty until placements are explicitly included; improve that empty state.
-2. **Reconcile awards from a source of truth.** Use the 10Best, Editors’ Choice, and EV of the Year CSVs to update shared award history across all model years. EV of the Year app and database support is in progress; verify the private data import against the Catalog before considering this complete.
+1. **Improve annual Rankings membership.** Let Editors add or remove a vehicle/segment placement from a year’s list without changing shared Catalog, Changeover, or Page Audit membership. Support future vehicles in earlier-year lists (for example, the 2028 Mercedes GLA-Class EV in the 2027 Electric Compact Luxury SUVs list), and explain why a year can appear in the selector before placements are added.
+2. **Improve Rankings search.** Keep every vehicle visible within matching segments, hide segments with no matching make/model, and highlight matching text. For example, searching “X3” should match both X3 and iX3 while still showing all vehicles in those segments.
+3. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
+4. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
+5. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
 
 ## Remaining before launch
 

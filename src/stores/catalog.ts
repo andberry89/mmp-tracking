@@ -59,6 +59,10 @@ export interface ModelYearOption {
 
 export type VehicleAwardType = "ten_best" | "editors_choice" | "ev_of_the_year";
 
+export function isVehicleAwardType(value: string): value is VehicleAwardType {
+  return value === "ten_best" || value === "editors_choice" || value === "ev_of_the_year";
+}
+
 type CatalogRow = { id: string; name: string; active: boolean };
 type SegmentRow = CatalogRow & { body_style: BodyStyle | null };
 type ModelRow = {
@@ -86,7 +90,7 @@ type ModelYearVehicleRow = {
     makes: { name: string; active: boolean } | { name: string; active: boolean }[] | null;
   }[];
   model_year_vehicle_segments: Array<{ segments: SegmentRow | SegmentRow[] | null }>;
-  model_year_vehicle_awards: Array<{ award_year: number; award_type: VehicleAwardType }>;
+  model_year_vehicle_awards: Array<{ award_year: number; award_type: string }>;
 };
 
 export const useCatalogStore = defineStore("catalog", () => {
@@ -172,7 +176,9 @@ export const useCatalogStore = defineStore("catalog", () => {
           .flatMap((assignment) => Array.isArray(assignment.segments) ? assignment.segments : assignment.segments ? [assignment.segments] : [])
           .map((segment) => ({ id: segment.id, name: segment.name, active: segment.active, bodyStyle: segment.body_style }));
         const awards = { ten_best: [] as number[], editors_choice: [] as number[], ev_of_the_year: [] as number[] };
-        row.model_year_vehicle_awards.forEach((award) => awards[award.award_type].push(award.award_year));
+        row.model_year_vehicle_awards.forEach((award) => {
+          if (isVehicleAwardType(award.award_type)) awards[award.award_type].push(award.award_year);
+        });
         return {
           id: row.id,
           modelId: row.model_id,
