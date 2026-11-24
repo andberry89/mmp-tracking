@@ -74,16 +74,19 @@
             <div class="ranking-awards" :aria-label="awardSummary(entry)">
               <span v-if="latestAwardYear(entry.awards.ten_best)" class="latest-award" :title="`Most recent 10 Best: ${latestAwardYear(entry.awards.ten_best)}`"><img :src="tenBestLogo" alt="10 Best" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.ten_best) }}</strong></span>
               <span v-if="latestAwardYear(entry.awards.editors_choice)" class="latest-award" :title="`Most recent Editors’ Choice: ${latestAwardYear(entry.awards.editors_choice)}`"><img :src="editorsChoiceLogo" alt="Editors’ Choice" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.editors_choice) }}</strong></span>
+              <span v-if="latestAwardYear(entry.awards.ev_of_the_year)" class="latest-award" :title="`Most recent EV of the Year: ${latestAwardYear(entry.awards.ev_of_the_year)}`"><img :src="evOfTheYearLogo" alt="EV of the Year" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.ev_of_the_year) }}</strong></span>
             </div>
             <details v-if="canEdit" class="award-editor" v-click-outside="closePopover">
               <summary :aria-label="`Edit award history for ${entry.make} ${entry.model}`">Awards</summary>
               <div class="award-editor__panel">
                 <div class="award-history-row"><img :src="tenBestLogo" alt="" /><strong>10 Best</strong><span>{{ formatAwardYears(entry.awards.ten_best) }}</span></div>
                 <div class="award-history-row"><img :src="editorsChoiceLogo" alt="" /><strong>Editors’ Choice</strong><span>{{ formatAwardYears(entry.awards.editors_choice) }}</span></div>
+                <div class="award-history-row"><img :src="evOfTheYearLogo" alt="" /><strong>EV of the Year</strong><span>{{ formatAwardYears(entry.awards.ev_of_the_year) }}</span></div>
                 <div class="award-editor__divider"></div>
                 <label>Award year<select v-model.number="awardYear"><option v-for="year in awardYears" :key="year" :value="year">{{ year }}</option></select></label>
                 <label><input type="checkbox" :checked="entry.awards.ten_best.includes(awardYear)" @change="toggleAward(entry, 'ten_best', $event)" />10 Best</label>
                 <label><input type="checkbox" :checked="entry.awards.editors_choice.includes(awardYear)" @change="toggleAward(entry, 'editors_choice', $event)" />Editors’ Choice</label>
+                <label><input type="checkbox" :checked="entry.awards.ev_of_the_year.includes(awardYear)" @change="toggleAward(entry, 'ev_of_the_year', $event)" />EV of the Year</label>
               </div>
             </details>
             <button v-if="canEdit" class="unrank-button" type="button" :disabled="store.isSaving" @click="removeRank(group, entry)">Unrank</button>
@@ -116,6 +119,7 @@ import { bodyStyleOptions, useCatalogStore, type BodyStyle } from "@/stores/cata
 import { useRankingsStore, type RankingAward, type RankingEntry } from "@/stores/rankings";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
+import evOfTheYearLogo from "@/assets/awards/ev-of-the-year.svg?url";
 
 const props = withDefaults(defineProps<{ canEdit?: boolean }>(), { canEdit: false });
 const catalog = useCatalogStore();
@@ -134,7 +138,7 @@ const dropTarget = ref<{ vehicleId?: string; position: "before" | "after" | "end
 const ratingOptions = Array.from({ length: 19 }, (_, index) => 1 + index * 0.5);
 const awardYears = computed(() => {
   const latest = store.selectedYear ?? 2027;
-  return Array.from({ length: Math.max(1, latest - 1999) }, (_, index) => latest - index);
+  return Array.from({ length: Math.max(1, latest - 1982) }, (_, index) => latest - index);
 });
 const queryValue = computed(() => searchQuery.value.trim().toLowerCase());
 const filtersClear = computed(() => !queryValue.value && bodyStyleFilter.value === "all" && !selectedSegments.value.length);
@@ -211,7 +215,7 @@ function visibleUnranked(group: (typeof allGroups.value)[number]) {
   return group.unranked.filter((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
 }
 function awardSummary(entry: RankingEntry) {
-  const awards = [...entry.awards.ten_best.map((year) => `10 Best ${year}`), ...entry.awards.editors_choice.map((year) => `Editors’ Choice ${year}`)];
+  const awards = [...entry.awards.ten_best.map((year) => `10 Best ${year}`), ...entry.awards.editors_choice.map((year) => `Editors’ Choice ${year}`), ...entry.awards.ev_of_the_year.map((year) => `EV of the Year ${year}`)];
   return awards.length ? awards.join(", ") : "No awards recorded";
 }
 function startDrag(event: DragEvent, entry: RankingEntry) {

@@ -32,3 +32,4 @@ coverage
 # Historical audit seed data contains internal staff and audit records.
 /supabase/seeds/historical_page_audits/
 /supabase/seeds/workbook_refresh/
+/supabase/seeds/awards_source_truth/
