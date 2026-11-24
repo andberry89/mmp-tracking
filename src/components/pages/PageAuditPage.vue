@@ -41,20 +41,19 @@
       <div v-else class="table-scroll" role="region" tabindex="0" aria-label="Page Audit checklist. Scroll to see all vehicle fields.">
         <table class="audit-table" :class="{ 'table--editable': canEdit }">
           <thead><tr>
-            <th class="vehicle-column">Vehicle / Segment</th><th class="people-column">Author / Auditor</th><th class="checklist-summary-column">Checklist</th><th class="rating-column">Rating</th><th class="awards-column">Awards</th><th class="status-column">Status</th>
+            <th class="vehicle-column">Vehicle / Segment / Rating</th><th class="people-column">Author / Auditor</th><th class="checklist-summary-column">Checklist</th><th class="awards-column">Awards</th><th class="status-column">Status</th>
             <th v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-heading"><span>{{ check.label }}</span></th>
             <th class="notes-column">Audit notes</th>
           </tr></thead>
           <tbody>
             <tr v-for="entry in filteredEntries" :key="entry.id">
-              <td class="vehicle-cell"><div class="vehicle-cell-content"><div class="vehicle-cell-text"><strong>{{ entry.make }} {{ entry.model }}</strong><span>{{ entry.segment || 'Segment not set' }}</span><a v-if="entry.publicUrl" class="vehicle-public-link" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer">{{ entry.publicUrl }} ↗</a></div><button v-if="canEdit" class="edit-icon-button" type="button" :aria-label="`Edit audit for ${entry.make} ${entry.model}`" :title="`Edit audit for ${entry.make} ${entry.model}`" @click="openEdit(entry)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.8 3.2a1.8 1.8 0 0 1 2.5 2.5l-8.9 8.9-3.2.7.7-3.2 8.9-8.9Z"/><path d="m12.6 4.4 3 3"/></svg></button></div></td>
+              <td class="vehicle-cell"><div class="vehicle-cell-content"><div class="vehicle-cell-text"><strong>{{ entry.make }} {{ entry.model }}</strong><span>{{ entry.segment || 'Segment not set' }}</span><a v-if="entry.publicUrl" class="vehicle-public-link" :href="entry.publicUrl" target="_blank" rel="noopener noreferrer">{{ entry.publicUrl }} ↗</a></div><span class="vehicle-rating" :class="`vehicle-rating--${sharedRatingResult(entry)}`" :aria-label="`Rating ${entry.rating ?? 'not set'}`">{{ entry.rating ?? '—' }}</span><button v-if="canEdit" class="edit-icon-button" type="button" :aria-label="`Edit audit for ${entry.make} ${entry.model}`" :title="`Edit audit for ${entry.make} ${entry.model}`" @click="openEdit(entry)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.8 3.2a1.8 1.8 0 0 1 2.5 2.5l-8.9 8.9-3.2.7.7-3.2 8.9-8.9Z"/><path d="m12.6 4.4 3 3"/></svg></button></div></td>
               <td class="people-cell"><strong>{{ entry.authorName || '—' }}</strong><span>{{ entry.auditorInitials ? `Auditor ${entry.auditorInitials}` : '—' }}</span><span v-if="entry.auditedAt">Audited {{ formatDate(entry.auditedAt) }}</span></td>
               <td class="checklist-summary-cell">
                 <strong>{{ checklistCounts(entry).passed }}/{{ checklistCounts(entry).total }} pass</strong>
                 <span><i class="summary-dot summary-dot--exception"></i>{{ checklistCounts(entry).exception }} review</span>
                 <span><i class="summary-dot summary-dot--attention"></i>{{ checklistCounts(entry).attention }} needs work</span>
               </td>
-              <td class="rating-cell" :class="`rating-cell--${sharedRatingResult(entry)}`">{{ entry.rating ?? '—' }}</td>
               <td class="awards-cell"><div class="award-list"><img v-if="entry.awards.tenBest" class="award-icon" :src="tenBestLogo" alt="10 Best" /><img v-if="entry.awards.editorsChoice" class="award-icon" :src="editorsChoiceLogo" alt="Editors’ Choice" /><img v-if="entry.awards.evOfTheYear" class="award-icon" :src="evOfTheYearLogo" alt="EV of the Year" /><span v-if="!entry.awards.tenBest && !entry.awards.editorsChoice && !entry.awards.evOfTheYear" class="muted">—</span></div></td>
               <td class="status-cell"><span>{{ entry.pageStatus || '—' }}</span><strong v-if="entry.doubleCheckInfo" class="status-review">Needs Review</strong></td>
               <td v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-cell" :class="`check-cell--${checkResult(check, entry.checklist[check.key])}`">{{ entry.checklist[check.key] || '—' }}</td>
@@ -423,7 +422,6 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .audit-table tbody tr:nth-child(even) td.vehicle-cell { background: #f7f8f6; }
 .audit-table .people-column, .audit-table td.people-cell { width: 130px; min-width: 130px; }
 .audit-table .checklist-summary-column, .audit-table td.checklist-summary-cell { width: 115px; min-width: 115px; }
-.audit-table .rating-column, .audit-table td.rating-cell { width: 64px; min-width: 64px; }
 .audit-table .awards-column, .audit-table td.awards-cell { width: 90px; min-width: 90px; }
 .audit-table .status-column, .audit-table td.status-cell { width: 115px; min-width: 115px; }
 .audit-table .check-heading, .audit-table .check-cell { width: 90px; min-width: 90px; }
@@ -435,10 +433,12 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .audit-table tbody tr td.check-cell--passed { background: #e5f1e2; box-shadow: inset 3px 0 #78aa6b; color: #345e2d; }
 .audit-table tbody tr td.check-cell--exception { background: #fff1d2; box-shadow: inset 3px 0 #e0b04b; color: #74530b; }
 .audit-table tbody tr td.check-cell--attention { background: #f8e3e1; box-shadow: inset 3px 0 #c9483f; color: #7d302b; }
-.audit-table tbody tr td.rating-cell--passed { background: #e5f1e2; box-shadow: inset 3px 0 #78aa6b; color: #345e2d; }
-.audit-table tbody tr td.rating-cell--attention { background: #f8e3e1; box-shadow: inset 3px 0 #c9483f; color: #7d302b; }
-.vehicle-cell-content { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.vehicle-cell-text { min-width: 0; }
+.vehicle-cell-content { display: flex; align-items: center; gap: 8px; }
+.vehicle-cell-text { min-width: 0; flex: 1; }
+.vehicle-cell .vehicle-rating { display: inline-flex; flex: 0 0 36px; min-height: 28px; align-items: center; justify-content: center; margin-top: 0; border-radius: 4px; background: #f0f1ee; color: var(--gray-dark-3); font-size: .76rem; font-weight: 700; }
+.vehicle-cell .vehicle-rating--passed { background: #e5f1e2; color: #345e2d; }
+.vehicle-cell .vehicle-rating--exception { background: #fff1d2; color: #74530b; }
+.vehicle-cell .vehicle-rating--attention { background: #f8e3e1; color: #7d302b; }
 .vehicle-cell strong, .vehicle-cell span, .people-cell strong, .people-cell span { display: block; }
 .vehicle-cell span, .people-cell span { margin-top: 4px; color: var(--gray-light-4); font-size: .72rem; }
 .status-cell { color: var(--gray-dark-3); font-size: .74rem; font-weight: 600; }

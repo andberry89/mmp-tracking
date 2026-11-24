@@ -17,13 +17,13 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - Page Audit's C/D rating now uses the shared model-year rating, so editors enter it once. It remains part of the checklist score and is displayed in the Rating column.
 - Annual Rankings membership is managed separately from Catalog Segment assignments. Editors can add/remove placements by Rankings year, including future model-year vehicles in earlier-year lists.
 - Rankings search matches make/model text, keeps all vehicles visible in any matching segment, hides segments without matches, and highlights the matches.
+- Page Audit's shared rating now sits inside the fixed Vehicle / Segment cell, beside the vehicle details and before the edit action.
 
 ## Current priorities
 
-1. **Revisit Page Audit rating placement.** Consider moving the shared rating into the fixed Make/Model cell, or making it the first column immediately to the right, so it stays close to the vehicle name without feeling awkward in its current position.
-2. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
-3. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
-4. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
+1. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
+2. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
+3. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
 
 ## Remaining before launch
 
@@ -31,6 +31,7 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; review dependency advisories, expected workload, load/search/update speed, and simultaneous editing behavior.
 - **Automated tests:** cover publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, role access, imports, and persistence.
 - **Final visual and accessibility pass:** check remaining pages, keyboard and screen-reader operation, contrast, and reduced motion. The current responsiveness pass was accepted.
+  - Add green/yellow/red indicators beside each field in the Edit Page Audit modal, using the same completion rules and colors as the audit table.
 - **Release review:** verify backups and access controls, then confirm the production workflows with the team.
 
 ## Additional ideas — timing TBD
