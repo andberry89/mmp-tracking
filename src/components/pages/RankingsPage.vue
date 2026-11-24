@@ -63,7 +63,7 @@
     </BaseModal>
 
     <section class="rankings-toolbar" aria-label="Ranking filters">
-      <label class="rankings-search"><span class="sr-only">Search rankings</span><input v-model="searchQuery" type="search" placeholder="Search make, model, or segment" /></label>
+      <label class="rankings-search"><span class="sr-only">Search rankings by make or model</span><input v-model="searchQuery" type="search" placeholder="Search by make or model" /></label>
       <label>Body style<select v-model="bodyStyleFilter"><option value="all">All body styles</option><option v-for="style in bodyStyleOptions" :key="style.id" :value="style.id">{{ style.label }}</option></select></label>
       <button v-if="availableSegments.length" class="compare-trigger" type="button" @click="openComparePicker">Compare segments <span>{{ selectedSegments.length ? `${selectedSegments.length} selected` : 'Choose 2 or more' }}</span></button>
       <button class="filter-reset" type="button" :disabled="filtersClear" @click="clearFilters">Clear filters</button>
@@ -119,7 +119,7 @@
             @drop.stop.prevent="dropOnEntry($event, group, entry)"
           >
             <button v-if="canEdit" class="drag-grip" type="button" draggable="true" :aria-label="`Drag to change rank for ${entry.make} ${entry.model}`" title="Drag to change rank" @dragstart="startDrag($event, entry)">⠿</button>
-            <div class="ranked-row__vehicle"><div class="vehicle-line"><label v-if="canEdit" class="rank-position-control"><span class="sr-only">Rank position for {{ entry.make }} {{ entry.model }}</span><input :value="entry.rankPosition" type="number" min="1" :max="group.ranked.length" :disabled="store.isSaving" @change="changeRankPosition(group, entry, $event)" /></label><span v-else class="rank-number">{{ entry.rankPosition }}</span><strong>{{ entry.make }} {{ entry.model }}</strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small v-if="entry.modelYear !== store.selectedYear">{{ entry.modelYear }} model</small></div>
+              <div class="ranked-row__vehicle"><div class="vehicle-line"><label v-if="canEdit" class="rank-position-control"><span class="sr-only">Rank position for {{ entry.make }} {{ entry.model }}</span><input :value="entry.rankPosition" type="number" min="1" :max="group.ranked.length" :disabled="store.isSaving" @change="changeRankPosition(group, entry, $event)" /></label><span v-else class="rank-number">{{ entry.rankPosition }}</span><strong><template v-for="part in highlightText(`${entry.make} ${entry.model}`)" :key="part.start"><mark v-if="part.matched" class="search-match">{{ part.text }}</mark><span v-else>{{ part.text }}</span></template></strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small v-if="entry.modelYear !== store.selectedYear">{{ entry.modelYear }} model</small></div>
             <div class="ranking-awards" :aria-label="awardSummary(entry)">
               <span v-if="latestAwardYear(entry.awards.ten_best)" class="latest-award" :title="`Most recent 10 Best: ${latestAwardYear(entry.awards.ten_best)}`"><img :src="tenBestLogo" alt="10 Best" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.ten_best) }}</strong></span>
               <span v-if="latestAwardYear(entry.awards.editors_choice)" class="latest-award" :title="`Most recent Editors’ Choice: ${latestAwardYear(entry.awards.editors_choice)}`"><img :src="editorsChoiceLogo" alt="Editors’ Choice" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.editors_choice) }}</strong></span>
@@ -152,7 +152,7 @@
           <ul>
             <li v-for="entry in visibleUnranked(group)" :key="entry.vehicleId" class="unranked-row" :class="{ 'ranked-row--dragging': draggedVehicleId === entry.vehicleId }" @dragend="clearDrag">
               <button v-if="canEdit" class="drag-grip" type="button" draggable="true" :aria-label="`Drag ${entry.make} ${entry.model} into ranked vehicles`" title="Drag into the ranked list" @dragstart="startDrag($event, entry)">⠿</button>
-              <div class="ranked-row__vehicle"><div class="vehicle-line"><strong>{{ entry.make }} {{ entry.model }}</strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small>{{ entry.modelYear !== store.selectedYear ? `${entry.modelYear} model · ` : '' }}{{ entry.state === 'future' ? 'Future model' : 'Unranked' }}</small></div>
+              <div class="ranked-row__vehicle"><div class="vehicle-line"><strong><template v-for="part in highlightText(`${entry.make} ${entry.model}`)" :key="part.start"><mark v-if="part.matched" class="search-match">{{ part.text }}</mark><span v-else>{{ part.text }}</span></template></strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small>{{ entry.modelYear !== store.selectedYear ? `${entry.modelYear} model · ` : '' }}{{ entry.state === 'future' ? 'Future model' : 'Unranked' }}</small></div>
               <label v-if="canEdit" class="entry-state-control"><span class="sr-only">Status for {{ entry.make }} {{ entry.model }} in {{ group.name }}</span><select :value="entry.state" :disabled="store.isSaving" @change="changeEntryState(entry, $event)"><option value="unranked">Unranked</option><option value="future">Future model</option></select></label>
               <div v-if="canEdit" class="ranking-row-actions">
                 <button class="rank-entry-button" type="button" :disabled="store.isSaving" @click="addToRanking(group, entry)">Rank</button>
@@ -229,8 +229,7 @@ const visibleGroups = computed(() => allGroups.value.filter((group) => {
   if (bodyStyleFilter.value !== "all" && group.bodyStyle !== bodyStyleFilter.value) return false;
   if (selectedSegments.value.length && !selectedSegments.value.includes(group.id)) return false;
   if (!queryValue.value) return true;
-  return groupMatchesSearch(group)
-    || [...group.ranked, ...group.unranked].some((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
+  return [...group.ranked, ...group.unranked].some((entry) => vehicleMatchesSearch(entry));
 }));
 
 const filteredSegments = computed(() => {
@@ -274,8 +273,25 @@ function selectYear(event: Event) {
 }
 function clearFilters() { searchQuery.value = ""; bodyStyleFilter.value = "all"; selectedSegments.value = []; }
 function bodyStyleLabel(style: BodyStyle | null) { return bodyStyleOptions.find((item) => item.id === style)?.label ?? "Uncategorized"; }
-function groupMatchesSearch(group: (typeof allGroups.value)[number]) {
-  return Boolean(queryValue.value && group.name.toLowerCase().includes(queryValue.value));
+function vehicleMatchesSearch(entry: RankingEntry) {
+  return `${entry.make} ${entry.model}`.toLocaleLowerCase().includes(queryValue.value);
+}
+function highlightText(value: string) {
+  const query = queryValue.value;
+  if (!query) return [{ text: value, matched: false, start: 0 }];
+
+  const lowerValue = value.toLocaleLowerCase();
+  const parts: Array<{ text: string; matched: boolean; start: number }> = [];
+  let cursor = 0;
+  let matchAt = lowerValue.indexOf(query, cursor);
+  while (matchAt >= 0) {
+    if (matchAt > cursor) parts.push({ text: value.slice(cursor, matchAt), matched: false, start: cursor });
+    parts.push({ text: value.slice(matchAt, matchAt + query.length), matched: true, start: matchAt });
+    cursor = matchAt + query.length;
+    matchAt = lowerValue.indexOf(query, cursor);
+  }
+  if (cursor < value.length) parts.push({ text: value.slice(cursor), matched: false, start: cursor });
+  return parts;
 }
 function openComparePicker() { draftSelectedSegments.value = [...selectedSegments.value]; compareQuery.value = ""; compareModalOpen.value = true; }
 function applySegmentComparison() { selectedSegments.value = [...draftSelectedSegments.value]; compareModalOpen.value = false; }
@@ -313,12 +329,10 @@ function latestAwardYear(years: number[]) { return years.length ? Math.max(...ye
 function formatAwardYears(years: number[]) { return years.length ? years.slice().sort(descendingNumbers).join(", ") : "No wins recorded"; }
 function descendingNumbers(a: number, b: number) { return b - a; }
 function visibleRanked(group: (typeof allGroups.value)[number]) {
-  if (!queryValue.value || groupMatchesSearch(group)) return group.ranked;
-  return group.ranked.filter((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
+  return group.ranked;
 }
 function visibleUnranked(group: (typeof allGroups.value)[number]) {
-  if (!queryValue.value || groupMatchesSearch(group)) return group.unranked;
-  return group.unranked.filter((entry) => `${entry.make} ${entry.model} ${entry.modelYear}`.toLowerCase().includes(queryValue.value));
+  return group.unranked;
 }
 function awardSummary(entry: RankingEntry) {
   const awards = [...entry.awards.ten_best.map((year) => `10 Best ${year}`), ...entry.awards.editors_choice.map((year) => `Editors’ Choice ${year}`), ...entry.awards.ev_of_the_year.map((year) => `EV of the Year ${year}`)];
@@ -482,6 +496,7 @@ h1 { margin: 0; font: 700 1.65rem/1.2 "Monda", sans-serif; }
 .ranked-row__vehicle { display: grid; gap: 2px; min-width: 0; }
 .vehicle-line { display: grid; min-width: 0; grid-template-columns: 31px minmax(0, 49ch) 76px; align-items: center; gap: 7px; }
 .ranked-row__vehicle strong { min-width: 0; overflow: hidden; color: var(--gray-dark-4); font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+.search-match { padding: 0 1px; border-radius: 2px; background: #f8e9a7; color: #3f3517; }
 .ranked-row__vehicle small { color: var(--gray-light-4); font-size: .69rem; }
 .rating-control { justify-self: end; width: 76px; }
 .rating-control select, .award-editor select { width: 68px; min-height: 30px; padding: 4px 5px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-4); font: 600 .74rem "Asap", sans-serif; }
