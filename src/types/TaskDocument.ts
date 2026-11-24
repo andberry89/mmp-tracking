@@ -14,6 +14,7 @@ export interface TaskDocument {
   authorId: AuthorId | null;
   deadline: string;
   status: TaskStatus;
+  tags?: string[];
   notes: string;
   assets: TaskAsset[];
   embargoDate: string;
@@ -41,6 +42,7 @@ export interface NewTaskInput {
   authorId: AuthorId | null;
   deadline: string;
   status: TaskStatus;
+  tags: string[];
   isUpdate: boolean;
   notes: string;
   embargoDate: string;

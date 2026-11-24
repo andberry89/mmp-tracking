@@ -1,21 +1,14 @@
 <template>
   <div v-if="!doc.published" class="task-notes text-[var(--color-body-text-tertiary)] text-[11px]" :class="{ 'task-notes--empty': !doc.notes }">
     <span v-if="doc.notes" class="task-mobile-label" aria-hidden="true">Notes</span>
-    <span>{{ truncatedNotes }}</span>
-    <Popper class="notes-popper" placement="top" offset-distance="8" locked disableClickAway arrow>
+    <span v-if="doc.notes">{{ truncatedNotes }}</span>
+    <Popper v-if="doc.notes.length > 50" class="notes-popper" placement="top" offset-distance="8" locked disableClickAway arrow>
       <div class="inline" @click="toggleNotes">
-        <span
-          v-if="doc.notes.length > 50"
-          class="text-[var(--color-body-text-see-more)] cursor-pointer font-bold"
-        >
+        <span class="text-[var(--color-body-text-see-more)] cursor-pointer font-bold">
           see {{ notesExpanded ? "less" : "more" }}
         </span>
       </div>
-      <template #content>
-        <div>
-          <p>{{ doc.notes }}</p>
-        </div>
-      </template>
+      <template #content><p>{{ doc.notes }}</p></template>
     </Popper>
   </div>
   <div v-else class="task-notes task-notes--empty text-[var(--color-body-text-tertiary)] text-[11px]"></div>
@@ -67,4 +60,5 @@ function toggleNotes() {
 }
 
 .notes-popper :deep(.popper p) { margin: 0; }
+.task-notes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
 </style>

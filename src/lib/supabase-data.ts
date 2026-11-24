@@ -46,6 +46,7 @@ interface DbTask {
   high_priority: boolean;
   deadline: string | null;
   notes: string;
+  tags?: string[] | null;
   embargo_at: string | null;
   embargo_notes: string;
   published_at: string | null;
@@ -100,6 +101,7 @@ const taskColumns = [
   "high_priority",
   "deadline",
   "notes",
+  "tags",
   "embargo_at",
   "embargo_notes",
   "published_at",
@@ -225,6 +227,7 @@ export function mapTask(row: DbTask): TaskDocument {
     deadline: row.deadline ?? "",
     status,
     notes: row.notes,
+    tags: Array.isArray(row.tags) ? row.tags : [],
     assets,
     embargoDate: row.embargo_at ?? "",
     embargoNotes: row.embargo_notes,

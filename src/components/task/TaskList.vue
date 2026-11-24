@@ -45,6 +45,19 @@
       aria-label="Active Work"
     >
       <div class="task-workboard">
+        <div v-if="availableTaskTags.length" class="active-tag-toolbar">
+          <label>
+            <span>Event tag</span>
+            <select v-model="selectedTagFilter" aria-label="Filter Active Work by event tag">
+              <option value="">All event tags</option>
+              <option v-for="tag in availableTaskTags" :key="tag" :value="tag">{{ tag }}</option>
+            </select>
+          </label>
+          <button v-if="selectedTagFilter" type="button" class="active-tag-toolbar__clear" @click="selectedTagFilter = ''">
+            Clear tag filter
+          </button>
+          <span v-if="selectedTagFilter" class="active-tag-toolbar__hint">Showing tasks tagged “{{ selectedTagFilter }}”</span>
+        </div>
         <section class="task-column-header mt-5 grid" aria-label="Task columns">
           <div class="content-column-header" v-for="header in headers" :key="header" :aria-hidden="!header || undefined">
             <span class="column-header-text">{{ header }}</span>
@@ -75,22 +88,32 @@
               {{ group.label }} <span class="task-count">{{ sortedByStatus[group.status].length }}</span>
             </h3>
             <p v-if="dragOverTarget === group.status" class="drop-hint">Drop to move to {{ group.label }}</p>
-            <TaskItem
-              v-for="doc in sortedByStatus[group.status]"
-              :key="doc.id"
-              :doc="doc"
-              class="grid"
-              :can-edit="canEdit"
-              :activeAuthorsByTeam="computedActiveAuthorsByTeam"
-              @drag-start="handleDragStart($event, doc)"
-              @dragend="clearDrag"
-              @assign-author="handleAssignAuthor"
-              @edit="handleEdit"
-              @duplicate="handleDuplicate"
-              @delete="handleDelete"
-              @add-asset="handleAddAsset"
-              @delete-asset="handleDeleteAsset"
-            />
+            <div v-for="tagGroup in taskTagGroupsByStatus[group.status]" :key="tagGroup.key" class="task-tag-group">
+              <h4 v-if="tagGroup.label" class="task-tag-group__heading">
+                <span
+                  class="task-tag-group__label"
+                  :class="{ 'task-tag-group__label--untagged': tagGroup.isUntagged }"
+                  :style="tagGroup.isUntagged ? undefined : getEventTagStyle(tagGroup.label)"
+                >{{ tagGroup.label }}</span>
+                <span class="task-count">{{ tagGroup.tasks.length }}</span>
+              </h4>
+              <TaskItem
+                v-for="doc in tagGroup.tasks"
+                :key="doc.id"
+                :doc="doc"
+                class="grid"
+                :can-edit="canEdit"
+                :activeAuthorsByTeam="computedActiveAuthorsByTeam"
+                @drag-start="handleDragStart($event, doc)"
+                @dragend="clearDrag"
+                @assign-author="handleAssignAuthor"
+                @edit="handleEdit"
+                @duplicate="handleDuplicate"
+                @delete="handleDelete"
+                @add-asset="handleAddAsset"
+                @delete-asset="handleDeleteAsset"
+              />
+            </div>
             <p v-if="draggedTaskId && !sortedByStatus[group.status].length" class="empty-drop-hint">Drop here to move to {{ group.label }}</p>
           </section>
         </section>
@@ -209,6 +232,7 @@ import { useDocumentsStore } from "@/stores/documents";
 import { usePublicationHistoryStore } from "@/stores/publicationHistory";
 import { sortDocuments } from "@/utils/sort-functions";
 import { getRangeDates } from "@/utils/helpers";
+import { getEventTagStyle } from "@/utils/event-tag-style";
 import { ranges as publishedDateRanges } from "@/constants";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -261,6 +285,7 @@ const currentPublishedPage = ref(1);
 const selectedHistoryRange = ref("all");
 const customDateStart = ref("");
 const customDateEnd = ref("");
+const selectedTagFilter = ref("");
 const pageSize = 25;
 const activeStatusGroups: { status: TaskStatus; label: string }[] = [
   { status: "pending", label: "Pending" },
@@ -371,14 +396,51 @@ function handleAddAsset({
 // Documents by status
 const sortedByStatus = computed(() => {
   const sorted = sortDocuments(props.documents ?? documentsStore.documents);
+  const matchesSelectedTag = (doc: TaskDocument) =>
+    !selectedTagFilter.value || (doc.tags ?? []).includes(selectedTagFilter.value);
   return {
-    pending: sorted.pending.filter((doc) => doc.status === "pending"),
-    rte: sorted.pending.filter((doc) => doc.status === "rte"),
-    rtp: sorted.rtp.filter((doc) => doc.status === "rtp"),
-    scheduled: sorted.rtp.filter((doc) => doc.status === "scheduled"),
+    pending: sorted.pending.filter((doc) => doc.status === "pending" && matchesSelectedTag(doc)),
+    rte: sorted.pending.filter((doc) => doc.status === "rte" && matchesSelectedTag(doc)),
+    rtp: sorted.rtp.filter((doc) => doc.status === "rtp" && matchesSelectedTag(doc)),
+    scheduled: sorted.rtp.filter((doc) => doc.status === "scheduled" && matchesSelectedTag(doc)),
     published: sorted.published,
   };
 });
+const taskTagGroupsByStatus = computed(() => ({
+  pending: groupTasksByFirstTag(sortedByStatus.value.pending),
+  rte: groupTasksByFirstTag(sortedByStatus.value.rte),
+  rtp: groupTasksByFirstTag(sortedByStatus.value.rtp),
+  scheduled: groupTasksByFirstTag(sortedByStatus.value.scheduled),
+}));
+const availableTaskTags = computed(() => [...new Set(
+  documentsStore.documents.flatMap((doc) => doc.tags ?? [])
+)].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })));
+watch(availableTaskTags, (tags) => {
+  if (selectedTagFilter.value && !tags.includes(selectedTagFilter.value)) selectedTagFilter.value = "";
+});
+
+function groupTasksByFirstTag(tasks: TaskDocument[]) {
+  const groups = new Map<string, TaskDocument[]>();
+  for (const task of tasks) {
+    const firstTag = task.tags?.[0]?.trim() ?? "";
+    const key = firstTag.toLocaleLowerCase();
+    const group = groups.get(key) ?? [];
+    group.push(task);
+    groups.set(key, group);
+  }
+
+  return [...groups.entries()]
+    .map(([key, groupedTasks]) => ({
+      key: key || "untagged",
+      label: groupedTasks[0]?.tags?.[0]?.trim() || (key ? key : "No event tag"),
+      tasks: groupedTasks,
+      isUntagged: !key,
+    }))
+    .sort((a, b) => {
+      if (a.isUntagged !== b.isUntagged) return a.isUntagged ? 1 : -1;
+      return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+    });
+}
 const localPublishedTasks = computed(() => sortedByStatus.value.published.filter((doc) => {
   if (!doc.publishedDate) return selectedHistoryRange.value === "all";
   const publishedAt = new Date(doc.publishedDate);
@@ -539,11 +601,12 @@ const modalProps = computed(() => {
         modelYearVehicles: catalogStore.activeModelYearVehicles,
         modelYears: catalogStore.modelYears,
         authorsByTeam: computedActiveAuthorsByTeam.value,
+        tagSuggestions: availableTaskTags.value,
         isSaving: documentsStore.isSaving,
         error: documentsStore.error,
       };
     case "edit":
-      return { title: "Edit Task", task: modalPayload.value, error: documentsStore.error };
+      return { title: "Edit Task", task: modalPayload.value, tagSuggestions: availableTaskTags.value, error: documentsStore.error };
     case "delete":
       return { title: "Delete Task", message: "Are you sure you want to delete this task?" };
     case "duplicate":
@@ -671,9 +734,19 @@ const headers = [
 
 .task-status-group { min-height: 58px; margin-bottom: 7px; border-radius: 8px; transition: background-color 120ms ease, box-shadow 120ms ease; }
 .task-status-group--drag-over { background: color-mix(in srgb, var(--green-2) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--green-2) 55%, transparent); }
+.task-tag-group { min-width: 0; }
+.task-tag-group__heading { display: flex; align-items: center; gap: 7px; margin: 11px 0 5px 9px; color: var(--gray-dark-3); font: 600 0.78rem/1.2 "Asap", sans-serif; }
+.task-tag-group__label { padding: 3px 8px; border: 1px solid var(--event-tag-border); border-radius: 999px; background: var(--event-tag-background); color: var(--event-tag-text); }
+.task-tag-group__label--untagged { border-color: var(--color-border); background: color-mix(in srgb, var(--white) 75%, transparent); color: var(--gray-light-4); }
 .task-count { color: var(--gray-light-4); font-size: 0.78rem; font-weight: 500; }
 .drop-hint, .empty-drop-hint { margin: 0 0 6px; padding: 8px 12px; border: 1px dashed var(--green-2); border-radius: 6px; color: var(--gray-dark-3); background: var(--color-green-soft); font-size: 0.8rem; }
 .task-view-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 14px; border-bottom: 1px solid var(--color-divider); }
+.active-tag-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin: 10px 0 2px; }
+.active-tag-toolbar label { display: grid; gap: 4px; color: var(--gray-dark-3); font-size: 0.72rem; font-weight: 700; }
+.active-tag-toolbar select { min-width: 190px; min-height: 34px; padding: 0 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-4); font: 400 0.8rem "Asap", sans-serif; }
+.active-tag-toolbar__clear { min-height: 32px; padding: 0 8px; border: 0; background: transparent; color: var(--gray-light-4); cursor: pointer; font: 600 0.74rem "Asap", sans-serif; }
+.active-tag-toolbar__clear:hover { color: var(--gray-dark-4); text-decoration: underline; }
+.active-tag-toolbar__hint { padding-bottom: 8px; color: var(--gray-light-4); font-size: 0.72rem; }
 .task-view-tab { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 13px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--gray-light-4); cursor: pointer; font: 700 0.96rem "Monda", sans-serif; }
 .task-view-tab:hover, .task-view-tab--active { color: var(--gray-dark-4); }
 .task-view-tab--active { border-bottom-color: var(--green-2); }

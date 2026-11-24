@@ -23,6 +23,7 @@ Status reconciled with project work through November 24, 2026. Email enhancement
 - Errors across the app use a shared high-contrast alert with a warning icon; compact forms and popovers use the same visual treatment at a smaller size.
 - Encrypted daily Supabase database exports are installed in OneDrive. A disposable local restore drill succeeded: all 16 public application tables and 29 RLS policies restored with foreign-key checks enabled. Auth accounts and Storage objects are outside the CLI export and require separate recovery. OneDrive currently blocks automatic retention cleanup in the background job, so old archives need manual removal.
 - Initial automated tests now cover publication lifecycle rules, MMP task ordering, and author/team grouping.
+- Active Work event tags are implemented for temporary groupings such as auto shows and press events. Editors can assign or remove tags, filter Active Work by tag, group tasks by their first assigned tag inside each status section, and duplicate a tagged task; tags clear automatically when a task is Published or Updated.
 
 ## Current priorities
 
@@ -30,16 +31,16 @@ No current-priority items remain.
 
 ## Remaining before launch
 
-- **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; ensure real-time changes do not move another user's scroll position or discard unsaved edits, including when two Editors change the same record; review dependency advisories, expected workload, and load/search/update speed.
+- **Reliability and performance:** ensure real-time changes do not move another user's scroll position or discard unsaved edits, including when two Editors change the same record; review dependency advisories, expected workload, and load/search/update speed.
 - **Page Audit and Rankings exports:** add CSV or Excel export options.
 - **Automated tests:** expand coverage to Changeover, Page Audit, Rankings, role access, Realtime collaboration, imports, and persistence; add component-level workflow checks where valuable.
 - **Final visual and accessibility pass:** check remaining pages, keyboard and screen-reader operation, contrast, and reduced motion. The current responsiveness pass was accepted.
   - Add green/yellow/red indicators beside each field in the Edit Page Audit modal, using the same completion rules and colors as the audit table.
+  - Fix the task three-dot menu hover styling so hovering over the popover does not recolor the entire menu.
 - **Release review:** verify backups and access controls, then confirm the production workflows with the team.
 
 ## Additional ideas — timing TBD
 
-- Temporary MMP event tags for grouping work around events such as the New York Auto Show or Pebble Beach; clear a task's tag when it is published.
 - Editor profile pictures with upload size/type restrictions and cropping.
 
 ## Back burner — reassess after launch

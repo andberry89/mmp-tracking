@@ -83,6 +83,11 @@ matching app update. It adds Editor-checked database functions that save the
 Changeover row and shared URL in one transaction and duplicate a task together
 with its material resources.
 
+Run `migrations/202611240003_mmp_task_event_tags.sql` before deploying the
+Active Work event-tag update. It adds temporary task-level tags, clears them
+automatically when a task becomes Published or Updated, and carries tags over
+when an Editor duplicates an active task. Existing records need no data seed.
+
 The Rankings branch adds `migrations/202611050001_rankings_foundation.sql`.
 Apply it after the existing migrations and before deploying that branch. It
 adds body-style categories, multiple Segment placements per model year, shared
