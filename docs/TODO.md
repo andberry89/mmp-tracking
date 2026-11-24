@@ -22,6 +22,7 @@ Status reconciled with project work through November 24, 2026. Email enhancement
 - A persistent header Refresh action reloads shared Catalog, author, and MMP data plus Changeover, Page Audit, Rankings, and Published & Updated data while preserving the selected year and publication filters.
 - Errors across the app use a shared high-contrast alert with a warning icon; compact forms and popovers use the same visual treatment at a smaller size.
 - Encrypted daily Supabase database exports are installed in OneDrive. A disposable local restore drill succeeded: all 16 public application tables and 29 RLS policies restored with foreign-key checks enabled. Auth accounts and Storage objects are outside the CLI export and require separate recovery. OneDrive currently blocks automatic retention cleanup in the background job, so old archives need manual removal.
+- Initial automated tests now cover publication lifecycle rules, MMP task ordering, and author/team grouping.
 
 ## Current priorities
 
@@ -31,7 +32,7 @@ No current-priority items remain.
 
 - **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; ensure real-time changes do not move another user's scroll position or discard unsaved edits, including when two Editors change the same record; review dependency advisories, expected workload, and load/search/update speed.
 - **Page Audit and Rankings exports:** add CSV or Excel export options.
-- **Automated tests:** cover publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, role access, imports, and persistence.
+- **Automated tests:** expand coverage to Changeover, Page Audit, Rankings, role access, Realtime collaboration, imports, and persistence; add component-level workflow checks where valuable.
 - **Final visual and accessibility pass:** check remaining pages, keyboard and screen-reader operation, contrast, and reduced motion. The current responsiveness pass was accepted.
   - Add green/yellow/red indicators beside each field in the Edit Page Audit modal, using the same completion rules and colors as the audit table.
 - **Release review:** verify backups and access controls, then confirm the production workflows with the team.

@@ -17,6 +17,8 @@ Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local` to connect 
 - `npm run dev` — start Vite's development server.
 - `npm run build` — build the production bundle.
 - `npm run preview` — serve the built bundle locally.
+- `npm test` — run the automated workflow tests once.
+- `npm run test:watch` — rerun tests as files change.
 - `npm run type-check` — check Vue templates and TypeScript.
 - `npm run lint` — report ESLint issues.
 
