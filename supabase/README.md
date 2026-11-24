@@ -173,3 +173,8 @@ production records.
 The Publication Tracking and Status test import is split into numbered files in `seeds/publication_tracking_test_batches/` because the full query exceeds the Supabase SQL Editor size limit. Follow that folder's README and run batches `01` through `12` sequentially, then `13_resources_and_date_cleanup.sql`. Do this only in the non-production project, after `seeds/catalog.sql` and `seeds/authors.sql`. The current workbook's Changeover sheets and Page Audit sheets for 2026–2029 already have separate seed files and were imported earlier.
 
 Across the batches are 5,581 importable task rows and 16 active-work links with stable IDs, so rerunning a completed batch does not duplicate its imported rows. The import preserves manually created test rows and does not delete or refresh data. It skips an active task when an exact matching vehicle/year/status/author/details task already exists. Six source rows with uncertain/non-numeric model years are skipped for review; workbook author values that do not match the confirmed active roster remain unassigned. No resource passwords are present in the import. Before launch, use the newer workbook the project owner provides to prepare a reviewed full refresh of tasks, current Changeover, and current Page Audit data.
+
+## Database backups
+
+See [the OneDrive backup setup guide](../docs/BACKUPS.md) for the encrypted
+macOS backup routine and its Auth/Storage limitations.
