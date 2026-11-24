@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { formatModelName } from "@/utils/format-model-name";
-import { useCatalogStore, type BodyStyle, type ModelYearVehicleOption, type VehicleAwardType } from "@/stores/catalog";
+import { isVehicleAwardType, useCatalogStore, type BodyStyle, type ModelYearVehicleOption, type VehicleAwardType } from "@/stores/catalog";
 
 export type RankingAward = VehicleAwardType;
 
@@ -42,7 +42,7 @@ interface RankingRow {
 interface AwardRow {
   model_year_vehicle_id: string;
   award_year: number;
-  award_type: RankingAward;
+  award_type: string;
 }
 
 export const useRankingsStore = defineStore("rankings", () => {
@@ -90,6 +90,10 @@ export const useRankingsStore = defineStore("rankings", () => {
       const awardRows = (awardResult.data ?? []) as unknown as AwardRow[];
       const awardsByVehicle = new Map<string, Record<RankingAward, number[]>>();
       for (const award of awardRows) {
+        if (!isVehicleAwardType(award.award_type)) {
+          error.value = "Some award records use an unsupported category and were skipped. Ask an Editor to review the award data.";
+          continue;
+        }
         const awards = awardsByVehicle.get(award.model_year_vehicle_id) ?? { ten_best: [], editors_choice: [], ev_of_the_year: [] };
         awards[award.award_type].push(award.award_year);
         awardsByVehicle.set(award.model_year_vehicle_id, awards);
