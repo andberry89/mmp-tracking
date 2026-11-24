@@ -4,10 +4,8 @@ import { PENDING_STATUSES, RTP_STATUSES, PUBLISHED_STATUSES } from "@/types";
 import { getDocumentAuthor } from "@/utils";
 
 export const sortDocuments = (docs: TaskDocument[]) => {
-  // Filter by normalized status
-
   // Sort published: most recent publishedDate first
-  let published = docs
+  const published = docs
     .filter((doc) => (PUBLISHED_STATUSES as readonly TaskStatus[]).includes(doc.status))
     .sort((a, b) => {
       const timeA = a.publishedDate ? new Date(a.publishedDate).getTime() : Number.NaN;
@@ -22,7 +20,7 @@ export const sortDocuments = (docs: TaskDocument[]) => {
     });
 
   // Sort rtp: "Ready to Publish" and "Scheduled"
-  let rtp = docs
+  const rtp = docs
     .filter((doc) => (RTP_STATUSES as readonly TaskStatus[]).includes(doc.status))
     .sort((a, b) => {
       // Sort rtp: "Ready to Publish" before "Scheduled", then by embargoDate
@@ -31,42 +29,67 @@ export const sortDocuments = (docs: TaskDocument[]) => {
       return compareDates(a.embargoDate, b.embargoDate);
     });
 
-  let pending = docs
-    .filter((doc) => (PENDING_STATUSES as readonly TaskStatus[]).includes(doc.status))
-    .sort((a, b) => compareDates(a.deadline, b.deadline));
+  const pending = docs.filter((doc) =>
+    (PENDING_STATUSES as readonly TaskStatus[]).includes(doc.status)
+  );
 
-  // Sort pending: assigned vs unassigned
-  // → then by status
-  // → then by team/name
+  // Keep unassigned tasks together first. Then group assigned work by team
+  // and author, sorting each author's dated tasks by deadline and undated
+  // tasks alphabetically by vehicle.
   const teamOrder: Record<string, number> = { bg: 1, cd: 2, freelance: 3 };
+  const authorByTaskId = new Map(
+    pending.map((doc) => [doc.id, getDocumentAuthor(doc)] as const)
+  );
+  const authorFor = (doc: TaskDocument) => authorByTaskId.get(doc.id) ?? null;
+  const compareVehicle = (a: TaskDocument, b: TaskDocument) =>
+    `${a.vehicle.make} ${a.vehicle.model}`.localeCompare(
+      `${b.vehicle.make} ${b.vehicle.model}`,
+      undefined,
+      { sensitivity: "base", numeric: true }
+    );
+  const compareDeadlineThenVehicle = (a: TaskDocument, b: TaskDocument) => {
+    const deadlineA = a.deadline?.trim() ?? "";
+    const deadlineB = b.deadline?.trim() ?? "";
+    if (deadlineA && !deadlineB) return -1;
+    if (!deadlineA && deadlineB) return 1;
+    if (deadlineA && deadlineB) {
+      const byDeadline = deadlineA.localeCompare(deadlineB);
+      if (byDeadline) return byDeadline;
+    }
+    return compareVehicle(a, b);
+  };
 
   const assigned = pending
-    .filter((doc) => getDocumentAuthor(doc))
+    .filter((doc) => authorFor(doc))
     .sort((a, b) => {
-      // Pending before RTE
-      if (a.status === "pending" && b.status !== "pending") return -1;
-      if (a.status !== "pending" && b.status === "pending") return 1;
-
-      const authorA = getDocumentAuthor(a);
-      const authorB = getDocumentAuthor(b);
+      const authorA = authorFor(a);
+      const authorB = authorFor(b);
 
       if (!authorA || !authorB) return 0;
 
-      // same status, sort by team then lastName
       const teamA = teamOrder[authorA.team.slug] ?? 99;
       const teamB = teamOrder[authorB.team.slug] ?? 99;
+      if (teamA !== teamB) return teamA - teamB;
 
-      if (teamA === teamB) {
-        return authorA.lastName.localeCompare(authorB.lastName);
-      }
+      const byLastName = authorA.lastName.localeCompare(authorB.lastName, undefined, {
+        sensitivity: "base",
+      });
+      if (byLastName) return byLastName;
 
-      return teamA - teamB;
+      const byFirstName = authorA.firstName.localeCompare(authorB.firstName, undefined, {
+        sensitivity: "base",
+      });
+      if (byFirstName) return byFirstName;
+
+      return compareDeadlineThenVehicle(a, b);
     });
 
-  const unassigned = pending.filter((doc) => !getDocumentAuthor(doc));
-  pending = [...unassigned, ...assigned];
+  const unassigned = pending
+    .filter((doc) => !authorFor(doc))
+    .sort(compareDeadlineThenVehicle);
+  const sortedPending = [...unassigned, ...assigned];
 
-  return { published, rtp, pending };
+  return { published, rtp, pending: sortedPending };
 };
 
 export const sortAuthors = (authors: Author[]): GroupedAuthors => {
