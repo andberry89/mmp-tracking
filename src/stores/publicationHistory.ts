@@ -101,6 +101,13 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
     }
   }
 
+  async function refresh() {
+    error.value = null;
+    const requests = [loadStats(statsRange.startAt, statsRange.endAt)];
+    if (latestQuery) requests.push(loadPage(latestQuery));
+    await Promise.all(requests);
+  }
+
   function subscribeToChanges() {
     if (!supabase || !isSupabaseConfigured) return;
     if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
@@ -139,5 +146,5 @@ export const usePublicationHistoryStore = defineStore("publicationHistory", () =
     isLoading.value = false;
   }
 
-  return { entries, totalCount, isLoading, isLoadingStats, error, stats, loadPage, loadStats, subscribeToChanges, stopRealtime, clear };
+  return { entries, totalCount, isLoading, isLoadingStats, error, stats, loadPage, loadStats, refresh, subscribeToChanges, stopRealtime, clear };
 });

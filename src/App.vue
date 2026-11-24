@@ -22,9 +22,13 @@
 
     <header class="app-header">
       <TopNav :active-tab="activeTopLevel" @tab-change="onTabChange" />
-      <div v-if="isSupabaseConfigured" class="account-bar">
-        <span class="account-bar__identity">{{ authStore.profile?.display_name || authStore.session?.user.email }}</span>
-        <details ref="accountMenu" class="account-menu" v-click-outside="closeAccountMenu">
+      <div class="account-bar">
+        <span v-if="isSupabaseConfigured" class="account-bar__identity">{{ authStore.profile?.display_name || authStore.session?.user.email }}</span>
+        <button class="refresh-button" type="button" :disabled="isRefreshing" :aria-label="isRefreshing ? 'Refreshing data' : 'Refresh data'" :title="isRefreshing ? 'Refreshing data…' : 'Refresh data'" @click="refreshWorkspaceData">
+          <svg :class="{ 'refresh-button__icon--spinning': isRefreshing }" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 8A6.4 6.4 0 0 0 5.5 4.6L3.8 6.2"/><path d="M3.8 2.9v3.5h3.5"/><path d="M3.8 12a6.4 6.4 0 0 0 10.7 3.4l1.7-1.6"/><path d="M16.2 17.1v-3.5h-3.5"/></svg>
+        </button>
+        <span v-if="refreshMessage" class="refresh-status" :class="{ 'refresh-status--error': refreshFailed }" role="status">{{ refreshMessage }}</span>
+        <details v-if="isSupabaseConfigured" ref="accountMenu" class="account-menu" v-click-outside="closeAccountMenu">
           <summary class="account-menu__trigger" aria-label="Account menu" title="Account menu">
             <span class="sr-only">Account menu</span>
             <span class="account-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -78,6 +82,8 @@ import { useAuthorsStore } from "@/stores/authors";
 import { useCatalogStore } from "@/stores/catalog";
 import { useChangeoverStore } from "@/stores/changeover";
 import { usePublicationHistoryStore } from "@/stores/publicationHistory";
+import { usePageAuditStore } from "@/stores/pageAudit";
+import { useRankingsStore } from "@/stores/rankings";
 
 // ----------------------------------
 // STORE
@@ -88,13 +94,19 @@ const authStore = useAuthStore();
 const catalogStore = useCatalogStore();
 const changeoverStore = useChangeoverStore();
 const publicationHistoryStore = usePublicationHistoryStore();
+const pageAuditStore = usePageAuditStore();
+const rankingsStore = useRankingsStore();
 
 const canEdit = computed(() => !isSupabaseConfigured || authStore.isEditor);
 const userAccessOpen = ref(false);
 const userSettingsOpen = ref(false);
+const isRefreshing = ref(false);
+const refreshMessage = ref("");
+const refreshFailed = ref(false);
 const accountMenu = ref<HTMLDetailsElement | null>(null);
 let loadedWorkspaceUserId: string | null = null;
 let workspaceLoadPromise: Promise<void> | null = null;
+let refreshMessageTimer: number | undefined;
 
 function closeAccountMenu() {
   if (accountMenu.value) accountMenu.value.open = false;
@@ -164,6 +176,47 @@ async function loadWorkspaceData() {
     await workspaceLoadPromise;
   } finally {
     workspaceLoadPromise = null;
+  }
+}
+
+async function refreshWorkspaceData() {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
+  refreshFailed.value = false;
+  refreshMessage.value = "Refreshing…";
+  if (refreshMessageTimer) window.clearTimeout(refreshMessageTimer);
+
+  try {
+    if (workspaceLoadPromise) await workspaceLoadPromise;
+    await Promise.all([
+      authorsStore.loadAuthors(),
+      documentsStore.loadDocuments(),
+      catalogStore.loadCatalog(),
+    ]);
+    await Promise.all([
+      changeoverStore.load(),
+      pageAuditStore.load(),
+      rankingsStore.load(),
+      publicationHistoryStore.refresh(),
+    ]);
+
+    const hasError = [
+      authorsStore.error,
+      documentsStore.error,
+      catalogStore.error,
+      changeoverStore.error,
+      pageAuditStore.error,
+      rankingsStore.error,
+      publicationHistoryStore.error,
+    ].some(Boolean);
+    refreshFailed.value = hasError;
+    refreshMessage.value = hasError ? "Some data could not refresh. Try again." : "Data refreshed";
+  } catch {
+    refreshFailed.value = true;
+    refreshMessage.value = "Could not refresh data. Try again.";
+  } finally {
+    isRefreshing.value = false;
+    refreshMessageTimer = window.setTimeout(() => { refreshMessage.value = ""; }, refreshFailed.value ? 6000 : 2500);
   }
 }
 
@@ -291,6 +344,12 @@ function onCatalogTabChange(label: string) {
 
 .account-bar__identity { max-width: min(34vw, 340px); overflow: hidden; text-overflow: ellipsis; }
 .account-menu { position: relative; }
+.refresh-button { display: grid; width: 36px; height: 36px; place-items: center; padding: 0 !important; }
+.refresh-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.refresh-button__icon--spinning { animation: refresh-spin .8s linear infinite; }
+.refresh-status { position: absolute; z-index: 60; top: calc(100% + 8px); right: 44px; max-width: min(260px, 70vw); overflow: hidden; padding: 6px 9px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--white); box-shadow: var(--color-surface-shadow-hover); color: #3d7442; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.refresh-status--error { border-color: #d9a4a0; color: #9d2f2f; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
 .account-menu__trigger { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--color-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-3); cursor: pointer; list-style: none; }
 .account-menu__trigger::-webkit-details-marker { display: none; }
 .account-menu__trigger:hover, .account-menu__trigger:focus-visible { border-color: var(--green-2); background: var(--color-green-soft); }
@@ -414,4 +473,5 @@ function onCatalogTabChange(label: string) {
     }
   }
 }
+@media (prefers-reduced-motion: reduce) { .refresh-button__icon--spinning { animation: none; } }
 </style>

@@ -18,12 +18,12 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - Annual Rankings membership is managed separately from Catalog Segment assignments. Editors can add/remove placements by Rankings year, including future model-year vehicles in earlier-year lists.
 - Rankings search matches make/model text, keeps all vehicles visible in any matching segment, hides segments without matches, and highlights the matches.
 - Page Audit's shared rating now sits inside the fixed Vehicle / Segment cell, beside the vehicle details and before the edit action.
+- Catalog model-year segment choices are grouped by body style and sorted alphabetically; selected and archived segments are easier to scan in both add and edit forms.
+- A persistent header Refresh action reloads shared Catalog, author, and MMP data plus Changeover, Page Audit, Rankings, and Published & Updated data while preserving the selected year and publication filters.
 
 ## Current priorities
 
-1. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
-2. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
-3. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
+1. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
 
 ## Remaining before launch
 
