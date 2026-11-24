@@ -20,10 +20,11 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - Page Audit's shared rating now sits inside the fixed Vehicle / Segment cell, beside the vehicle details and before the edit action.
 - Catalog model-year segment choices are grouped by body style and sorted alphabetically; selected and archived segments are easier to scan in both add and edit forms.
 - A persistent header Refresh action reloads shared Catalog, author, and MMP data plus Changeover, Page Audit, Rankings, and Published & Updated data while preserving the selected year and publication filters.
+- Errors across the app use a shared high-contrast alert with a warning icon; compact forms and popovers use the same visual treatment at a smaller size.
 
 ## Current priorities
 
-1. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
+No current-priority items remain.
 
 ## Remaining before launch
 

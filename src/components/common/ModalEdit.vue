@@ -1,7 +1,7 @@
 <template>
   <BaseModal v-model="localModel" title="Edit Task" size="lg" @close="$emit('close')">
     <form @submit.prevent="handleSave" id="task-edit-form">
-      <p v-if="error" class="edit-error" role="alert">{{ error }}</p>
+      <ErrorNotice v-if="error" compact>{{ error }}</ErrorNotice>
       <!-- form content -->
       <div class="mb-4">
         <label class="form-field">Vehicle</label>
@@ -153,6 +153,7 @@
 //todo: figure out how task data displays (editableTask)
 import { ref, watch, computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import type { TaskAsset, TaskDocument, TaskResourceInput } from "@/types";
 import { statuses as taskStatuses } from "@/constants";
 
@@ -306,7 +307,6 @@ function resourceLabel(asset: TaskAsset) {
 .edit-resources__draft input { width: 100%; min-width: 0; min-height: 36px; padding: 7px 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-5); font: 400 0.84rem "Asap", sans-serif; }
 .edit-resources__remove { padding: 7px 5px; border: 0; background: transparent; color: var(--red-dark); cursor: pointer; font: 600 0.8rem "Asap", sans-serif; }
 .edit-resources__remove:hover { text-decoration: underline; }
-.edit-error { margin: 0 0 12px; color: var(--red-dark); font-size: 0.85rem; }
 .edit-field-hint { margin: 5px 0 0; color: var(--gray-light-4); font-size: 0.78rem; }
 @media (max-width: 700px) { .edit-resources__draft { grid-template-columns: 1fr; } .edit-resources__heading { align-items: flex-start; flex-direction: column; } }
 </style>

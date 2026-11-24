@@ -1,8 +1,8 @@
 <template>
   <div>
-    <p v-if="documentsStore.error || historyStore.error" class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
+    <ErrorNotice v-if="documentsStore.error || historyStore.error">
       Could not load or save shared data: {{ documentsStore.error || historyStore.error }}
-    </p>
+    </ErrorNotice>
     <div v-if="documentsStore.hasLoaded" class="task-view-tabs" role="tablist" aria-label="Publication Tracking views">
       <button
         id="active-work-tab"
@@ -213,6 +213,7 @@ import { ranges as publishedDateRanges } from "@/constants";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 import { PlusIcon } from "@/assets/icons";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import TaskItem from "@/components/task/TaskItem.vue";
 import ModalEdit from "@/components/common/ModalEdit.vue";
 import ModalDelete from "@/components/common/ModalDelete.vue";

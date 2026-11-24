@@ -36,7 +36,7 @@
         />
       </template>
 
-      <p v-if="auth.error" class="login-error" role="alert">{{ auth.error }}</p>
+      <ErrorNotice v-if="auth.error" compact>{{ auth.error }}</ErrorNotice>
       <p v-if="resetRequestSent" class="login-success" role="status">
         If there is an account for that email, a recovery code will arrive shortly.
       </p>
@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 
 const emit = defineEmits<{ (event: "signed-in"): void }>();
 const auth = useAuthStore();

@@ -27,7 +27,8 @@
         <button class="refresh-button" type="button" :disabled="isRefreshing" :aria-label="isRefreshing ? 'Refreshing data' : 'Refresh data'" :title="isRefreshing ? 'Refreshing data…' : 'Refresh data'" @click="refreshWorkspaceData">
           <svg :class="{ 'refresh-button__icon--spinning': isRefreshing }" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 8A6.4 6.4 0 0 0 5.5 4.6L3.8 6.2"/><path d="M3.8 2.9v3.5h3.5"/><path d="M3.8 12a6.4 6.4 0 0 0 10.7 3.4l1.7-1.6"/><path d="M16.2 17.1v-3.5h-3.5"/></svg>
         </button>
-        <span v-if="refreshMessage" class="refresh-status" :class="{ 'refresh-status--error': refreshFailed }" role="status">{{ refreshMessage }}</span>
+        <ErrorNotice v-if="refreshMessage && refreshFailed" class="refresh-error-toast" compact>{{ refreshMessage }}</ErrorNotice>
+        <span v-else-if="refreshMessage" class="refresh-status" role="status">{{ refreshMessage }}</span>
         <details v-if="isSupabaseConfigured" ref="accountMenu" class="account-menu" v-click-outside="closeAccountMenu">
           <summary class="account-menu__trigger" aria-label="Account menu" title="Account menu">
             <span class="sr-only">Account menu</span>
@@ -74,6 +75,7 @@ import LoginView from "@/components/auth/LoginView.vue";
 import PasswordSetupView from "@/components/auth/PasswordSetupView.vue";
 import UserAccessModal from "@/components/admin/UserAccessModal.vue";
 import UserSettingsModal from "@/components/admin/UserSettingsModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import { useAuthStore } from "@/stores/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -348,7 +350,7 @@ function onCatalogTabChange(label: string) {
 .refresh-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 .refresh-button__icon--spinning { animation: refresh-spin .8s linear infinite; }
 .refresh-status { position: absolute; z-index: 60; top: calc(100% + 8px); right: 44px; max-width: min(260px, 70vw); overflow: hidden; padding: 6px 9px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--white); box-shadow: var(--color-surface-shadow-hover); color: #3d7442; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
-.refresh-status--error { border-color: #d9a4a0; color: #9d2f2f; }
+.refresh-error-toast { position: absolute; z-index: 60; top: calc(100% + 8px); right: 44px; max-width: min(300px, 70vw); }
 @keyframes refresh-spin { to { transform: rotate(360deg); } }
 .account-menu__trigger { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--color-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-3); cursor: pointer; list-style: none; }
 .account-menu__trigger::-webkit-details-marker { display: none; }

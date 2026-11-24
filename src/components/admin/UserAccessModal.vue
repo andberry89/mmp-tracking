@@ -22,7 +22,7 @@
         <button class="primary-button" type="submit" :disabled="saving || loading">{{ adding ? 'Adding…' : '＋ Add approved email' }}</button>
       </form>
 
-      <p v-if="error" class="message message--error" role="alert">{{ error }}</p>
+      <ErrorNotice v-if="error">{{ error }}</ErrorNotice>
       <p v-if="notice" class="message message--success" role="status">{{ notice }}</p>
       <section v-if="recoveryCode" class="recovery-code-panel" aria-live="polite">
         <p>One-time recovery code for <strong>{{ recoveryCode.email }}</strong>. Give it directly to them through a private channel. Generating another code will invalidate this one.</p>
@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import { supabase } from "@/lib/supabase";
 import type { AppRole } from "@/stores/auth";
 
@@ -331,7 +332,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .spinner { width: 16px; height: 16px; border: 2px solid #dce8d8; border-top-color: var(--green-2); border-radius: 50%; animation: spin .75s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .message { margin: 0; padding: 9px 11px; border-radius: 5px; font-size: .82rem; }
-.message--error { background: #fff1ef; color: #8d3930; }
 .message--success { background: #f2f8ef; color: #42663b; }
 .recovery-code-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px; border: 1px solid #c8dbbd; border-radius: 7px; background: #f6faf3; }
 .recovery-code-panel p { flex: 1 1 100%; margin: 0; color: #42663b; font-size: .8rem; line-height: 1.45; }

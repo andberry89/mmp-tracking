@@ -24,9 +24,9 @@
         required
       />
 
-      <p v-if="formError || auth.error" class="login-error" role="alert">
+      <ErrorNotice v-if="formError || auth.error" compact>
         {{ formError || auth.error }}
-      </p>
+      </ErrorNotice>
 
       <button type="submit" :disabled="auth.isLoading">
         {{ auth.isLoading ? "Saving…" : "Save password" }}
@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 
 const emit = defineEmits<{ (event: "completed"): void }>();
 const auth = useAuthStore();

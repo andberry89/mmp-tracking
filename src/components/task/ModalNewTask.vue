@@ -112,7 +112,7 @@
         </div>
       </section>
 
-      <p v-if="formError || error" class="form-error" role="alert">{{ formError || error }}</p>
+      <ErrorNotice v-if="formError || error" compact>{{ formError || error }}</ErrorNotice>
       <p v-if="selectedModel && modelYear !== null && !selectedModelYearVehicle" class="form-hint" role="status">
         Add this Make, Model, and Model Year in Catalog → Models before creating the task.
       </p>
@@ -140,6 +140,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import { statuses as taskStatuses } from "@/constants";
 import type { AuthorId, AuthorsByTeamGroup, NewTaskInput, TaskStatus, TaskResourceInput } from "@/types";
 import type { MakeOption, ModelOption, ModelYearVehicleOption } from "@/stores/catalog";
@@ -303,8 +304,7 @@ function handleSave() {
   outline-offset: 1px;
 }
 
-.required,
-.form-error {
+.required {
   color: var(--red);
 }
 
