@@ -205,10 +205,6 @@
   line-height: 1.45;
 }
 
-.login-error {
-  color: var(--red);
-}
-
 .login-success {
   color: var(--green-dark);
 }

@@ -24,7 +24,7 @@
       </div>
     </header>
 
-    <p v-if="visibleError" class="message message--error" role="alert">{{ visibleError }}</p>
+    <ErrorNotice v-if="visibleError">{{ visibleError }}</ErrorNotice>
     <p v-else-if="isLoading" class="message">Loading catalog…</p>
 
     <form v-if="canEdit && formOpen" class="editor-form" @submit.prevent="saveRecord">
@@ -230,6 +230,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { bodyStyleOptions, useCatalogStore, type BodyStyle, type MakeOption, type ModelOption, type ModelYearVehicleOption, type SegmentOption } from "@/stores/catalog";
 import { useAuthorsStore } from "@/stores/authors";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import type { Author, AuthorTeamSlug } from "@/types";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
@@ -463,7 +464,6 @@ function closePopover(_event: Event, element?: HTMLElement) {
 .status-dot--inactive { background: #bd5148; box-shadow: 0 0 0 2px rgb(189 81 72 / 12%); }
 .inactive { color: var(--gray-light-4); }
 .message, .empty-state { margin: 16px 0; color: var(--gray-light-4); font-size: 0.9rem; }
-.message--error { color: #9d2f2f; }
 .author-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 14px; align-items: start; }
 .author-team { min-width: 0; overflow: hidden; border: 1px solid var(--color-border); border-top: 3px solid var(--team-accent); border-radius: 8px; background: var(--white); }
 .author-team--bg { --team-accent: var(--color-team-bg); }

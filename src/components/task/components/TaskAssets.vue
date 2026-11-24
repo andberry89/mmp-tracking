@@ -67,7 +67,7 @@
             Password (Editors only)
             <input v-model="newPassword" type="password" autocomplete="new-password" placeholder="Optional" />
           </label>
-          <p v-if="assetError" class="asset-form__error" role="alert">{{ assetError }}</p>
+          <ErrorNotice v-if="assetError" compact>{{ assetError }}</ErrorNotice>
           <button type="submit" class="asset-form__submit">Add resource</button>
         </form>
       </section>
@@ -82,6 +82,7 @@
 <script setup lang="ts">
 import { computed, ref, useId } from "vue";
 import { FolderIcon, FolderOpenIcon } from "@/assets/icons";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import type { TaskAsset, TaskResourceInput } from "@/types";
 
 const props = defineProps<{
@@ -193,7 +194,6 @@ function isValidUrl(url: string) {
 .asset-form label { display: grid; gap: 4px; color: var(--gray-dark-3); font-size: 0.75rem; font-weight: 600; }
 .asset-form input { width: 100%; min-width: 0; height: 34px; padding: 0 9px; border: 1px solid var(--color-form-border); border-radius: 5px; background: var(--white); color: var(--gray-dark-5); font: 400 0.84rem "Asap", sans-serif; }
 .asset-form input:focus-visible { border-color: var(--color-focus-ring); outline: 2px solid color-mix(in srgb, var(--color-focus-ring) 25%, transparent); outline-offset: 1px; }
-.asset-form__error { margin: 0; color: #a63c32; font-size: 0.78rem; }
 .asset-form__submit { min-height: 34px; padding: 0 12px; border: 0; border-radius: 5px; background: var(--green-2); color: var(--white); cursor: pointer; font: 700 0.84rem "Asap", sans-serif; }
 .asset-form__submit:hover { filter: brightness(0.96); }
 </style>

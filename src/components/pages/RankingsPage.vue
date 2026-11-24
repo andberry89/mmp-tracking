@@ -15,7 +15,7 @@
       </div>
     </header>
 
-    <p v-if="store.error" class="error-banner" role="alert">{{ store.error }}</p>
+    <ErrorNotice v-if="store.error">{{ store.error }}</ErrorNotice>
 
     <BaseModal v-model="placementModalOpen" :title="`Add a vehicle to ${store.selectedYear ?? ''} Rankings`" size="lg" @close="placementModalOpen = false">
       <div class="placement-modal">
@@ -52,7 +52,7 @@
             </select>
           </label>
         </template>
-        <p v-if="placementSaveError" class="error-banner" role="alert">{{ placementSaveError }}</p>
+        <ErrorNotice v-if="placementSaveError" compact>{{ placementSaveError }}</ErrorNotice>
       </div>
       <template #footer>
         <div class="placement-modal__actions">
@@ -170,6 +170,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import { bodyStyleOptions, useCatalogStore, type BodyStyle } from "@/stores/catalog";
 import { useRankingsStore, type RankingAward, type RankingEntry } from "@/stores/rankings";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";

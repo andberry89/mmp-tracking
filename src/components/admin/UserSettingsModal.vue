@@ -9,7 +9,7 @@
         <label>Display name
           <input v-model.trim="displayName" type="text" autocomplete="name" placeholder="First Last" />
         </label>
-        <p v-if="error" class="message message--error" role="alert">{{ error }}</p>
+        <ErrorNotice v-if="error">{{ error }}</ErrorNotice>
         <p v-if="notice" class="message message--success" role="status">{{ notice }}</p>
         <button class="primary-button" type="submit" :disabled="saving">{{ saving ? 'Saving…' : 'Save name' }}</button>
       </form>
@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps<{ modelValue: boolean }>();
@@ -94,7 +95,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .password-section { display: grid; justify-items: start; gap: 8px; padding-top: 15px; border-top: 1px solid var(--color-border); }
 .password-section h3 { margin: 0; color: var(--gray-dark-5); font-size: .95rem; }
 .message { margin: 0; padding: 9px 11px; border-radius: 5px; font-size: .82rem; }
-.message--error { background: #fff1ef; color: #8d3930; }
 .message--success { background: #f2f8ef; color: #42663b; }
 .modal-footer { display: flex; justify-content: flex-end; }
 </style>

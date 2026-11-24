@@ -15,7 +15,7 @@
       </div>
     </header>
 
-    <div v-if="auditStore.error" class="error-banner" role="alert">{{ auditStore.error }}</div>
+    <ErrorNotice v-if="auditStore.error">{{ auditStore.error }}</ErrorNotice>
 
     <section class="summary-grid" aria-label="Page Audit summary">
       <article class="summary-card total-card"><span>{{ selectedYear }} vehicles</span><strong>{{ auditStore.entries.length }}</strong></article>
@@ -149,6 +149,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 import tenBestLogo from "@/assets/awards/10-best-logo.svg?url";
 import editorsChoiceLogo from "@/assets/awards/ec-logo.svg?url";
 import evOfTheYearLogo from "@/assets/awards/ev-of-the-year.svg?url";
@@ -462,7 +463,6 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .edit-icon-button:hover, .edit-icon-button:focus-visible { border-color: var(--green-2); color: var(--green-dark-2); }
 .loading-state, .empty-state { display: grid; justify-items: center; gap: 8px; padding: 44px 20px; color: var(--gray-light-4); text-align: center; }
 .empty-state strong { color: var(--gray-dark-3); font: 700 1rem "Monda", sans-serif; }
-.error-banner { padding: 10px 12px; border: 1px solid #f1c2bf; border-radius: 6px; background: #fff0ef; color: #8c332c; font-size: .85rem; }
 .audit-form { display: grid; gap: 18px; }
 .form-grid { display: grid; gap: 12px; }
 .form-grid--meta { grid-template-columns: repeat(4, minmax(130px, 1fr)); }

@@ -20,7 +20,7 @@
       <span class="working-spinner" aria-hidden="true"></span>
       <span><strong>Preparing {{ (store.selectedYear ?? 0) + 1 }} draft…</strong> Merging Changeover and Page Audit records.</span>
     </div>
-    <div v-if="store.error" class="error-banner" role="alert">{{ store.error }}</div>
+    <ErrorNotice v-if="store.error">{{ store.error }}</ErrorNotice>
     <div v-if="annualActionMessage" class="action-notice" role="status">{{ annualActionMessage }}</div>
     <section v-if="isPreparedDraft" class="draft-banner" aria-label="Changeover draft status">
       <div><strong>{{ store.selectedYear }} Draft</strong><span>Prepared from {{ selectedYearRecord?.preparedFromYear }}</span></div>
@@ -171,6 +171,7 @@ import { useDocumentsStore } from "@/stores/documents";
 import type { AuthorId, AuthorsByTeamGroup, GroupedAuthors, TaskDocument } from "@/types";
 import ChangeoverEntryModal from "@/components/changeover/ChangeoverEntryModal.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
+import ErrorNotice from "@/components/common/ErrorNotice.vue";
 
 const props = withDefaults(defineProps<{
   canEdit?: boolean;
@@ -501,7 +502,6 @@ a.changeover-card__vehicle:hover { color: var(--blue-3, #277da1); text-decoratio
 .empty-state, .empty-year, .loading-state { display: grid; justify-items: center; gap: 8px; padding: 42px 16px; color: var(--gray-light-4); text-align: center; font-size: .85rem; }
 .empty-state strong, .empty-year strong { color: var(--gray-dark-3); }
 .empty-year { border: 1px dashed var(--color-border); border-radius: 8px; }
-.error-banner { padding: 10px 12px; border: 1px solid #e5b7b2; border-radius: 6px; background: #fff1ef; color: #8d3930; font-size: .84rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 @media (max-width: 1250px) { .overview { grid-template-columns: repeat(3, minmax(0, 1fr)); } .deadline-card { grid-column: span 2; } .summary-card { min-height: 88px; padding: 11px; } }
 @media (max-width: 1200px) {
