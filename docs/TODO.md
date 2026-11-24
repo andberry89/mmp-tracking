@@ -20,9 +20,10 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 
 1. **Improve annual Rankings membership.** Let Editors add or remove a vehicle/segment placement from a year’s list without changing shared Catalog, Changeover, or Page Audit membership. Support future vehicles in earlier-year lists (for example, the 2028 Mercedes GLA-Class EV in the 2027 Electric Compact Luxury SUVs list), and explain why a year can appear in the selector before placements are added.
 2. **Improve Rankings search.** Keep every vehicle visible within matching segments, hide segments with no matching make/model, and highlight matching text. For example, searching “X3” should match both X3 and iX3 while still showing all vehicles in those segments.
-3. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
-4. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
-5. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
+3. **Revisit Page Audit rating placement.** Consider moving the shared rating into the fixed Make/Model cell, or making it the first column immediately to the right, so it stays close to the vehicle name without feeling awkward in its current position.
+4. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
+5. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
+6. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
 
 ## Remaining before launch
 

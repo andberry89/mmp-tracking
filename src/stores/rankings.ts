@@ -23,16 +23,18 @@ export interface RankingEntry {
 
 interface RankingRow {
   model_year_vehicle_id: string;
-  model_year: number;
+  ranking_year: number;
   segment_id: string;
   rank_position: number | null;
   entry_state: RankingEntry["state"];
   segments: { id: string; name: string; body_style: BodyStyle | null } | { id: string; name: string; body_style: BodyStyle | null }[] | null;
   model_year_vehicles: {
+    model_year: number;
     rating: number | string | null;
     public_url: string | null;
     models: { name: string; makes: { name: string } | { name: string }[] | null } | { name: string; makes: { name: string } | { name: string }[] | null }[];
   } | {
+    model_year: number;
     rating: number | string | null;
     public_url: string | null;
     models: { name: string; makes: { name: string } | { name: string }[] | null } | { name: string; makes: { name: string } | { name: string }[] | null }[];
@@ -72,18 +74,19 @@ export const useRankingsStore = defineStore("rankings", () => {
         return;
       }
 
-      const [rankingResult, awardResult] = await Promise.all([
-        supabase.from("model_year_vehicle_segments")
-          .select("model_year_vehicle_id, model_year, segment_id, rank_position, entry_state, is_on_rankings_list, segments!inner(id, name, body_style), model_year_vehicles!inner(rating, public_url, models!inner(name, makes!inner(name)))")
-          .eq("model_year", year)
-          .eq("is_on_rankings_list", true)
-          .order("segment_id")
-          .order("rank_position", { ascending: true, nullsFirst: false }),
-        supabase.from("model_year_vehicle_awards")
-          .select("model_year_vehicle_id, award_year, award_type, model_year_vehicles!inner(model_year)")
-          .eq("model_year_vehicles.model_year", year),
-      ]);
+      const rankingResult = await supabase.from("rankings_placements")
+        .select("model_year_vehicle_id, ranking_year, segment_id, rank_position, entry_state, segments!inner(id, name, body_style), model_year_vehicles!inner(model_year, rating, public_url, models!inner(name, makes!inner(name)))")
+        .eq("ranking_year", year)
+        .order("segment_id")
+        .order("rank_position", { ascending: true, nullsFirst: false });
       if (rankingResult.error) throw rankingResult.error;
+      const rankingRows = (rankingResult.data ?? []) as unknown as RankingRow[];
+      const vehicleIds = [...new Set(rankingRows.map((row) => row.model_year_vehicle_id))];
+      const awardResult = vehicleIds.length
+        ? await supabase.from("model_year_vehicle_awards")
+          .select("model_year_vehicle_id, award_year, award_type")
+          .in("model_year_vehicle_id", vehicleIds)
+        : { data: [], error: null };
       if (awardResult.error) throw awardResult.error;
       if (currentRequest !== requestId) return;
 
@@ -98,7 +101,7 @@ export const useRankingsStore = defineStore("rankings", () => {
         awards[award.award_type].push(award.award_year);
         awardsByVehicle.set(award.model_year_vehicle_id, awards);
       }
-      entries.value = ((rankingResult.data ?? []) as unknown as RankingRow[]).map((row) => mapRow(row, awardsByVehicle.get(row.model_year_vehicle_id)));
+      entries.value = rankingRows.map((row) => mapRow(row, awardsByVehicle.get(row.model_year_vehicle_id)));
     } catch (reason) {
       if (currentRequest === requestId) {
         error.value = reason instanceof Error ? reason.message : "Unable to load Rankings.";
@@ -141,8 +144,8 @@ export const useRankingsStore = defineStore("rankings", () => {
     isSaving.value = true;
     error.value = null;
     try {
-      const { error: saveError } = await supabase.rpc("save_model_year_segment_order", {
-        p_model_year: selectedYear.value,
+      const { error: saveError } = await supabase.rpc("save_rankings_placement_order", {
+        p_ranking_year: selectedYear.value,
         p_segment_id: segmentId,
         p_vehicle_ids: vehicleIds,
       });
@@ -166,17 +169,88 @@ export const useRankingsStore = defineStore("rankings", () => {
     error.value = null;
     try {
       if (supabase && isSupabaseConfigured) {
-        const { error: saveError } = await supabase.from("model_year_vehicle_segments")
+        const { error: saveError } = await supabase.from("rankings_placements")
           .update({ entry_state: state, rank_position: null })
           .eq("model_year_vehicle_id", vehicleId)
           .eq("segment_id", segmentId)
-          .eq("is_on_rankings_list", true);
+          .eq("ranking_year", selectedYear.value);
         if (saveError) throw saveError;
       }
       entry.state = state;
       entry.rankPosition = null;
     } catch (reason) {
       error.value = reason instanceof Error ? reason.message : "Could not update the ranking state.";
+      throw reason;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  async function addPlacement(vehicleId: string, segmentId: string, state: "unranked" | "future") {
+    const year = selectedYear.value;
+    const vehicle = catalog.modelYearVehicles.find((item) => item.id === vehicleId);
+    const segment = vehicle?.segments.find((item) => item.id === segmentId);
+    if (!year || !vehicle || !segment) throw new Error("Choose a Catalog vehicle and one of its assigned segments.");
+    if (entries.value.some((item) => item.vehicleId === vehicleId && item.segmentId === segmentId)) return;
+
+    isSaving.value = true;
+    error.value = null;
+    try {
+      if (supabase && isSupabaseConfigured) {
+        const { error: saveError } = await supabase.from("rankings_placements").insert({
+          ranking_year: year,
+          model_year_vehicle_id: vehicle.id,
+          segment_id: segment.id,
+          entry_state: state,
+        });
+        if (saveError) throw saveError;
+      }
+      entries.value.push({
+        vehicleId: vehicle.id,
+        modelYear: vehicle.modelYear,
+        make: vehicle.make,
+        model: vehicle.model,
+        segmentId: segment.id,
+        segment: segment.name,
+        bodyStyle: segment.bodyStyle,
+        rankPosition: null,
+        state,
+        rating: vehicle.rating,
+        publicUrl: vehicle.publicUrl ?? "",
+        awards: vehicle.awards,
+      });
+    } catch (reason) {
+      error.value = reason instanceof Error ? reason.message : "Could not add this vehicle to Rankings.";
+      throw reason;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  async function removePlacement(vehicleId: string, segmentId: string) {
+    const year = selectedYear.value;
+    if (!year) return;
+    const previous = entries.value.map((item) => ({ ...item }));
+    entries.value = entries.value.filter((item) => !(item.vehicleId === vehicleId && item.segmentId === segmentId));
+    entries.value
+      .filter((item) => item.segmentId === segmentId && item.rankPosition !== null)
+      .sort((a, b) => (a.rankPosition ?? 0) - (b.rankPosition ?? 0))
+      .forEach((item, index) => { item.rankPosition = index + 1; });
+
+    isSaving.value = true;
+    error.value = null;
+    try {
+      if (supabase && isSupabaseConfigured) {
+        const { error: saveError } = await supabase.rpc("remove_rankings_placement", {
+          p_ranking_year: year,
+          p_vehicle_id: vehicleId,
+          p_segment_id: segmentId,
+        });
+        if (saveError) throw saveError;
+      }
+    } catch (reason) {
+      entries.value = previous;
+      error.value = reason instanceof Error ? reason.message : "Could not remove this placement from Rankings.";
       throw reason;
     } finally {
       isSaving.value = false;
@@ -204,18 +278,15 @@ export const useRankingsStore = defineStore("rankings", () => {
   function subscribeToChanges() {
     if (!supabase || !isSupabaseConfigured || realtimeChannel) return;
     realtimeChannel = supabase.channel("rankings-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "model_year_vehicle_segments" }, (payload) => {
-        const row = (payload.eventType === "DELETE" ? payload.old : payload.new) as { model_year_vehicle_id?: string; model_year?: number; segment_id?: string; rank_position?: number | null; entry_state?: RankingEntry["state"]; is_on_rankings_list?: boolean };
+      .on("postgres_changes", { event: "*", schema: "public", table: "rankings_placements" }, (payload) => {
+        const row = (payload.eventType === "DELETE" ? payload.old : payload.new) as { model_year_vehicle_id?: string; ranking_year?: number; segment_id?: string; rank_position?: number | null; entry_state?: RankingEntry["state"] };
         if (payload.eventType === "DELETE") {
+          if (row.ranking_year !== selectedYear.value) return;
           entries.value = entries.value.filter((item) => !(item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id));
           return;
         }
-        if (row.model_year !== selectedYear.value) return;
+        if (row.ranking_year !== selectedYear.value) return;
         const entry = entries.value.find((item) => item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id);
-        if (!row.is_on_rankings_list) {
-          entries.value = entries.value.filter((item) => !(item.vehicleId === row.model_year_vehicle_id && item.segmentId === row.segment_id));
-          return;
-        }
         if (!entry) {
           if (realtimeReloadTimer) clearTimeout(realtimeReloadTimer);
           realtimeReloadTimer = setTimeout(() => {
@@ -252,7 +323,7 @@ export const useRankingsStore = defineStore("rankings", () => {
     realtimeChannel = null;
   }
 
-  return { entries, years, bodyStyles, selectedYear, isLoading, isSaving, error, load, saveRating, saveRankOrder, setEntryState, setAward, subscribeToChanges, stopRealtime };
+  return { entries, years, bodyStyles, selectedYear, isLoading, isSaving, error, load, saveRating, saveRankOrder, setEntryState, addPlacement, removePlacement, setAward, subscribeToChanges, stopRealtime };
 });
 
 function mapRow(row: RankingRow, awards?: Record<RankingAward, number[]>): RankingEntry {
@@ -262,7 +333,7 @@ function mapRow(row: RankingRow, awards?: Record<RankingAward, number[]>): Ranki
   const make = model ? one(model.makes) : null;
   return {
     vehicleId: row.model_year_vehicle_id,
-    modelYear: row.model_year,
+    modelYear: vehicle?.model_year ?? row.ranking_year,
     make: make?.name ?? "",
     model: model ? formatModelName(model.name) : "",
     segmentId: row.segment_id,

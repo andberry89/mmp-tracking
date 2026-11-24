@@ -5,14 +5,62 @@
         <h1>Rankings</h1>
         <p class="page-description">Order vehicles within each segment and keep ratings and award history connected to the Catalog.</p>
       </div>
-      <label class="year-picker">Model year
-        <select :value="store.selectedYear ?? ''" @change="selectYear">
-          <option v-for="year in store.years" :key="year" :value="year">{{ year }}{{ catalog.modelYearRecords.find((row) => row.year === year)?.isDefault ? ' · Active' : '' }}</option>
-        </select>
-      </label>
+      <div class="page-heading__actions">
+        <label class="year-picker">Rankings year
+          <select :value="store.selectedYear ?? ''" @change="selectYear">
+            <option v-for="year in store.years" :key="year" :value="year">{{ year }}{{ catalog.modelYearRecords.find((row) => row.year === year)?.isDefault ? ' · Active' : '' }}</option>
+          </select>
+        </label>
+        <button v-if="canEdit" class="manage-placements-trigger" type="button" @click="openPlacementModal">Add vehicle</button>
+      </div>
     </header>
 
     <p v-if="store.error" class="error-banner" role="alert">{{ store.error }}</p>
+
+    <BaseModal v-model="placementModalOpen" :title="`Add a vehicle to ${store.selectedYear ?? ''} Rankings`" size="lg" @close="placementModalOpen = false">
+      <div class="placement-modal">
+        <p>Choose a Catalog model year and one of its assigned segments. Future model years can be added to this year’s Rankings list.</p>
+        <label class="placement-search">Find a make, model, or model year
+          <input v-model="placementSearch" type="search" placeholder="e.g. 2028 Mercedes GLA-Class EV" />
+        </label>
+        <div class="placement-candidates" role="listbox" aria-label="Catalog vehicles">
+          <button
+            v-for="vehicle in placementCandidates"
+            :key="vehicle.id"
+            type="button"
+            class="placement-candidate"
+            :class="{ 'placement-candidate--selected': placementVehicleId === vehicle.id }"
+            :aria-selected="placementVehicleId === vehicle.id"
+            @click="selectPlacementCandidate(vehicle.id)"
+          >
+            <strong>{{ vehicle.make }} {{ vehicle.model }}</strong><span>{{ vehicle.modelYear }} model</span>
+          </button>
+          <p v-if="!placementCandidates.length" class="placement-empty">No Catalog vehicles match that search.</p>
+        </div>
+        <template v-if="selectedPlacementVehicle">
+          <label class="placement-field">Segment
+            <select v-model="placementSegmentId">
+              <option value="">Choose a segment</option>
+              <option v-for="segment in candidatePlacementSegments" :key="segment.id" :value="segment.id">{{ segment.name }}</option>
+            </select>
+          </label>
+          <p v-if="!candidatePlacementSegments.length" class="placement-hint">This vehicle has no unused assigned segments for {{ store.selectedYear }}. Add a segment to it in Catalog first, or choose another vehicle.</p>
+          <label class="placement-field">Starting status
+            <select v-model="placementState">
+              <option value="future">Future model</option>
+              <option value="unranked">Unranked</option>
+            </select>
+          </label>
+        </template>
+        <p v-if="placementSaveError" class="error-banner" role="alert">{{ placementSaveError }}</p>
+      </div>
+      <template #footer>
+        <div class="placement-modal__actions">
+          <button type="button" class="filter-reset" @click="placementModalOpen = false">Cancel</button>
+          <button type="button" class="placement-add-button" :disabled="!canAddPlacement || store.isSaving" @click="addPlacementToList">{{ store.isSaving ? 'Adding…' : 'Add to Rankings' }}</button>
+        </div>
+      </template>
+    </BaseModal>
 
     <section class="rankings-toolbar" aria-label="Ranking filters">
       <label class="rankings-search"><span class="sr-only">Search rankings</span><input v-model="searchQuery" type="search" placeholder="Search make, model, or segment" /></label>
@@ -43,8 +91,9 @@
       <span class="rankings-spinner" aria-hidden="true"></span>Loading Rankings…
     </div>
     <div v-else-if="!visibleGroups.length" class="rankings-empty">
-      <strong>No segment entries for {{ store.selectedYear ?? 'this year' }}.</strong>
-      <span>Add or assign Segments in Catalog → Models. Rankings for the selected year can then be ordered here.</span>
+      <strong>No vehicles have been added to {{ store.selectedYear ?? 'this year' }} Rankings yet.</strong>
+      <span v-if="canEdit">Add a Catalog vehicle with an assigned Segment. Future model years can be included in this year’s list.</span>
+      <span v-else>Ask an Editor to add vehicles to this year’s Rankings list.</span>
     </div>
 
     <div v-else class="segment-grid" :class="{ 'segment-grid--compare': selectedSegments.length > 1 }">
@@ -70,7 +119,7 @@
             @drop.stop.prevent="dropOnEntry($event, group, entry)"
           >
             <button v-if="canEdit" class="drag-grip" type="button" draggable="true" :aria-label="`Drag to change rank for ${entry.make} ${entry.model}`" title="Drag to change rank" @dragstart="startDrag($event, entry)">⠿</button>
-            <div class="ranked-row__vehicle"><div class="vehicle-line"><label v-if="canEdit" class="rank-position-control"><span class="sr-only">Rank position for {{ entry.make }} {{ entry.model }}</span><input :value="entry.rankPosition" type="number" min="1" :max="group.ranked.length" :disabled="store.isSaving" @change="changeRankPosition(group, entry, $event)" /></label><span v-else class="rank-number">{{ entry.rankPosition }}</span><strong>{{ entry.make }} {{ entry.model }}</strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div></div>
+            <div class="ranked-row__vehicle"><div class="vehicle-line"><label v-if="canEdit" class="rank-position-control"><span class="sr-only">Rank position for {{ entry.make }} {{ entry.model }}</span><input :value="entry.rankPosition" type="number" min="1" :max="group.ranked.length" :disabled="store.isSaving" @change="changeRankPosition(group, entry, $event)" /></label><span v-else class="rank-number">{{ entry.rankPosition }}</span><strong>{{ entry.make }} {{ entry.model }}</strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small v-if="entry.modelYear !== store.selectedYear">{{ entry.modelYear }} model</small></div>
             <div class="ranking-awards" :aria-label="awardSummary(entry)">
               <span v-if="latestAwardYear(entry.awards.ten_best)" class="latest-award" :title="`Most recent 10 Best: ${latestAwardYear(entry.awards.ten_best)}`"><img :src="tenBestLogo" alt="10 Best" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.ten_best) }}</strong></span>
               <span v-if="latestAwardYear(entry.awards.editors_choice)" class="latest-award" :title="`Most recent Editors’ Choice: ${latestAwardYear(entry.awards.editors_choice)}`"><img :src="editorsChoiceLogo" alt="Editors’ Choice" /><small>Last won</small><strong>{{ latestAwardYear(entry.awards.editors_choice) }}</strong></span>
@@ -89,7 +138,10 @@
                 <label><input type="checkbox" :checked="entry.awards.ev_of_the_year.includes(awardYear)" @change="toggleAward(entry, 'ev_of_the_year', $event)" />EV of the Year</label>
               </div>
             </details>
-            <button v-if="canEdit" class="unrank-button" type="button" :disabled="store.isSaving" @click="removeRank(group, entry)">Unrank</button>
+            <div v-if="canEdit" class="ranking-row-actions">
+              <button class="unrank-button" type="button" :disabled="store.isSaving" @click="removeRank(group, entry)">Unrank</button>
+              <button class="remove-placement-button" type="button" :disabled="store.isSaving" @click="removePlacementFromList(entry)">Remove from list</button>
+            </div>
           </li>
           <li v-if="canEdit && draggedVehicleId && draggedSegmentId === group.id" class="rank-drop-end" :class="{ 'rank-drop-end--active': dropTarget?.position === 'end' }">Drop here to place last</li>
           <li v-if="!visibleRanked(group).length" class="ranked-empty">No ranked vehicles yet. Choose Rank below or drag a model here.</li>
@@ -100,9 +152,12 @@
           <ul>
             <li v-for="entry in visibleUnranked(group)" :key="entry.vehicleId" class="unranked-row" :class="{ 'ranked-row--dragging': draggedVehicleId === entry.vehicleId }" @dragend="clearDrag">
               <button v-if="canEdit" class="drag-grip" type="button" draggable="true" :aria-label="`Drag ${entry.make} ${entry.model} into ranked vehicles`" title="Drag into the ranked list" @dragstart="startDrag($event, entry)">⠿</button>
-              <div class="ranked-row__vehicle"><div class="vehicle-line"><strong>{{ entry.make }} {{ entry.model }}</strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small>{{ entry.state === 'future' ? 'Future model' : 'Unranked' }}</small></div>
+              <div class="ranked-row__vehicle"><div class="vehicle-line"><strong>{{ entry.make }} {{ entry.model }}</strong><label v-if="canEdit" class="rating-control"><span class="sr-only">Rating for {{ entry.make }} {{ entry.model }}</span><select :value="entry.rating ?? ''" :disabled="store.isSaving" @change="saveRating(entry, $event)"><option value="">Rate</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select></label><span v-else class="rating-readonly">{{ entry.rating ?? '—' }}</span></div><small>{{ entry.modelYear !== store.selectedYear ? `${entry.modelYear} model · ` : '' }}{{ entry.state === 'future' ? 'Future model' : 'Unranked' }}</small></div>
               <label v-if="canEdit" class="entry-state-control"><span class="sr-only">Status for {{ entry.make }} {{ entry.model }} in {{ group.name }}</span><select :value="entry.state" :disabled="store.isSaving" @change="changeEntryState(entry, $event)"><option value="unranked">Unranked</option><option value="future">Future model</option></select></label>
-              <button v-if="canEdit" class="rank-entry-button" type="button" :disabled="store.isSaving" @click="addToRanking(group, entry)">Rank</button>
+              <div v-if="canEdit" class="ranking-row-actions">
+                <button class="rank-entry-button" type="button" :disabled="store.isSaving" @click="addToRanking(group, entry)">Rank</button>
+                <button class="remove-placement-button" type="button" :disabled="store.isSaving" @click="removePlacementFromList(entry)">Remove from list</button>
+              </div>
             </li>
             <li v-if="!visibleUnranked(group).length" class="ranked-empty">No unranked vehicles match this search.</li>
           </ul>
@@ -131,6 +186,12 @@ const selectedSegments = ref<string[]>([]);
 const draftSelectedSegments = ref<string[]>([]);
 const compareModalOpen = ref(false);
 const compareQuery = ref("");
+const placementModalOpen = ref(false);
+const placementSearch = ref("");
+const placementVehicleId = ref("");
+const placementSegmentId = ref("");
+const placementState = ref<"unranked" | "future">("unranked");
+const placementSaveError = ref("");
 const awardYear = ref(2027);
 const draggedVehicleId = ref<string | null>(null);
 const draggedSegmentId = ref<string | null>(null);
@@ -176,6 +237,22 @@ const filteredSegments = computed(() => {
   const query = compareQuery.value.trim().toLowerCase();
   return availableSegments.value.filter((segment) => !query || segment.name.toLowerCase().includes(query) || bodyStyleLabel(segment.bodyStyle).toLowerCase().includes(query));
 });
+const selectedPlacementVehicle = computed(() => catalog.modelYearVehicles.find((vehicle) => vehicle.id === placementVehicleId.value) ?? null);
+const candidatePlacementSegments = computed(() => selectedPlacementVehicle.value?.segments.filter((segment) =>
+  !store.entries.some((entry) => entry.vehicleId === selectedPlacementVehicle.value?.id && entry.segmentId === segment.id),
+) ?? []);
+const placementCandidates = computed(() => {
+  const query = placementSearch.value.trim().toLowerCase();
+  return catalog.modelYearVehicles
+    .filter((vehicle) => !query || `${vehicle.modelYear} ${vehicle.make} ${vehicle.model}`.toLowerCase().includes(query))
+    .sort((a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model) || b.modelYear - a.modelYear)
+    .slice(0, 50);
+});
+const canAddPlacement = computed(() => Boolean(
+  selectedPlacementVehicle.value
+  && placementSegmentId.value
+  && candidatePlacementSegments.value.some((segment) => segment.id === placementSegmentId.value),
+));
 
 onMounted(async () => {
   if (!catalog.modelYears.length) await catalog.loadCatalog();
@@ -202,6 +279,35 @@ function groupMatchesSearch(group: (typeof allGroups.value)[number]) {
 }
 function openComparePicker() { draftSelectedSegments.value = [...selectedSegments.value]; compareQuery.value = ""; compareModalOpen.value = true; }
 function applySegmentComparison() { selectedSegments.value = [...draftSelectedSegments.value]; compareModalOpen.value = false; }
+function openPlacementModal() {
+  placementSearch.value = "";
+  placementVehicleId.value = "";
+  placementSegmentId.value = "";
+  placementSaveError.value = "";
+  placementModalOpen.value = true;
+}
+function selectPlacementCandidate(vehicleId: string) {
+  const vehicle = catalog.modelYearVehicles.find((item) => item.id === vehicleId);
+  if (!vehicle) return;
+  placementVehicleId.value = vehicleId;
+  const available = vehicle.segments.filter((segment) => !store.entries.some((entry) => entry.vehicleId === vehicleId && entry.segmentId === segment.id));
+  placementSegmentId.value = available.length === 1 ? available[0]?.id ?? "" : "";
+  placementState.value = vehicle.modelYear > (store.selectedYear ?? vehicle.modelYear) ? "future" : "unranked";
+  placementSaveError.value = "";
+}
+async function addPlacementToList() {
+  if (!selectedPlacementVehicle.value || !placementSegmentId.value || !canAddPlacement.value) return;
+  try {
+    await store.addPlacement(placementVehicleId.value, placementSegmentId.value, placementState.value);
+    placementModalOpen.value = false;
+  } catch (reason) {
+    placementSaveError.value = reason instanceof Error ? reason.message : "Could not add this vehicle to Rankings.";
+  }
+}
+async function removePlacementFromList(entry: RankingEntry) {
+  try { await store.removePlacement(entry.vehicleId, entry.segmentId); }
+  catch { /* The store exposes the write error in the page banner. */ }
+}
 function closePopover(_event: Event, element?: HTMLElement) { if (element instanceof HTMLDetailsElement) element.open = false; }
 function latestAwardYear(years: number[]) { return years.length ? Math.max(...years) : null; }
 function formatAwardYears(years: number[]) { return years.length ? years.slice().sort(descendingNumbers).join(", ") : "No wins recorded"; }
@@ -311,10 +417,27 @@ async function toggleAward(entry: RankingEntry, type: RankingAward, event: Event
 <style scoped>
 .rankings-page { display: grid; gap: 16px; min-width: 0; color: var(--gray-dark-5); }
 .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.page-heading__actions { display: flex; align-items: end; gap: 9px; }
 h1 { margin: 0; font: 700 1.65rem/1.2 "Monda", sans-serif; }
 .page-description { margin: 5px 0 0; color: var(--gray-light-4); font-size: .9rem; }
 .year-picker, .rankings-toolbar > label { display: grid; gap: 5px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 600; }
 .year-picker select, .rankings-toolbar select, .rankings-toolbar input { min-height: 36px; padding: 7px 10px; border: 1px solid var(--color-form-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-5); font: 400 .86rem "Asap", sans-serif; }
+.manage-placements-trigger, .placement-add-button { min-height: 36px; padding: 0 12px; border: 1px solid var(--green-2); border-radius: 6px; background: var(--green-2); color: var(--white); font: 700 .8rem "Asap", sans-serif; cursor: pointer; }
+.manage-placements-trigger:hover, .placement-add-button:hover:not(:disabled) { background: var(--green-dark); border-color: var(--green-dark); }
+.placement-add-button:disabled { opacity: .48; cursor: not-allowed; }
+.placement-modal { display: grid; gap: 12px; color: var(--gray-dark-3); font-size: .84rem; }
+.placement-modal > p { margin: 0; line-height: 1.45; }
+.placement-search, .placement-field { display: grid; gap: 5px; color: var(--gray-dark-3); font-size: .75rem; font-weight: 600; }
+.placement-search input, .placement-field select { width: 100%; min-height: 38px; padding: 7px 10px; border: 1px solid var(--color-form-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-5); font: 400 .84rem "Asap", sans-serif; }
+.placement-candidates { display: grid; max-height: 230px; overflow: auto; border: 1px solid var(--color-border); border-radius: 6px; }
+.placement-candidate { display: flex; min-height: 40px; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 10px; border: 0; border-bottom: 1px solid var(--color-border); background: var(--white); color: var(--gray-dark-4); text-align: left; cursor: pointer; }
+.placement-candidate:last-child { border-bottom: 0; }
+.placement-candidate:hover { background: var(--gray-light-1); }
+.placement-candidate--selected { background: var(--color-green-soft); box-shadow: inset 3px 0 var(--green-2); }
+.placement-candidate strong { font-size: .8rem; }
+.placement-candidate span { flex: 0 0 auto; color: var(--gray-light-4); font-size: .72rem; }
+.placement-empty, .placement-hint { margin: 0; padding: 9px; color: var(--gray-light-4); font-size: .75rem; }
+.placement-modal__actions { display: flex; justify-content: flex-end; gap: 8px; }
 .rankings-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; }
 .rankings-search { flex: 1 1 230px; max-width: 430px; }
 .rankings-search input { width: 100%; }
@@ -384,6 +507,10 @@ h1 { margin: 0; font: 700 1.65rem/1.2 "Monda", sans-serif; }
 .award-editor__divider { height: 1px; background: var(--color-divider); }
 .unrank-button { padding: 4px 6px; border: 0; background: transparent; color: var(--gray-light-4); font: 600 .65rem "Asap", sans-serif; cursor: pointer; }
 .unrank-button:hover { color: var(--red-dark, #a43c35); }
+.ranking-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 5px; flex-wrap: wrap; }
+.remove-placement-button { padding: 4px 5px; border: 0; border-radius: 4px; background: transparent; color: var(--gray-light-4); font: 600 .63rem "Asap", sans-serif; cursor: pointer; }
+.remove-placement-button:hover { background: #fbefee; color: var(--red-dark, #a43c35); }
+.remove-placement-button:disabled, .unrank-button:disabled { opacity: .5; cursor: wait; }
 .rank-entry-button { min-height: 28px; padding: 0 8px; border: 1px solid var(--green-2); border-radius: 5px; background: var(--white); color: var(--green-dark); font: 700 .7rem "Asap", sans-serif; cursor: pointer; }
 .rank-entry-button:hover { background: var(--color-green-soft); }
 .rank-entry-button:disabled { opacity: .5; cursor: wait; }
@@ -404,9 +531,9 @@ h1 { margin: 0; font: 700 1.65rem/1.2 "Monda", sans-serif; }
 .unranked-row .vehicle-line { grid-template-columns: minmax(0, 49ch) 76px; }
 .unranked-row .rating-readonly { grid-column: 2; }
 .unranked-row .entry-state-control { grid-column: 3; }
-.unranked-row .rank-entry-button { grid-column: 4; }
+.unranked-row .ranking-row-actions { grid-column: 4; }
 .filter-reset:focus-visible, .award-editor summary:focus-visible, .unrank-button:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 @media (max-width: 900px) { .page-heading { align-items: flex-start; flex-direction: column; } .ranked-row { grid-template-columns: 22px minmax(170px, 1fr) 100px auto auto; } }
-@media (max-width: 600px) { .ranked-row { grid-template-columns: 16px minmax(90px, 1fr) auto; } .ranking-awards { grid-column: 2; grid-row: 2; } .award-editor { grid-column: 3; grid-row: 1; } .unrank-button { grid-column: 3; grid-row: 2; justify-self: end; } .unranked-row { grid-template-columns: 16px minmax(75px, 1fr) auto; } .unranked-row .entry-state-control { grid-column: 3; } .unranked-row .rank-entry-button { grid-column: 2 / 4; justify-self: end; } .segment-panel__heading { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 600px) { .page-heading__actions { width: 100%; align-items: end; justify-content: space-between; } .ranked-row { grid-template-columns: 16px minmax(90px, 1fr) auto; } .ranking-awards { grid-column: 2; grid-row: 2; } .award-editor { grid-column: 3; grid-row: 1; } .ranking-row-actions { grid-column: 3; grid-row: 2; justify-self: end; } .unranked-row { grid-template-columns: 16px minmax(75px, 1fr) auto; } .unranked-row .entry-state-control { grid-column: 3; grid-row: 2; } .unranked-row .ranking-row-actions { grid-column: 2 / 4; grid-row: 3; justify-self: end; } .segment-panel__heading { align-items: flex-start; flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .rankings-spinner { animation: none; } }
 </style>
