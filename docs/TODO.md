@@ -1,6 +1,6 @@
 # To Do
 
-Status reconciled with project work through November 23, 2026. Email enhancements and optional features remain deferred until after launch.
+Status reconciled with project work through November 24, 2026. Email enhancements and optional features remain deferred until after launch.
 
 ## Completed
 
@@ -9,7 +9,7 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - Basic Supabase security review completed. Public `SECURITY DEFINER` access was removed; remaining authenticated functions are authorization-checked. Leaked-password protection is unavailable on the current Supabase Free plan.
 - Netlify production hosting and Supabase production URL/redirect configuration are in place.
 - Editor/Viewer access, account settings, user management, invitations, and Editor-generated one-time password recovery codes are implemented. Joey used the recovery code flow to set his password and access the app.
-- Editor-only resource passwords and the 30-day client-side sign-out are implemented. Realtime updates are scoped to the affected task or model-year vehicle.
+- Editor-only resource passwords and the 30-day client-side sign-out are implemented. MMP task Realtime updates are scoped to the affected task or model-year vehicle.
 - Browser title/favicon, MMP drag-and-drop, Published & Updated view/pagination/summary cards, Changeover, Page Audit, annual Changeover preparation, and Rankings are implemented.
 - Latest workbook refresh is complete for 2027 Changeover, 2026–2029 Page Audits, Active Work, and Published & Updated.
 - Historical Page Audits for 2017–2025 were seeded and checked; no mismatches were reported.
@@ -29,7 +29,8 @@ No current-priority items remain.
 ## Remaining before launch
 
 - **Backups:** choose a secure off-site destination, export the database, and verify that a restore works before relying on Supabase as the only production store.
-- **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; review dependency advisories, expected workload, load/search/update speed, and simultaneous editing behavior.
+- **Reliability and performance:** verify atomic task duplication and Changeover row/URL edits in production; ensure real-time changes do not move another user's scroll position or discard unsaved edits, including when two Editors change the same record; review dependency advisories, expected workload, and load/search/update speed.
+- **Page Audit and Rankings exports:** add CSV or Excel export options.
 - **Automated tests:** cover publication lifecycle, Realtime collaboration, Changeover, Page Audit, Rankings, role access, imports, and persistence.
 - **Final visual and accessibility pass:** check remaining pages, keyboard and screen-reader operation, contrast, and reduced motion. The current responsiveness pass was accepted.
   - Add green/yellow/red indicators beside each field in the Edit Page Audit modal, using the same completion rules and colors as the audit table.

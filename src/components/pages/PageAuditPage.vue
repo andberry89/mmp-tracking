@@ -412,7 +412,7 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .clear-filters-button { min-height: 36px; padding: 0 10px; border: 1px solid var(--color-form-border); border-radius: 6px; background: var(--white); color: var(--gray-dark-3); font: 600 .8rem "Asap", sans-serif; cursor: pointer; white-space: nowrap; }
 .clear-filters-button:hover:not(:disabled) { border-color: var(--green-2); color: var(--green-dark); }
 .clear-filters-button:disabled { opacity: .5; cursor: default; }
-.table-scroll { max-height: min(72vh, 780px); overflow: auto; overscroll-behavior: contain; }
+.table-scroll { max-height: min(90vh, 1480px); overflow: auto; overscroll-behavior: contain; }
 .table-scroll:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .audit-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; text-align: left; font-size: .8rem; }
 .audit-table th { position: sticky; z-index: 2; top: 0; padding: 11px 7px; border-bottom: 1px solid var(--color-border); background: #f7f8f6; color: var(--gray-light-4); font-size: .7rem; font-weight: 700; line-height: 1.25; vertical-align: bottom; white-space: normal; overflow-wrap: anywhere; }
