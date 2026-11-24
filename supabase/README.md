@@ -9,6 +9,10 @@ The Rankings migrations `202611050001_rankings_foundation.sql` and
 Apply `202611240001_rankings_placements.sql` before deploying the annual Rankings
 membership update. It separates a vehicle's shared Catalog segments from the
 year-specific Rankings lists and carries existing included placements forward.
+If applying that migration causes ambiguous Catalog Segment embeds, run
+`202611240002_fix_rankings_catalog_relationship.sql` next. It removes the extra
+relationship path, keeps the Catalog assignment rule in database triggers, and
+reloads the PostgREST schema cache.
 The workflow follow-up `202611050003_sync_authors_and_hide_dead_audits.sql`
 links Page Audit Authors, syncs task-author assignments to Changeover and Page
 Audit, and normalizes historical multi-author audit values to the first listed
