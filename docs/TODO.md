@@ -15,15 +15,15 @@ Status reconciled with project work through November 23, 2026. Email enhancement
 - Historical Page Audits for 2017–2025 were seeded and checked; no mismatches were reported.
 - 2020–2027 Rankings placements were imported and reconciled with the workbook: zero extra or missing placements, and zero rank or rating mismatches. 10Best, Editors’ Choice, and EV of the Year histories were refreshed from the supplied source-of-truth files and all 12 Catalog-matched batches verified with no missing or extra award records.
 - Page Audit's C/D rating now uses the shared model-year rating, so editors enter it once. It remains part of the checklist score and is displayed in the Rating column.
+- Annual Rankings membership is managed separately from Catalog Segment assignments. Editors can add/remove placements by Rankings year, including future model-year vehicles in earlier-year lists.
+- Rankings search matches make/model text, keeps all vehicles visible in any matching segment, hides segments without matches, and highlights the matches.
 
 ## Current priorities
 
-1. **Improve annual Rankings membership.** Let Editors add or remove a vehicle/segment placement from a year’s list without changing shared Catalog, Changeover, or Page Audit membership. Support future vehicles in earlier-year lists (for example, the 2028 Mercedes GLA-Class EV in the 2027 Electric Compact Luxury SUVs list), and explain why a year can appear in the selector before placements are added.
-2. **Improve Rankings search.** Keep every vehicle visible within matching segments, hide segments with no matching make/model, and highlight matching text. For example, searching “X3” should match both X3 and iX3 while still showing all vehicles in those segments.
-3. **Revisit Page Audit rating placement.** Consider moving the shared rating into the fixed Make/Model cell, or making it the first column immediately to the right, so it stays close to the vehicle name without feeling awkward in its current position.
-4. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
-5. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
-6. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
+1. **Revisit Page Audit rating placement.** Consider moving the shared rating into the fixed Make/Model cell, or making it the first column immediately to the right, so it stays close to the vehicle name without feeling awkward in its current position.
+2. **Clean up Catalog model editing.** Make the multi-segment assignment area easier to scan and edit.
+3. **Add a persistent manual refresh action.** Allow users to reload current database data from a visible, consistent control.
+4. **Make errors more recognizable.** Improve the visual treatment of error messages across the app so they are clearly distinct from routine status messages.
 
 ## Remaining before launch
 
