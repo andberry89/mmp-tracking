@@ -72,6 +72,12 @@
         This task is an update to an existing MMP
       </label>
 
+      <TaskTagEditor
+        v-model="tags"
+        :suggestions="tagSuggestions"
+        input-id="new-task-event-tags"
+      />
+
       <label>
         Notes
         <textarea
@@ -141,6 +147,7 @@
 import { computed, ref, watch } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import ErrorNotice from "@/components/common/ErrorNotice.vue";
+import TaskTagEditor from "@/components/task/TaskTagEditor.vue";
 import { statuses as taskStatuses } from "@/constants";
 import type { AuthorId, AuthorsByTeamGroup, NewTaskInput, TaskStatus, TaskResourceInput } from "@/types";
 import type { MakeOption, ModelOption, ModelYearVehicleOption } from "@/stores/catalog";
@@ -152,6 +159,7 @@ const props = defineProps<{
   modelYearVehicles: ModelYearVehicleOption[];
   modelYears: number[];
   authorsByTeam: AuthorsByTeamGroup[];
+  tagSuggestions?: string[];
   isSaving?: boolean;
   error?: string | null;
 }>();
@@ -173,6 +181,7 @@ const modelYear = ref<number | null>(null);
 const authorId = ref<AuthorId | "">("");
 const status = ref<TaskStatus>("pending");
 const isUpdate = ref(false);
+const tags = ref<string[]>([]);
 const deadline = ref("");
 const embargoDate = ref("");
 const notes = ref("");
@@ -198,6 +207,7 @@ watch(
     authorId.value = "";
     status.value = "pending";
     isUpdate.value = false;
+    tags.value = [];
     deadline.value = "";
     embargoDate.value = "";
     notes.value = "";
@@ -240,6 +250,7 @@ function handleSave() {
     authorId: authorId.value || null,
     deadline: deadline.value,
     status: submittedStatus,
+    tags: [...tags.value],
     isUpdate: isUpdate.value,
     notes: notes.value.trim(),
     embargoDate: embargoDate.value,

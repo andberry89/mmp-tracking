@@ -1,4 +1,5 @@
 import type { TaskDocument } from "@/types";
+import { normalizeTaskTags } from "@/utils/normalize-task-tags";
 
 /**
  * Enforces domain-level rules whenever a task is updated.
@@ -16,11 +17,13 @@ export const applyTaskRules = (task: TaskDocument): TaskDocument => {
     embargo: Boolean(task.embargo),
     published: Boolean(task.published),
     publishedDate: task.publishedDate ?? "",
+    tags: normalizeTaskTags(task.tags),
   };
 
   // --- Normalize Published / Updated ------------------
   if (normalizedStatus === "published" || normalizedStatus === "updated") {
     updatedTask.published = true;
+    updatedTask.tags = [];
   } else {
     updatedTask.published = false;
     updatedTask.publishedDate = "";

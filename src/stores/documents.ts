@@ -106,6 +106,7 @@ export const useDocumentsStore = defineStore("documents", () => {
             author_id: input.authorId,
             status: databaseStatus,
             task_kind: input.isUpdate ? "update" : "new_mmp",
+            tags: input.tags,
             deadline: input.deadline || null,
             notes: input.notes,
             embargo_at: toTimestamp(input.embargoDate),
@@ -179,6 +180,7 @@ export const useDocumentsStore = defineStore("documents", () => {
       authorId: input.authorId,
       deadline: input.deadline,
       status: input.status,
+      tags: input.tags,
       notes: input.notes,
       assets: [
         ...(input.imeetUrl
@@ -344,6 +346,7 @@ export const useDocumentsStore = defineStore("documents", () => {
       if ("highPriority" in payload) databasePayload.high_priority = payload.highPriority;
       if ("deadline" in payload) databasePayload.deadline = payload.deadline || null;
       if ("notes" in payload) databasePayload.notes = payload.notes ?? "";
+      if ("tags" in payload) databasePayload.tags = payload.tags ?? [];
       if ("embargoNotes" in payload) databasePayload.embargo_notes = payload.embargoNotes ?? "";
       if ("embargoDate" in payload) databasePayload.embargo_at = toTimestamp(payload.embargoDate);
       if ("publishedDate" in payload && !clearsPublicationDate) {

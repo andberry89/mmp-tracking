@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import type { Author, AuthorId, TaskDocument } from "@/types";
 import { useAuthorsStore } from "@/stores/authors";
 import { applyTaskRules } from "@/utils/apply-task-rules";
+import { normalizeTaskTags } from "@/utils/normalize-task-tags";
 import { sortAuthors, sortDocuments, getActiveAuthors } from "@/utils/sort-functions";
 
 const author = (id: string, firstName: string, lastName: string, team: Author["team"]["slug"], active = true): Author => ({
@@ -74,6 +75,13 @@ describe("publication lifecycle rules", () => {
     expect(result.assets).toEqual([]);
     expect(result.notes).toBe("");
     expect(input.assets).toBeUndefined();
+  });
+
+  it("normalizes task tags and clears them on publication", () => {
+    const input = task({ status: "pending", tags: ["  New York Auto Show ", "new york auto show", "", "Pebble Beach"] });
+    expect(applyTaskRules(input).tags).toEqual(["New York Auto Show", "Pebble Beach"]);
+    expect(applyTaskRules({ ...input, status: "published" }).tags).toEqual([]);
+    expect(normalizeTaskTags(["a".repeat(55)])).toEqual(["a".repeat(50)]);
   });
 });
 

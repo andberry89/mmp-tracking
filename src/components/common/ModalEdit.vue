@@ -93,6 +93,15 @@
         ></textarea>
       </div>
 
+      <div class="mb-4">
+        <TaskTagEditor
+          v-model="editableTask.tags"
+          :suggestions="tagSuggestions"
+          :disabled="isPublishedStatus"
+          input-id="edit-task-event-tags"
+        />
+      </div>
+
       <section class="edit-resources">
         <div class="edit-resources__heading">
           <div>
@@ -154,6 +163,7 @@
 import { ref, watch, computed } from "vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import ErrorNotice from "@/components/common/ErrorNotice.vue";
+import TaskTagEditor from "@/components/task/TaskTagEditor.vue";
 import type { TaskAsset, TaskDocument, TaskResourceInput } from "@/types";
 import { statuses as taskStatuses } from "@/constants";
 
@@ -161,6 +171,7 @@ import { statuses as taskStatuses } from "@/constants";
 const props = defineProps<{
   modelValue: boolean;
   task: TaskDocument;
+  tagSuggestions?: string[];
   error?: string | null;
 }>();
 interface EditTaskSubmission {
@@ -174,7 +185,7 @@ const emit = defineEmits<{
 }>();
 
 // Reactive State ----------------------
-const editableTask = ref({ ...props.task });
+const editableTask = ref({ ...props.task, tags: [...(props.task.tags ?? [])] });
 const newResources = ref<TaskResourceInput[]>([]);
 const embargoDatePart = ref("");
 const embargoTimePart = ref("");
@@ -199,7 +210,7 @@ const isPublishedStatus = computed(
 watch(
   () => props.task,
   (t) => {
-    editableTask.value = { ...t };
+    editableTask.value = { ...t, tags: [...(t.tags ?? [])] };
     publishedDateInput.value = toLocalDateTimeInput(t.publishedDate);
     newResources.value = [];
   }
@@ -207,7 +218,7 @@ watch(
 
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
-    editableTask.value = { ...props.task };
+    editableTask.value = { ...props.task, tags: [...(props.task.tags ?? [])] };
     publishedDateInput.value = toLocalDateTimeInput(props.task.publishedDate);
     newResources.value = [];
   }
