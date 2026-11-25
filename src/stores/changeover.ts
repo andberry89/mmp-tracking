@@ -416,7 +416,7 @@ export const useChangeoverStore = defineStore("changeover", () => {
   };
 });
 
-function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
+export function mapChangeoverRow(row: DbChangeoverRow): ChangeoverEntry {
   const vehicle = one(row.model_year_vehicles);
   const model = vehicle ? one(vehicle.models) : null;
   const make = model ? one(model.makes) : null;

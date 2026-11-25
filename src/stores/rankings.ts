@@ -101,7 +101,7 @@ export const useRankingsStore = defineStore("rankings", () => {
         awards[award.award_type].push(award.award_year);
         awardsByVehicle.set(award.model_year_vehicle_id, awards);
       }
-      entries.value = rankingRows.map((row) => mapRow(row, awardsByVehicle.get(row.model_year_vehicle_id)));
+      entries.value = rankingRows.map((row) => mapRankingRow(row, awardsByVehicle.get(row.model_year_vehicle_id)));
     } catch (reason) {
       if (currentRequest === requestId) {
         error.value = reason instanceof Error ? reason.message : "Unable to load Rankings.";
@@ -326,7 +326,7 @@ export const useRankingsStore = defineStore("rankings", () => {
   return { entries, years, bodyStyles, selectedYear, isLoading, isSaving, error, load, saveRating, saveRankOrder, setEntryState, addPlacement, removePlacement, setAward, subscribeToChanges, stopRealtime };
 });
 
-function mapRow(row: RankingRow, awards?: Record<RankingAward, number[]>): RankingEntry {
+export function mapRankingRow(row: RankingRow, awards?: Record<RankingAward, number[]>): RankingEntry {
   const segment = one(row.segments);
   const vehicle = one(row.model_year_vehicles);
   const model = vehicle ? one(vehicle.models) : null;

@@ -1,6 +1,6 @@
 # To Do
 
-Status reconciled with project work through November 24, 2026. Email enhancements and optional features remain deferred until after launch.
+Status reconciled with project work through November 25, 2026. Email enhancements and optional features remain deferred until after launch.
 
 ## Completed
 
@@ -22,8 +22,8 @@ Status reconciled with project work through November 24, 2026. Email enhancement
 - A persistent header Refresh action reloads shared Catalog, author, and MMP data plus Changeover, Page Audit, Rankings, and Published & Updated data while preserving the selected year and publication filters.
 - Errors across the app use a shared high-contrast alert with a warning icon; compact forms and popovers use the same visual treatment at a smaller size.
 - Encrypted daily Supabase database exports are installed in OneDrive. A disposable local restore drill succeeded: all 16 public application tables and 29 RLS policies restored with foreign-key checks enabled. Auth accounts and Storage objects are outside the CLI export and require separate recovery. OneDrive currently blocks automatic retention cleanup in the background job, so old archives need manual removal.
-- Initial automated tests now cover publication lifecycle rules, MMP task ordering, and author/team grouping.
-- Active Work event tags are implemented for temporary groupings such as auto shows and press events. Editors can assign or remove tags, filter Active Work by tag, group tasks by their first assigned tag inside each status section, and duplicate a tagged task; tags clear automatically when a task is Published or Updated.
+- Automated test suite now covers publication lifecycle and ordering, Changeover/Page Audit/Rankings workflows, role access, realtime collaboration updates, persisted row mapping, database import/migration contracts, and Rankings save/rollback behavior. UI/browser-level tests and tests against a live Supabase project are not included.
+- Active Work event tags are implemented for temporary groupings such as auto shows and press events. Editors can assign or remove tags, reuse tags already on Active Work tasks, filter by tag, group tasks by their first assigned tag inside each status section, and duplicate tagged tasks. Tag colors are consistent across the workboard and task editor, and tags clear automatically when a task is Published or Updated.
 
 ## Current priorities
 
@@ -33,10 +33,10 @@ No current-priority items remain.
 
 - **Reliability and performance:** ensure real-time changes do not move another user's scroll position or discard unsaved edits, including when two Editors change the same record; review dependency advisories, expected workload, and load/search/update speed.
 - **Page Audit and Rankings exports:** add CSV or Excel export options.
-- **Automated tests:** expand coverage to Changeover, Page Audit, Rankings, role access, Realtime collaboration, imports, and persistence; add component-level workflow checks where valuable.
 - **Final visual and accessibility pass:** check remaining pages, keyboard and screen-reader operation, contrast, and reduced motion. The current responsiveness pass was accepted.
   - Add green/yellow/red indicators beside each field in the Edit Page Audit modal, using the same completion rules and colors as the audit table.
   - Fix the task three-dot menu hover styling so hovering over the popover does not recolor the entire menu.
+  - Color Manage Users rows based on each account's status.
 - **Release review:** verify backups and access controls, then confirm the production workflows with the team.
 
 ## Additional ideas — timing TBD
