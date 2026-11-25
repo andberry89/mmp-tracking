@@ -32,7 +32,7 @@
         </div>
       </div>
 
-      <div v-if="auditStore.isLoading" class="loading-state">Loading Page Audit…</div>
+      <div v-if="auditStore.isLoading" class="loading-state" role="status" aria-live="polite">Loading Page Audit…</div>
       <div v-else-if="!filteredEntries.length" class="empty-state">
         <strong>{{ auditStore.entries.length ? 'No vehicles match these filters.' : 'No Page Audit vehicles are loaded for this year.' }}</strong>
         <span v-if="!auditStore.entries.length && canEdit">Use Add to Audit to start with a vehicle from the shared Catalog.</span>
@@ -41,9 +41,9 @@
       <div v-else class="table-scroll" role="region" tabindex="0" aria-label="Page Audit checklist. Scroll to see all vehicle fields.">
         <table class="audit-table" :class="{ 'table--editable': canEdit }">
           <thead><tr>
-            <th class="vehicle-column">Vehicle / Segment / Rating</th><th class="people-column">Author / Auditor</th><th class="checklist-summary-column">Checklist</th><th class="awards-column">Awards</th><th class="status-column">Status</th>
-            <th v-for="check in checksForYear(selectedYear)" :key="check.key" class="check-heading"><span>{{ check.label }}</span></th>
-            <th class="notes-column">Audit notes</th>
+            <th scope="col" class="vehicle-column">Vehicle / Segment / Rating</th><th scope="col" class="people-column">Author / Auditor</th><th scope="col" class="checklist-summary-column">Checklist</th><th scope="col" class="awards-column">Awards</th><th scope="col" class="status-column">Status</th>
+            <th v-for="check in checksForYear(selectedYear)" :key="check.key" scope="col" class="check-heading"><span>{{ check.label }}</span></th>
+            <th scope="col" class="notes-column">Audit notes</th>
           </tr></thead>
           <tbody>
             <tr v-for="entry in filteredEntries" :key="entry.id">
@@ -110,7 +110,12 @@
 
         <section class="awards-form-section" aria-label="Rating and awards">
           <div class="section-heading"><h3>Rating &amp; awards</h3><span>The rating is shared with Rankings and Catalog; awards are tracked separately.</span></div>
-          <label class="field-label">Shared C/D rating
+          <label class="field-label">
+            <span class="field-label__title">
+              <span class="audit-field-indicator" :class="`audit-field-indicator--${sharedRatingResult({ rating: draft.rating })}`" aria-hidden="true"></span>
+              Shared C/D rating
+              <span class="sr-only">— {{ fieldStatusLabel(sharedRatingResult({ rating: draft.rating })) }}</span>
+            </span>
             <select v-model="draft.rating"><option :value="null">Not rated</option><option v-for="rating in ratingOptions" :key="rating" :value="rating">{{ rating.toFixed(1) }}</option></select>
           </label>
           <div class="award-options">
@@ -124,7 +129,11 @@
           <div class="section-heading"><h3>{{ selectedYear }} page checks</h3><span>Keep the source wording and notes in each answer.</span></div>
           <div class="checklist-grid">
             <label v-for="check in checksForYear(selectedYear)" :key="check.key" class="field-label checklist-field">
-              {{ check.label }}
+              <span class="field-label__title">
+                <span class="audit-field-indicator" :class="`audit-field-indicator--${checkResult(check, draft.checklist[check.key])}`" aria-hidden="true"></span>
+                {{ check.label }}
+                <span class="sr-only">— {{ fieldStatusLabel(checkResult(check, draft.checklist[check.key])) }}</span>
+              </span>
               <small v-if="check.guidance" class="field-hint">{{ check.guidance }}</small>
               <input v-model="draft.checklist[check.key]" type="text" :placeholder="check.placeholder || 'Enter result or note'" />
             </label>
@@ -163,30 +172,30 @@ type CheckField = {
   label: string;
   placeholder?: string;
   guidance?: string;
-  criterion: "yes" | "dual" | "actual" | "model_year" | "rating";
+  criterion: "yes" | "gallery_count" | "actual" | "model_year" | "rating";
 };
 
 const checks2026: CheckField[] = [
-  { key: "pricing_lead", label: "Pricing under lead image?", placeholder: "Yes / No; note if estimated", guidance: "Yes/No; note if estimated", criterion: "yes" },
+  { key: "pricing_lead", label: "Lead Image Pricing", placeholder: "Yes / No; note if estimated", guidance: "Yes/No; note if estimated", criterion: "yes" },
   { key: "photos_button", label: "View Photos Button", guidance: "Yes/No", criterion: "yes" },
-  { key: "gallery_model_year", label: "Gallery Model Year", placeholder: "Model year or N/A", guidance: "Current model year", criterion: "model_year" },
-  { key: "gallery_count", label: "How Many Galleries?", placeholder: "Single / Dual", guidance: "Dual", criterion: "dual" },
+  { key: "gallery_model_year", label: "Gallery Model Year", placeholder: "Model year or N/A", criterion: "model_year" },
+  { key: "gallery_count", label: "How Many Galleries?", placeholder: "Single / Dual or N/A", guidance: "Single/Dual or N/A", criterion: "gallery_count" },
   { key: "hlv", label: "H/L/V", guidance: "Yes/No", criterion: "yes" },
   { key: "specs_glance", label: "Specs At a Glance box visible?", guidance: "Yes/No", criterion: "yes" },
   { key: "video", label: "Video", guidance: "Yes/No", criterion: "yes" },
-  { key: "competitor_picture", label: "Competitor module - correct picture", guidance: "Yes/No/N/A", criterion: "yes" },
+  { key: "competitor_picture", label: "Rankings module & correct picture", guidance: "Yes/No or N/A", criterion: "yes" },
   { key: "pricing_module", label: "Pricing module displayed?", guidance: "Yes/No", criterion: "yes" },
   { key: "price_type", label: "Estimated price or actual price?", guidance: "Actual", criterion: "actual" },
-  { key: "recommended_trim", label: "Recommended trim icon?", guidance: "Yes/No", criterion: "yes" },
+  { key: "recommended_trim", label: "Recommended trim?", guidance: "Yes/No, note if more than 1", criterion: "yes" },
   { key: "zero_to_sixty", label: "Includes 0-60 Times?", guidance: "Yes/No", criterion: "yes" },
   { key: "zero_to_sixty_photo", label: "Exterior photo under 0-60 times?", guidance: "Yes/No", criterion: "yes" },
   { key: "research_module", label: "More on the Make/Model module displayed?", guidance: "Yes/No", criterion: "yes" },
-  { key: "range_test", label: "C/D Range Test included?", guidance: "Yes/No/N/A", criterion: "yes" },
-  { key: "epa_estimates", label: "Includes EPA estimates for subject model year?", guidance: "Yes/No", criterion: "yes" },
+  { key: "range_test", label: "C/D Range Test included?", guidance: "Yes/No or N/A", criterion: "yes" },
+  { key: "epa_estimates", label: "EPA Estimates included", guidance: "Yes/No", criterion: "yes" },
   { key: "hfe_numbers", label: "Includes HFE Numbers?", guidance: "Yes/No", criterion: "yes" },
-  { key: "carry_on_figures", label: "Interior Section includes carry-on figures", guidance: "Yes/No", criterion: "yes" },
+  { key: "carry_on_figures", label: "Carry-on figures included in interior section", guidance: "Yes/No", criterion: "yes" },
   { key: "interior_photo", label: "Interior photo under interior section?", guidance: "Yes/No", criterion: "yes" },
-  { key: "spec_panel", label: "Spec Panel", guidance: "Yes/No/N/A", criterion: "yes" },
+  { key: "spec_panel", label: "Spec Panel", guidance: "Yes/No or N/A", criterion: "yes" },
   { key: "features_specs_button", label: "More Features and Specs button?", guidance: "Yes/No", criterion: "yes" },
 ];
 
@@ -195,20 +204,20 @@ const checks2027: CheckField[] = [
   { key: "hlv", label: "H/L/V", guidance: "Yes/No", criterion: "yes" },
   { key: "specs_glance", label: "Specs at a Glance?", guidance: "Yes/No", criterion: "yes" },
   { key: "video", label: "Video", guidance: "Yes/No", criterion: "yes" },
-  { key: "competitor_picture", label: "Competitor module - correct picture", guidance: "Yes/No/N/A", criterion: "yes" },
+  { key: "competitor_picture", label: "Rankings module & correct picture", guidance: "Yes/No or N/A", criterion: "yes" },
   { key: "pricing_module", label: "Pricing module displayed?", guidance: "Yes/No", criterion: "yes" },
   { key: "price_type", label: "Estimated price or actual price?", guidance: "Actual", criterion: "actual" },
-  { key: "recommended_trim", label: "Recommended trim icon?", guidance: "Yes/No", criterion: "yes" },
+  { key: "recommended_trim", label: "Recommended trim?", guidance: "Yes/No, note if more than 1", criterion: "yes" },
   { key: "key_features", label: "Key Features", guidance: "Yes/No", criterion: "yes" },
   { key: "zero_to_sixty", label: "Includes 0-60 Times?", guidance: "Yes/No", criterion: "yes" },
   { key: "zero_to_sixty_photo", label: "Exterior photo under 0-60 times?", guidance: "Yes/No", criterion: "yes" },
   { key: "research_module", label: "Additional Research module displayed?", guidance: "Yes/No", criterion: "yes" },
-  { key: "range_test", label: "C/D Range Test included?", guidance: "Yes/No/N/A", criterion: "yes" },
-  { key: "epa_estimates", label: "Includes EPA estimates for subject model year?", guidance: "Yes/No", criterion: "yes" },
+  { key: "range_test", label: "C/D Range Test included?", guidance: "Yes/No or N/A", criterion: "yes" },
+  { key: "epa_estimates", label: "EPA Estimates included", guidance: "Yes/No", criterion: "yes" },
   { key: "hfe_numbers", label: "Includes HFE numbers?", guidance: "Yes/No", criterion: "yes" },
-  { key: "carry_on_figures", label: "Interior Section includes carry-on figures", guidance: "Yes/No", criterion: "yes" },
+  { key: "carry_on_figures", label: "Carry-on figures included in interior section", guidance: "Yes/No", criterion: "yes" },
   { key: "interior_photo", label: "Interior photo under interior section?", guidance: "Yes/No", criterion: "yes" },
-  { key: "spec_panel", label: "Spec Panel", guidance: "Yes/No/N/A", criterion: "yes" },
+  { key: "spec_panel", label: "Spec Panel", guidance: "Yes/No or N/A", criterion: "yes" },
   { key: "features_specs_button", label: "More Features and Specs button?", guidance: "Yes/No", criterion: "yes" },
 ];
 
@@ -303,7 +312,10 @@ function checkResult(check: CheckField, value: string | undefined): "passed" | "
     const rating = Number(answer);
     return rating >= 0 && rating <= 10 ? "passed" : "attention";
   }
-  const expected = { yes: "yes", dual: "dual", actual: "actual" }[check.criterion];
+  if (check.criterion === "gallery_count") {
+    return ["single", "dual", "single/dual"].includes(answer.toLowerCase().replace(/\s+/g, "")) ? "passed" : "attention";
+  }
+  const expected = { yes: "yes", actual: "actual" }[check.criterion];
   return answer.toLowerCase() === expected ? "passed" : "attention";
 }
 function checklistCounts(entry: PageAuditEntry) {
@@ -316,8 +328,11 @@ function checklistCounts(entry: PageAuditEntry) {
   counts.total += 1;
   return counts;
 }
-function sharedRatingResult(entry: PageAuditEntry): "passed" | "exception" | "attention" {
+function sharedRatingResult(entry: Pick<PageAuditEntry, "rating">): "passed" | "exception" | "attention" {
   return checkResult(sharedRatingCheck, entry.rating === null ? undefined : String(entry.rating));
+}
+function fieldStatusLabel(result: "passed" | "exception" | "attention") {
+  return result === "passed" ? "Complete" : result === "exception" ? "Review" : "Needs work";
 }
 function clearFilters() { query.value = ""; statusFilter.value = "all"; }
 function formatDate(value: string) {
@@ -467,6 +482,12 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .form-grid { display: grid; gap: 12px; }
 .form-grid--meta { grid-template-columns: repeat(4, minmax(130px, 1fr)); }
 .field-label { display: grid; min-width: 0; gap: 6px; color: var(--gray-dark-3); font-size: .76rem; font-weight: 600; }
+.field-label__title { display: inline-flex; min-width: 0; align-items: center; gap: 7px; }
+.audit-field-indicator { width: 9px; height: 9px; flex: 0 0 9px; border: 1px solid rgb(0 0 0 / 10%); border-radius: 50%; }
+.audit-field-indicator--passed { background: #78aa6b; }
+.audit-field-indicator--exception { background: #e0b04b; }
+.audit-field-indicator--attention { background: #c9483f; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 .field-label input, .field-label select, .field-label textarea { width: 100%; }
 .field-label textarea { min-height: 76px; resize: vertical; }
 .field-hint { color: var(--gray-light-4); font-size: .72rem; font-weight: 400; }
@@ -480,6 +501,7 @@ select, input, textarea { min-height: 36px; padding: 7px 10px; border: 1px solid
 .double-check-control strong { color: var(--gray-dark-3); font-size: .82rem; }
 .double-check-control small { color: var(--gray-light-4); font-size: .75rem; }
 .checklist-section { display: grid; gap: 12px; }
+.checklist-field { padding-bottom: 10px; border-bottom: 1px solid var(--color-divider); }
 .section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 5px 14px; }
 .section-heading h3 { margin: 0; font: 700 .98rem "Monda", sans-serif; }
 .section-heading span { color: var(--gray-light-4); font-size: .75rem; }

@@ -36,6 +36,17 @@ function handleAction(type: "edit" | "duplicate" | "delete", close: () => void) 
 </script>
 
 <style scoped>
+.task-actions {
+  --popper-theme-background-color: var(--white);
+  --popper-theme-background-color-hover: var(--white);
+  --popper-theme-text-color: var(--gray-dark-4);
+  --popper-theme-border-width: 1px;
+  --popper-theme-border-style: solid;
+  --popper-theme-border-color: var(--color-border);
+  --popper-theme-border-radius: 8px;
+  --popper-theme-padding: 5px;
+  --popper-theme-box-shadow: var(--color-surface-shadow-hover);
+}
 .task-actions__trigger { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--gray-light-4); cursor: pointer; transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease; }
 .task-actions__trigger:hover, .task-actions__trigger:focus-visible { border-color: var(--color-border); background: var(--white); color: var(--gray-dark-4); }
 .task-actions__trigger:focus-visible, .task-actions__menu button:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }

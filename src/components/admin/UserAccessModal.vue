@@ -35,9 +35,9 @@
       <div v-else-if="!users.length" class="empty-state">No approved users yet.</div>
       <div v-else class="user-table-wrap">
         <table class="user-table">
-          <thead><tr><th>Name / Email</th><th>Author link</th><th>Role</th><th>Access</th><th></th></tr></thead>
+          <thead><tr><th scope="col">Name / Email</th><th scope="col">Author link</th><th scope="col">Role</th><th scope="col">Access</th><th scope="col">Actions</th></tr></thead>
           <tbody>
-            <tr v-for="user in users" :key="user.email">
+            <tr v-for="user in users" :key="user.email" :class="accountRowClass(user)">
               <td data-label="Name / Email">
                 <input v-model.trim="user.display_name" class="display-name-input" type="text" aria-label="User display name" placeholder="Add a display name" />
                 <span class="account-email">{{ user.email }}</span>
@@ -272,6 +272,12 @@ function suggestDisplayName(email: string) {
   return `${titleCase(match[1])} ${titleCase(match[2])}`;
 }
 
+function accountRowClass(user: ManagedUser) {
+  if (!user.active) return "account-row--inactive";
+  if (user.invitation_pending || user.invitation_sent || !user.has_account) return "account-row--pending";
+  return "account-row--active";
+}
+
 function suggestNewDisplayName() {
   if (newDisplayNameEdited.value) return;
   newDisplayName.value = suggestDisplayName(newEmail.value);
@@ -313,6 +319,15 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .user-table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; text-align: left; font-size: .82rem; }
 .user-table th, .user-table td { padding: 9px 11px; border-bottom: 1px solid var(--color-border); }
 .user-table td { vertical-align: top; }
+.user-table tbody tr.account-row--active td { background: #eff7ed; }
+.user-table tbody tr.account-row--pending td { background: #fff7e3; }
+.user-table tbody tr.account-row--inactive td { background: #fbefee; }
+.user-table tbody tr.account-row--active td:first-child { box-shadow: inset 3px 0 #78aa6b; }
+.user-table tbody tr.account-row--pending td:first-child { box-shadow: inset 3px 0 #e0b04b; }
+.user-table tbody tr.account-row--inactive td:first-child { box-shadow: inset 3px 0 #c9483f; }
+.user-table tbody tr.account-row--active .account-state { color: #345e2d; }
+.user-table tbody tr.account-row--pending .account-state { color: #74530b; }
+.user-table tbody tr.account-row--inactive .account-state { color: #7d302b; }
 .user-table th { position: sticky; top: 0; background: var(--white-soft); color: var(--gray-light-4); font-size: .72rem; }
 .user-table tbody tr:last-child td { border-bottom: 0; }
 .user-table th:nth-child(1) { width: 27%; }
