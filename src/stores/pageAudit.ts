@@ -114,7 +114,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
       deadModelYearVehicleIds.value = [...deadIds];
       entries.value = (rows as unknown as DbPageAuditEntry[])
         .filter((row) => !deadIds.has(row.model_year_vehicle_id))
-        .map(mapRow);
+        .map(mapPageAuditRow);
     } catch (reason) {
       entries.value = [];
       deadModelYearVehicleIds.value = [];
@@ -197,7 +197,7 @@ export const usePageAuditStore = defineStore("pageAudit", () => {
   return { entries, deadModelYearVehicleIds, selectedYear, isLoading, isSaving, error, load, save, addVehicle, subscribeToChanges, stopRealtime };
 });
 
-function mapRow(row: DbPageAuditEntry): PageAuditEntry {
+export function mapPageAuditRow(row: DbPageAuditEntry): PageAuditEntry {
   const vehicle = one(row.model_year_vehicles);
   const model = vehicle ? one(vehicle.models) : null;
   const make = model ? one(model.makes) : null;
